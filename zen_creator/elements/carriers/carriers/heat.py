@@ -5,18 +5,17 @@ if TYPE_CHECKING:
 
 from zen_creator.elements.carriers.carrier import Carrier
 from zen_creator.utils.attribute import Attribute
-from functools import cached_property
+from zen_creator.datasets.dataset_collections.dataset_collection_heat import DatasetCollectionHeat
 import pandas as pd
 
 class Heat(Carrier):
-    name = "heat"
+    
     def __init__(self, model: Model):
-        super().__init__(model=model)
+        super().__init__(name = "heat", model=model)
 
-    @cached_property
-    def demand(self) -> Attribute:
+    def _set_demand(self) -> Attribute:
         attr = super().demand
-        demand_data = self.model.datasets["combined_dataset_heat"].get_demand()
+        demand_data = DatasetCollectionHeat(self.model.source_path).get_demand()
         return attr.set_data(df=demand_data,unit="GW", source="EU Building Observatory and When2Heat Dataset")
     
     # ---------- Methods ----------

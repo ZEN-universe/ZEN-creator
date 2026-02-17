@@ -5,17 +5,14 @@ if TYPE_CHECKING:
 
 from zen_creator.elements.carriers.carrier import Carrier
 from zen_creator.utils.attribute import Attribute
-from functools import cached_property
-
+from zen_creator.datasets.dataset_collections.dataset_collection_electricity import DatasetCollectionElectricity
 class Electricity(Carrier):
-    name = "electricity"
     def __init__(self, model: Model):
-        super().__init__(model=model)
+        super().__init__(name="electricity", model=model)
 
-    @cached_property
-    def demand(self) -> Attribute:
+    def _set_demand(self) -> Attribute:
         attr = super().demand
-        demand = self.model.datasets["combined_datasets_electricity"].get_demand()
+        demand = DatasetCollectionElectricity(self.model.source_path).get_demand()
         return attr.set_data(df=demand,unit="GW", source="ENTSOE Transparency Platform")
     
         

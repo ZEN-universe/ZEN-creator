@@ -1,19 +1,20 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-
-from zen_creator.elements.carriers.carrier import Carrier
 if TYPE_CHECKING:
-    from zen_creator.model import Model
+    from pathlib import Path
 
-from zen_creator.datasets.combined_datasets.combined_datasets import CombinedDataset
+from zen_creator.datasets.dataset_collection import DatasetCollection
 import os
 import pandas as pd
 
-class CombinedDatasetElectricity(CombinedDataset):
-    """Combined dataset for electricity-related data."""
+class DatasetCollectionHeat(DatasetCollection):
+    """Combined dataset for heat-related data."""
 
-    def __init__(self, model: Model):
-        super().__init__(name="combined_dataset_electricity", model=model)
+    name = "dataset_collection_heat"
+
+    def __init__(self, source_path: Path | str):
+        super().__init__(source_path=source_path)
+
     # ------ Metadata properties ------
     @property
     def author(self) -> str:
@@ -108,7 +109,71 @@ class CombinedDatasetElectricity(CombinedDataset):
         return heating_technology_share
     
     def get_demand(self):
-        electricity_demand = self.model.datasets["combined_datasets_electricity"].get_electricity_demand()
-        heat_demand = Carrier.get_by_name("heat").demand
-        heat_tech_share = self.model.datasets["combined_dataset_technology"].calculate_heating_technology_share()
-        raise NotImplementedError("Method to calculate electricity demand based on heat demand and heating technology share is not implemented yet.")
+        total_demand = self.model.datasets["eu_building_observatory"].load_total_heat_data()
+        w2h_data = self.model.datasets["when2heat"].load_heat_demand_profiles()
+        heat_demand = pd.DataFrame(index=range(8760), columns=self.model.energy_system.set_nodes["node"])
+        for node in total_demand.index:
+            if node == "EL":
+                node_W2H = "GR"
+            elif node == "UK":
+                node_W2H = "GB"
+            else:
+                node_W2H = node
+            demand_ts = w2h_data.loc[:, w2h_data.columns.str.contains(node_W2H)]
+            if not demand_ts.columns.empty:
+                res_space = demand_ts[f"{node_W2H}_heat_profile_space_MFH"] * total_demand.loc[node, "res_space"] / 1000
+                res_water = demand_ts[f"{node_W2H}_heat_profile_water_MFH"] * total_demand.loc[node, "res_water"] / 1000
+                nores_space = demand_ts[f"{node_W2H}_heat_profile_space_COM"] * total_demand.loc[
+                    node, "nores_space"] / 1000
+                nores_water = demand_ts[f"{node_W2H}_heat_profile_water_COM"] * total_demand.loc[
+                    node, "nores_water"] / 1000
+                heat_demand[node] = (res_space + res_water + nores_space + nores_water).interpolate()
+                assert not heat_demand[node].isna().any()
+            else:
+                # assume constant heat demand
+                heat_demand[node] = total_demand.loc[node].sum() / 8.76
+        # add missing countries
+        heat_demand = self.get_heat_demand_for_missing_countries(heat_demand, total_demand, w2h_data)
+        heat_demand = heat_demand.dropna(axis=1)
+        common_countries = heat_demand.columns.intersection(self.model.energy_system.set_nodes["node"])
+        assert common_countries.isin(self.model.energy_system.set_nodes["node"]).all(), "Not all heat demand countries are in the energy system nodes"
+        heat_demand = heat_demand[common_countries]
+        heat_demand.index.name = "time"
+        return heat_demand
+    
+    def get_heat_demand_for_missing_countries(self, heat_demand, total_demand, w2h_data):
+        """ get heat demand for missing countries"""
+        missing_countries = heat_demand.columns[heat_demand.isna().all(axis=0)]
+        additional_countries_w2h = w2h_data.columns.str[0:2].unique().drop(["ut", "ce"])
+        extra_countries = additional_countries_w2h.intersection(missing_countries)
+        for extra_country in extra_countries:
+            manual_demand = self.get_manual_heat_demand(extra_country)
+            demand_ts = w2h_data.loc[:, w2h_data.columns.str.contains(extra_country)]
+            if extra_country == "CH":
+                sub_country = "AT"
+            elif extra_country == "NO":
+                sub_country = "SE"
+            else:
+                continue
+            tot_sub_demand = total_demand.loc[sub_country].sum()
+            res_space = demand_ts[f"{extra_country}_heat_profile_space_MFH"] * total_demand.loc[
+                sub_country, "res_space"] / 1000
+            res_water = demand_ts[f"{extra_country}_heat_profile_water_MFH"] * total_demand.loc[
+                sub_country, "res_water"] / 1000
+            nores_space = demand_ts[f"{extra_country}_heat_profile_space_COM"] * total_demand.loc[
+                sub_country, "nores_space"] / 1000
+            nores_water = demand_ts[f"{extra_country}_heat_profile_water_COM"] * total_demand.loc[
+                sub_country, "nores_water"] / 1000
+            heat_demand[extra_country] = ((res_space + res_water + nores_space + nores_water) * manual_demand / tot_sub_demand).interpolate()
+            assert not heat_demand[extra_country].isna().any()
+        return heat_demand
+    
+    @staticmethod
+    def get_manual_heat_demand(node):
+        """ returns manual heat demand for nodes in TWh"""
+        heat_demand = {"CH": 100.66,
+                       # source Energieperspektiven Bundesamt für Energie, Table 8 https://www.bfe.admin.ch/bfe/en/home/politik/energieperspektiven-2050-plus.exturl.html/aHR0cHM6Ly9wdWJkYi5iZmUuYWRtaW4uY2gvZGUvcHVibGljYX/Rpb24vZG93bmxvYWQvMTAzMjQ=.html
+                       "NO": 40 * 7.1 / 4.6
+                       # measured from screen, source DNV Energy Transition Norway, page 19 https://www.norskindustri.no/siteassets/dokumenter/rapporter-og-brosjyrer/energy-transition-norway-2021.pdf
+                       }
+        return heat_demand[node]

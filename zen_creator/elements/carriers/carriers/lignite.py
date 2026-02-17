@@ -10,9 +10,8 @@ from functools import cached_property
 class Lignite(Carrier):
     name = "lignite"
     def __init__(self, model: Model):
-        super().__init__(model=model)
+        super().__init__(name = "lignite", model=model)
 
-    @cached_property
-    def carbon_intensity_carrier_import(self) -> Attribute:
+    def _set_carbon_intensity_carrier_import(self) -> Attribute:
         attr = super().carbon_intensity_carrier_import
         return attr.set_data(default_value=0.400, source="Brown 2018")

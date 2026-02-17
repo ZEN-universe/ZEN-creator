@@ -42,6 +42,8 @@ class MainSettings(Subscriptable):
     """
     Main settings for ZEN-creator.
     """
+    source_path: str | None = None
+    output_folder: str = "./outputs/"
     use_no_storage: bool = False # TODO remove?
     use_self_discharge: bool = False # TODO remove?
 

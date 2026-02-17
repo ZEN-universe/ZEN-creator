@@ -1,17 +1,31 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from zen_creator.model import Model
+from typing import TYPE_CHECKING, Dict
 
-from zen_creator.datasets.dataset import Dataset
+from zen_creator.elements.carriers.carrier import Carrier
+if TYPE_CHECKING:
+    from pathlib import Path
+
+from zen_creator.datasets.dataset_collection import DatasetCollection
 import os
 import pandas as pd
 
-class CombinedDataset(Dataset):
-    """Combined dataset for various data."""
-
-    def __init__(self, model: Model, name: str):
-        super().__init__(name=name, model=model)
+class DatasetCollectionElectricity(DatasetCollection):
+    """Combined dataset for electricity-related data."""
+    name="dataset_collection_electricity"
+    def __init__(self, source_path: Path | str):
+        super().__init__(sourceL_path = source_path)
+    # ------ Metadata properties ------
+    @property
+    def author(self) -> str:
+        return "-"
+    
+    @property
+    def publication_year(self) -> int:
+        return -1
+    
+    @property
+    def url(self) -> str:
+        return "-"
 
     # ----- Methods to get data -----
     def calculate_heating_technology_share(self):
@@ -92,3 +106,9 @@ class CombinedDataset(Dataset):
         comb_heat = pd.concat([fin_con, ghp], axis=1).stack()
         heating_technology_share = comb_heat.div(total_heat)
         return heating_technology_share
+    
+    def get_demand(self):
+        electricity_demand = self.model.datasets["combined_datasets_electricity"].get_electricity_demand()
+        heat_demand = Carrier.get_by_name("heat").demand
+        heat_tech_share = self.model.datasets["combined_dataset_technology"].calculate_heating_technology_share()
+        raise NotImplementedError("Method to calculate electricity demand based on heat demand and heating technology share is not implemented yet.")

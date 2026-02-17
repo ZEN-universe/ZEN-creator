@@ -3,10 +3,10 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator.elements.technologies.conversion_technologies import ConversionTechnology
-from zen_creator.elements.technologies.storage_technologies import StorageTechnology
-from zen_creator.elements.technologies.transport_technologies import TransportTechnology
-from zen_creator.elements.technologies.conversion_technologies import RetrofittingTechnology
+from zen_creator.elements.technologies.conversion_technology import ConversionTechnology
+from zen_creator.elements.technologies.storage_technology import StorageTechnology
+from zen_creator.elements.technologies.transport_technology import TransportTechnology
+from zen_creator.elements.technologies.retrofitting_technology import RetrofittingTechnology
 from zen_creator.utils.attribute import SystemAttribute
 
 

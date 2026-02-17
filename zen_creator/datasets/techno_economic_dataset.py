@@ -12,10 +12,11 @@ from zen_creator.utils.helpers import get_partial_index
 class TechnoEconomicDataset(Dataset):
     """Dataset class for techno-economic source data."""
 
-    def __init__(self, name: str, model: Model):
-        super().__init__(name=name, model=model)
-        self.source_path = self.model.source_path / "07-techno_economic_parameters" / self.name 
-        self.raw_data = None
+    name = "techno_economic_dataset"
+
+    def __init__(self, source_path: Path | str):
+        super().__init__(source_path = source_path)
+
         self.available_technologies_finance = []
         self.available_technologies_efficiency = []
         self.available_technologies_lifetime = []
@@ -31,11 +32,6 @@ class TechnoEconomicDataset(Dataset):
     def unit(self) -> str:
         pass
     
-    @abstractmethod
-    def load_raw_data(self):
-        """Method to load the raw techno-economic data."""
-        pass
-
     @abstractmethod
     def get_cost_data(self, technology: str, variable: str) -> pd.DataFrame:
         """Method to get the finance data of a technology."""

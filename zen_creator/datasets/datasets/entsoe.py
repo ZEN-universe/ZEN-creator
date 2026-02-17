@@ -17,8 +17,8 @@ from entsoe.parsers import parse_loads
 class ENTSOEAPI(Dataset):
     """Dataset class for ENTSOE data."""
 
-    def __init__(self, model: Model):
-        super().__init__(name="entsoe_api", model=model)
+    def __init__(self):
+        super().__init__(name="entsoe_api")
         self.entsoe_client = EntsoeRawClient(api_key=self.model.config.data_source_settings.entsoe_api_key)
 
     # ------ Metadata properties ------

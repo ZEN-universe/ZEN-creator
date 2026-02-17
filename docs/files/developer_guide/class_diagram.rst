@@ -9,23 +9,27 @@ Overview
 
    classDiagram
        class Model {
-           +model_name: str
+           +name: str
            +config: Config
-           +out_path: Path
            +source_path: Path
-           +sectors: list
            +elements: dict
-           +energy_system; EnergySystem
-           +create_energy_system() None
+           +out_path: Path <<property>>
+           +energy_system: EnergySystem <<cached_property>>
+           +carriers: dict <<property>>
+           +technologies: dict <<property>>
+           +storage_technologies: dict <<property>>
+           +conversion_technologies: dict <<property>>
+           +transport_technologies: dict <<property>>
+           +retrofitting_technologies: dict <<property>>
            +add_sector() None
+           +remove_sector() None
            +add_element() None
+           +remove_element() None
            +validate() None
-           +write_files() None
+           +write() None
         }
         class Sector {
-           +model: Model
-           +elements: dict
-           +add() None
+           +elements: dict <<property>>
         }
         class Element{
         }

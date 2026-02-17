@@ -13,6 +13,7 @@ import numpy as np
 
 class StorageTechnology(Technology, ABC):
     subpath = "set_storage_technologies"
+    name = "storage_technology"
 
     def __init__(self, name: str, model: Model, power_unit: str = "MW"):
         super().__init__(name, model, power_unit=power_unit)
@@ -185,7 +186,7 @@ class StorageTechnology(Technology, ABC):
     @capacity_addition_max_energy.setter
     def capacity_addition_max_energy(self, value: Attribute) -> None:
         self._validate_attribute(value)
-        self._capacity_addition_max_energy = value 
+        self._capacity_addition_max_energy = value
 
     @property
     def capacity_existing_energy(self) -> Attribute:
