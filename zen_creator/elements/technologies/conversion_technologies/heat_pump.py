@@ -15,7 +15,9 @@ class HeatPump(ConversionTechnology):
         super().__init__(name="heat_pump", model=model)
 
     def _set_lifetime(self) -> Attribute:
-        return Attribute(name="lifetime", default_value=25, element=self)
+        attr = self._lifetime
+        return attr.set_data(
+            default_value=25, source="assumption")
 
     def _set_conversion_factor(self) -> Attribute:
         return Attribute(

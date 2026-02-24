@@ -32,7 +32,7 @@ class EnergySystem(Element):
     def price_carbon_emissions_annual_overshoot(self) -> Attribute:
         return Attribute(
             "price_carbon_emissions_annual_overshoot",
-            default_value=5000,
+            default_value=np.inf,
             unit="Euro/tons",
             source="assumption",
             element=self,
@@ -42,9 +42,9 @@ class EnergySystem(Element):
     def carbon_emissions_budget(self) -> Attribute:
         return Attribute(
             "carbon_emissions_budget",
-            default_value=23.152036605496253,
+            default_value=np.inf,
             unit="gigatons",
-            source="IEA World Energy Outlook 2021",
+            source="assumption",
             element=self,
         )
 
@@ -54,6 +54,7 @@ class EnergySystem(Element):
             "carbon_emissions_annual_limit",
             default_value=np.inf,
             unit="gigatons",
+            source="assumption",
             element=self,
         )
 
@@ -61,7 +62,7 @@ class EnergySystem(Element):
     def price_carbon_emissions_budget_overshoot(self) -> Attribute:
         return Attribute(
             "price_carbon_emissions_budget_overshoot",
-            default_value=5000,
+            default_value=np.inf,
             unit="Euro/tons",
             source="assumption",
             element=self,
@@ -95,7 +96,11 @@ class EnergySystem(Element):
     @cached_property
     def knowledge_spillover_rate(self) -> Attribute:
         return Attribute(
-            "knowledge_spillover_rate", default_value=np.inf, unit="1", element=self
+            "knowledge_spillover_rate", 
+            default_value=np.inf, 
+            unit="1", 
+            source="assumption", 
+            element=self
         )
 
     @cached_property

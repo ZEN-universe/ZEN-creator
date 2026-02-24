@@ -7,7 +7,8 @@ from pathlib import Path
 import os
 
 
-source_path = "C:\\Users\\chris\\OneDrive - ETH Zurich\\Documents\\01_Projects\\03_ZEN-garden\\00_ZEN_Creator_Raw_Data\\raw_data" # TODO make configurable
+source_path = "C:\\Users\\jmannhardt\\Desktop\\02-ZEN\\ZEN-creator\\raw_data" # TODO make configurable
+
 config_path = Path(os.path.join(source_path, "config.yaml"))
 
 

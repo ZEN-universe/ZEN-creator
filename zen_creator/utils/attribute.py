@@ -25,6 +25,7 @@ class Attribute:
         self.default_value = default_value
         self.unit = unit
         self.df = df
+        self.yearly_variations_df = None
         self.source = source
         # self.overwrite_from_existing_model()
 
@@ -33,6 +34,7 @@ class Attribute:
         default_value: Union[float, list] = None,
         unit: str = None,
         df: Union[pd.DataFrame, pd.Series] = None,
+        yearly_variations_df: Union[pd.DataFrame, pd.Series] = None,
         source: str = None,
     ):
         if default_value is not None:
@@ -41,6 +43,8 @@ class Attribute:
             self.set_unit(unit)
         if df is not None:
             self.set_df(df)
+        if yearly_variations_df is not None:
+            self.set_yearly_variations_df(yearly_variations_df)
         if source is not None:
             self.set_source(source)
         return self
@@ -73,6 +77,7 @@ class Attribute:
                             raise ValueError(
                                 f"Each entry in the default value list for 'conversion_factor' must be a dict with 'default_value' and 'unit' keys."
                             )
+                        
         elif not isinstance(default_value, (float, int)):
             raise ValueError(
                 f"Attribute '{self.name}' default value must be a float, int, or list (for {', '.join(list_supported)})."
@@ -108,6 +113,27 @@ class Attribute:
 
     def get_df(self) -> Union[pd.DataFrame, pd.Series]:
         return self.df
+
+    def set_yearly_variations_df(self, yearly_variations_df: Union[pd.DataFrame, pd.Series]):
+        if self.yearly_variations_df is not None:
+            print(f"Warning: Overwriting existing yearly variations data for attribute '{self.name}'.")
+        for idx_name in yearly_variations_df.index.names:
+            if idx_name not in [
+                "year",
+                "node",
+                "location",
+                "edge",
+                "carrier",
+                "technology",
+            ]:
+                raise ValueError(
+                    f"Index name '{idx_name}' in yearly variations DataFrame for attribute '{self.name}' is not allowed. Allowed index names are 'year', 'node', 'location', 'edge', 'carrier', 'technology'."
+                )
+        self.yearly_variations_df = yearly_variations_df
+        return self
+    
+    def get_yearly_variations_df(self) -> Union[pd.DataFrame, pd.Series]:
+        return self.yearly_variations_df
 
     def set_source(self, source: str):
         if self.source is not None:
@@ -202,17 +228,16 @@ class Attribute:
                         self.default_value = attr_data["default_value"]
                 if "unit" in attr_data:
                     self.unit = attr_data["unit"]
-                if self.name in [
-                    "conversion_factor",
-                    "reference_carrier",
-                    "input_carrier",
-                    "output_carrier",
-                ]:
+                if self.name == "conversion_factor":
                     self.default_value = attr_data
         data_file_path = existing_element_path / f"{self.name}.csv"
         if data_file_path.exists():
             df = pd.read_csv(data_file_path, index_col=0)
-            self.df = df
+            self.set_df(df)
+        yearly_variations_file_path = existing_element_path / f"{self.name}_yearly_variations.csv"
+        if yearly_variations_file_path.exists():
+            df = pd.read_csv(yearly_variations_file_path, index_col=0)
+            self.set_yearly_variations_df(df)
 
 
 class SystemAttribute(Attribute):

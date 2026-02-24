@@ -15,6 +15,17 @@
                 "PYTHONPATH": "${workspaceFolder}"
             },
             "console": "integratedTerminal"
+        },
+        {
+            "name": "Test ZEN-creator",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "C:/Users/jmannhardt/Desktop/02-ZEN/data",
+             "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "program": "${file}",
+            "console": "integratedTerminal"
         }
     ]
 }

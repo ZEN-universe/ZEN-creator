@@ -18,10 +18,9 @@ class Photovoltaics(ConversionTechnology):
         super().__init__(name="photovoltaics", model=model)
 
     def _set_lifetime(self) -> Attribute:
+        attr = self._lifetime
         lifetime = EconomicParameters(self.model.source_path).get_lifetime(self.name)
-        return Attribute(
-            name="lifetime", default_value=lifetime, element=self, source=""
-        )
+        return attr.set_data(default_value=lifetime, source="multiple sources")
 
     def _set_capex_specific_conversion(self) -> Attribute:
         attr = self._capex_specific_conversion

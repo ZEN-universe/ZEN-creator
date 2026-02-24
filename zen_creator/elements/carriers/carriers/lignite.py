@@ -13,5 +13,6 @@ class Lignite(Carrier):
         super().__init__(name = "lignite", model=model)
 
     def _set_carbon_intensity_carrier_import(self) -> Attribute:
+        # TODO clean up
         attr = super().carbon_intensity_carrier_import
         return attr.set_data(default_value=0.400, source="Brown 2018")

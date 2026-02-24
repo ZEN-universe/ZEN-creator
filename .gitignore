@@ -83,6 +83,7 @@ target/
 # VSCODE
 *.code-workspace
 *.vscode
+.vscode/
 
 # IPython
 profile_default/

@@ -24,31 +24,61 @@ class SystemFile:
     # ---------- System File Attributes ----------
     @cached_property
     def set_conversion_technologies(self) -> list:
-        set_conversion_technologies = set(ConversionTechnology.get_all().keys())
-        set_retrofitting_technologies = set(RetrofittingTechnology.get_all().keys())
-        return SystemAttribute("set_conversion_technologies", value=sorted(list(set_conversion_technologies.difference(set_retrofitting_technologies))), default_value=[],element=self)
+        set_conversion_technologies = set(self.model.conversion_technologies.keys())
+        set_retrofitting_technologies = set(self.model.retrofitting_technologies.keys())
+        return SystemAttribute(
+            "set_conversion_technologies", 
+            value=sorted(
+                list(set_conversion_technologies.difference(
+                    set_retrofitting_technologies))), 
+            default_value=[],
+            element=self)
     
     @cached_property
     def set_storage_technologies(self) -> list:
-        return SystemAttribute("set_storage_technologies", value=sorted(list(StorageTechnology.get_all().keys())), default_value=[],element=self)
+        return SystemAttribute(
+            "set_storage_technologies", 
+            value=sorted(list(self.model.storage_technologies.keys())), 
+            default_value=[],
+            element=self)
+    
     @cached_property
     def set_transport_technologies(self) -> list:
-        return SystemAttribute("set_transport_technologies", value=sorted(list(TransportTechnology.get_all().keys())), default_value=[],element=self)
+        return SystemAttribute(
+            "set_transport_technologies", 
+            value=sorted(list(self.model.transport_technologies.keys())), 
+            default_value=[],
+            element=self)
     
     @cached_property
     def set_retrofitting_technologies(self) -> list:
-        return SystemAttribute("set_retrofitting_technologies", value=sorted(list(RetrofittingTechnology.get_all().keys())), default_value=[],element=self)
+        return SystemAttribute(
+            "set_retrofitting_technologies", 
+            value=sorted(list(self.model.retrofitting_technologies.keys())), 
+            default_value=[],
+            element=self)
     
     @cached_property
     def set_nodes(self) -> list:
-        return SystemAttribute("set_nodes", value=sorted(self.model.energy_system.set_nodes["node"].to_list()), default_value=[],element=self)
+        return SystemAttribute(
+            "set_nodes", 
+            value=sorted(self.model.energy_system.set_nodes["node"].to_list()), 
+            default_value=[],
+            element=self)
+    
     @cached_property
     def reference_year(self) -> int:
-        return SystemAttribute("reference_year", value=self.model.config.time_settings.reference_year, element=self)
+        return SystemAttribute(
+            "reference_year", 
+            value=self.model.config.time_settings.reference_year, 
+            element=self)
     
     @cached_property
     def optimized_years(self) -> int:
-        return SystemAttribute("optimized_years", value=self.model.config.time_settings.optimized_years, element=self)
+        return SystemAttribute(
+            "optimized_years", 
+            value=self.model.config.time_settings.optimized_years, 
+            element=self)
     
     @cached_property
     def interval_between_years(self) -> int:

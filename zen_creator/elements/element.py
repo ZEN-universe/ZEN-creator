@@ -113,6 +113,6 @@ class Element:
 
         out_path = self.output_path
 
-        for attr_name in self._attributes_list:
+        for attr_name in self._attribute_names:
             attr = getattr(self, attr_name)
             attr.save_data(out_path, self.name)

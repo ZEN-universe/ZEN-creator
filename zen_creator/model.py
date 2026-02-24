@@ -84,7 +84,7 @@ class Model:
         )
 
         # add energy sectors and energy system
-        # ise default values to initialize
+        # use default values to initialize
         model.energy_system = EnergySystem(model)
         for sector in model.config.sector_settings.sectors:
             model.add_sector_by_name(sector)
@@ -358,7 +358,7 @@ class Model:
         self.energy_system.system_file.save_system_file()
 
         # save all elements (technologies and carriers)
-        for element in self.elements:
+        for element in self.elements.values():
             element.save_attributes()
             element.save_data()
 
