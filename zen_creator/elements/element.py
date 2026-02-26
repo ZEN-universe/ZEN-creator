@@ -1,26 +1,27 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING, ClassVar, Type
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
-    from zen_creator.utils.default_config import Config
     from zen_creator.utils.attribute import Attribute
-from zen_creator.utils.attribute import Attribute
+    from zen_creator.utils.default_config import Config
 import json
 from pathlib import Path
+
+from zen_creator.utils.attribute import Attribute
 
 
 class Element:
     subpath: ClassVar[str] = ""
     _element_registry: dict[str, Type[Element]] = {}
 
-    def __init__(self, name: str, model: Model, power_unit: str = "MW"):
+    def __init__(self, model: Model, power_unit: str = "MW"):
 
         # Attributes that should be saved
         self._attribute_names: list[str] = []
 
         # set public attribute values
-        self.name: str = name
         self.model: Model = model
         self.config: Config = model.config
         self.power_unit: str = power_unit
@@ -55,7 +56,7 @@ class Element:
     @property
     def output_path(self) -> Path:
         """
-        Get absolute output path and ensure directory exists
+        Get absolute output path and ensure directory exists.
         """
         output_path = self.get_output_path()
         output_path.mkdir(parents=True, exist_ok=True)
@@ -72,7 +73,7 @@ class Element:
     def build(self):
         """
         Sets self.<attribute_name> = self._set_<attribute_name>() for all
-        attributes
+        attributes.
         """
         for name in self._attribute_names:
             setter = getattr(self, f"_set_{name}", None)
@@ -88,17 +89,30 @@ class Element:
             )
 
     # ----------- methods for saving ---------------------------
+    def write(self):
+
+        # write attributes.json file
+        self.save_attributes()
+
+        # write data files
+        self.save_data()
+    
     def get_output_path(self) -> Path:
         """
-        Get path to element and create that directory
+        Get path to element and create that directory.
         """
-        return self.model.out_path / self.relative_output_path
+        return self.model.output_path / self.relative_output_path
 
     def attributes_to_dict(self) -> dict:
         output = {}
         for attr_name in self._attribute_names:
+
             attr = getattr(self, attr_name)
-            output[attr_name] = attr.default_to_dict()
+
+            #skip for attributes such as set_nodes or set_edges with not default
+            if attr.default_value: 
+                output[attr_name] = attr.default_to_dict()
+        
         return output
 
     def save_attributes(self):

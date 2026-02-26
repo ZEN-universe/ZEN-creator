@@ -11,18 +11,17 @@
 #
 import os
 import sys
-import shutil
 from importlib.metadata import version as get_version
-from pathlib import Path
-sys.path.insert(0, os.path.abspath('..'))
-sys.path.append(os.path.abspath('_ext'))
+
+sys.path.insert(0, os.path.abspath(".."))
+sys.path.append(os.path.abspath("_ext"))
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'ZEN-creator'
-copyright = '2026, Reliability and Risk Engineering lab, ETH Zurich'
-author = 'Jacob Mannhardt, Christoph Funke'
+project = "ZEN-creator"
+copyright = "2026, Reliability and Risk Engineering lab, ETH Zurich"
+author = "Jacob Mannhardt, Christoph Funke"
 release = get_version("zen_creator")
 language = "en"
 
@@ -31,22 +30,23 @@ language = "en"
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc',
-              'sphinx.ext.napoleon',
-              'sphinx.ext.mathjax',
-              'sphinx.ext.autodoc',
-              'sphinx.ext.autosummary',
-              'sphinx.ext.intersphinx',
-              'sphinx.ext.todo',
-#              "sphinx.ext.autosectionlabel",
-              'sphinx_reredirects',
-              'nbsphinx',
-              'nbsphinx_link',
-              'myst_parser',
-              "sphinx.ext.imgconverter",  # for SVG conversion
-              "sphinxcontrib.mermaid", # for class diagrams
-              "docstring" # custom extension for inserting docstring text
-             ]
+extensions = [
+    "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.mathjax",
+    "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.todo",
+    #              "sphinx.ext.autosectionlabel",
+    "sphinx_reredirects",
+    "nbsphinx",
+    "nbsphinx_link",
+    "myst_parser",
+    "sphinx.ext.imgconverter",  # for SVG conversion
+    "sphinxcontrib.mermaid",  # for class diagrams
+    "docstring",  # custom extension for inserting docstring text
+]
 # allow errors in the notebooks
 nbsphinx_allow_errors = True
 
@@ -61,8 +61,8 @@ napoleon_use_ivar = False
 
 # Specify the special members to include in the documentation
 autodoc_default_options = {
-    'members': True,
-    'special-members': '__init__',
+    "members": True,
+    "special-members": "__init__",
 }
 
 numfig = True
@@ -71,13 +71,13 @@ numfig = True
 autodoc_typehints_format = "short"
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 # exclude all jupyter notebooks
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '**.ipynb_checkpoints']
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.ipynb_checkpoints"]
 
 
 mermaid_init_js = """
@@ -100,7 +100,7 @@ mermaid.initialize({
 # a list of builtin themes.
 #
 # html_theme = 'sphinx_book_theme'
-html_theme = 'furo'
+html_theme = "furo"
 
 # Theme-specific options to customize the look of a theme
 # For a list of options available for each theme, see the documentation.
@@ -123,7 +123,7 @@ html_theme_options = {
 }
 
 
-# The name for this set of Sphinx documents.  
+# The name for this set of Sphinx documents.
 html_title = "ZEN-creator"
 html_short_title = "ZEN-creator"
 

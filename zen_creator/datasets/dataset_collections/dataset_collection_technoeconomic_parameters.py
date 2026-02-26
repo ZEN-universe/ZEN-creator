@@ -1,22 +1,22 @@
 from __future__ import annotations
-import os
-from typing import TYPE_CHECKING, Optional
+
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from zen_creator.utils.default_config import Config
 
+import pandas as pd
+
 from zen_creator.datasets.dataset_collection import DatasetCollection
-from zen_creator.datasets.techno_economic_dataset import TechnoEconomicDataset
 from zen_creator.datasets.datasets.DIW import DIW
 from zen_creator.datasets.datasets.potencia import Potencia
-import pandas as pd
 
 
 class EconomicParameters(DatasetCollection):
     """Class for techno-economic parameters."""
-    
+
     name = "economic_parameters"
-    
+
     def __init__(self, source_path: Path | str):
         super().__init__(source_path=source_path)
 

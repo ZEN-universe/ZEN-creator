@@ -1,5 +1,6 @@
 from abc import ABCMeta
 
+
 class SingletonRegistryMeta(ABCMeta):
     """A generic metaclass for singleton + automatic registry behavior."""
 
@@ -11,11 +12,11 @@ class SingletonRegistryMeta(ABCMeta):
         Creates a registry for this class type if it doesn't exist.
         """
         registry = cls._registries.setdefault(cls, {})
-       
+
         # Check for existing instance in registry by name (if the name is set)
         if getattr(cls, "name", None) in registry:
             return registry[cls.name]
-        
+
         # Create a new instance using the parent class's `__call__`
         instance = super().__call__(*args, **kwargs)
 
@@ -35,14 +36,17 @@ class SingletonRegistryMeta(ABCMeta):
         parent_class = cls.__base__
 
         # Stop if the parent class is the base class of SingletonRegistryMeta
-        if parent_class is not object and isinstance(parent_class, SingletonRegistryMeta):
+        if parent_class is not object and isinstance(
+            parent_class, SingletonRegistryMeta
+        ):
             parent_registry = parent_class._registries.setdefault(parent_class, {})
-            
+
             # Only register in the parent registry if it's not already registered
             if getattr(instance, "name", None) and instance.name not in parent_registry:
                 parent_registry[instance.name] = instance
-            
-            # Recursively register in the parent's parent (up the hierarchy) if necessary
+
+            # Recursively register in the parent's parent (up the hierarchy) if
+            # necessary
             parent_class._register_in_parents(instance)
 
     def get_by_name(cls, name: str) -> object:

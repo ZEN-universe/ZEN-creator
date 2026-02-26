@@ -1,6 +1,6 @@
-import os
 import numpy as np
 import pandas as pd
+
 
 def get_partial_index(idx, inv_map: dict) -> pd.Index:
     """Get a partial index based on an inverse mapping."""

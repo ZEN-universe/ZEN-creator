@@ -1,125 +1,114 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
+
+import numpy as np
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
+from zen_creator.datasets.dataset_collections.edges import Edges
+from zen_creator.datasets.datasets.nuts_shp import NUTSshp
 from zen_creator.elements.element import Element
 from zen_creator.utils.attribute import Attribute
-from zen_creator.utils.system_file import SystemFile
-from functools import cached_property
-import numpy as np
-import pandas as pd
-import geopandas as gpd
-import copy
 
 
 class EnergySystem(Element):
     name = "energy_system"
 
     def __init__(self, model: Model):
-        super().__init__(name="energy_system", model=model)
+        super().__init__(model=model)
 
-        # create energy system description
-        self.create_nodes()
-        self.create_edges()
+        # copy attributes from superclass
+        self._attribute_names = list(self._attribute_names)  # copy to prevent override
 
-        # create system file
-        self.system_file = SystemFile(model=model)
+        # attributes which are added in this class
+        self._subclass_attribute_names = [
+            "price_carbon_emissions_annual_overshoot",
+            "carbon_emissions_budget",
+            "carbon_emissions_annual_limit",
+            "price_carbon_emissions_budget_overshoot",
+            "price_carbon_emissions",
+            "carbon_emissions_cumulative_existing",
+            "discount_rate",
+            "knowledge_spillover_rate",
+            "knowledge_depreciation_rate",
+            "market_share_unbounded",
+            "set_nodes",
+            "set_edges",
+        ]
+        self._attribute_names.extend(self._subclass_attribute_names)
 
-    # ---------- Attributes ----------
-    @cached_property
-    def price_carbon_emissions_annual_overshoot(self) -> Attribute:
-        return Attribute(
+        # initialize all attributes to default values
+        self.set_default_values_energy_system()
+
+    # ---------- Initialization ----------
+    def set_default_values_energy_system(self):
+        """Initialize all attributes to their default values."""
+        self._price_carbon_emissions_annual_overshoot = Attribute(
             "price_carbon_emissions_annual_overshoot",
             default_value=np.inf,
             unit="Euro/tons",
             source="assumption",
             element=self,
         )
-
-    @cached_property
-    def carbon_emissions_budget(self) -> Attribute:
-        return Attribute(
+        self._carbon_emissions_budget = Attribute(
             "carbon_emissions_budget",
             default_value=np.inf,
             unit="gigatons",
             source="assumption",
             element=self,
         )
-
-    @cached_property
-    def carbon_emissions_annual_limit(self) -> Attribute:
-        return Attribute(
+        self._carbon_emissions_annual_limit = Attribute(
             "carbon_emissions_annual_limit",
             default_value=np.inf,
             unit="gigatons",
             source="assumption",
             element=self,
         )
-
-    @cached_property
-    def price_carbon_emissions_budget_overshoot(self) -> Attribute:
-        return Attribute(
+        self._price_carbon_emissions_budget_overshoot = Attribute(
             "price_carbon_emissions_budget_overshoot",
             default_value=np.inf,
             unit="Euro/tons",
             source="assumption",
             element=self,
         )
-
-    @cached_property
-    def price_carbon_emissions(self) -> Attribute:
-        return Attribute(
+        self._price_carbon_emissions = Attribute(
             "price_carbon_emissions", default_value=0, unit="Euro/tons", element=self
         )
-
-    @cached_property
-    def carbon_emissions_cumulative_existing(self) -> Attribute:
-        return Attribute(
+        self._carbon_emissions_cumulative_existing = Attribute(
             "carbon_emissions_cumulative_existing",
             default_value=0,
             unit="gigatons",
             element=self,
         )
-
-    @cached_property
-    def discount_rate(self) -> Attribute:
-        return Attribute(
+        self._discount_rate = Attribute(
             "discount_rate",
             default_value=0.05,
             unit="1",
             source="https://iopscience.iop.org/article/10.1088/1748-9326/ac228a",
             element=self,
         )
-
-    @cached_property
-    def knowledge_spillover_rate(self) -> Attribute:
-        return Attribute(
-            "knowledge_spillover_rate", 
-            default_value=np.inf, 
-            unit="1", 
-            source="assumption", 
-            element=self
+        self._knowledge_spillover_rate = Attribute(
+            "knowledge_spillover_rate",
+            default_value=np.inf,
+            unit="1",
+            source="assumption",
+            element=self,
         )
-
-    @cached_property
-    def knowledge_depreciation_rate(self) -> Attribute:
-        return Attribute(
+        self._knowledge_depreciation_rate = Attribute(
             "knowledge_depreciation_rate",
             default_value=0.1,
             unit="1",
             source=(
                 "1. Leibowicz, B. D., Krey, V. & Grubler, A. "
-                "Representing spatial technology diffusion in an energy system optimization model. "
+                "Representing spatial technology diffusion in an energy system "
+                "optimization model. "
                 "Technological Forecasting and Social Change 103 (2016)."
             ),
             element=self,
         )
-
-    @cached_property
-    def market_share_unbounded(self) -> Attribute:
-        return Attribute(
+        self._market_share_unbounded = Attribute(
             "market_share_unbounded",
             default_value=0.02,
             unit="1",
@@ -130,160 +119,156 @@ class EnergySystem(Element):
             ),
             element=self,
         )
+        self.set_nodes = Attribute(
+            "set_nodes",
+            default_value=[],
+            element=self,
+        )
+        self.set_edges = Attribute(
+            "set_edges",
+            default_value=[],
+            element=self,
+        )
+
+    # ---------- Properties ----------
+    @property
+    def price_carbon_emissions_annual_overshoot(self) -> Attribute:
+        return self._price_carbon_emissions_annual_overshoot
+
+    @price_carbon_emissions_annual_overshoot.setter
+    def price_carbon_emissions_annual_overshoot(self, value: Attribute) -> None:
+        self._validate_attribute(value)
+        self._price_carbon_emissions_annual_overshoot = value
+
+    @property
+    def carbon_emissions_budget(self) -> Attribute:
+        return self._carbon_emissions_budget
+
+    @carbon_emissions_budget.setter
+    def carbon_emissions_budget(self, value: Attribute) -> None:
+        self._validate_attribute(value)
+        self._carbon_emissions_budget = value
+
+    @property
+    def carbon_emissions_annual_limit(self) -> Attribute:
+        return self._carbon_emissions_annual_limit
+
+    @carbon_emissions_annual_limit.setter
+    def carbon_emissions_annual_limit(self, value: Attribute) -> None:
+        self._validate_attribute(value)
+        self._carbon_emissions_annual_limit = value
+
+    @property
+    def price_carbon_emissions_budget_overshoot(self) -> Attribute:
+        return self._price_carbon_emissions_budget_overshoot
+
+    @price_carbon_emissions_budget_overshoot.setter
+    def price_carbon_emissions_budget_overshoot(self, value: Attribute) -> None:
+        self._validate_attribute(value)
+        self._price_carbon_emissions_budget_overshoot = value
+
+    @property
+    def price_carbon_emissions(self) -> Attribute:
+        return self._price_carbon_emissions
+
+    @price_carbon_emissions.setter
+    def price_carbon_emissions(self, value: Attribute) -> None:
+        self._validate_attribute(value)
+        self._price_carbon_emissions = value
+
+    @property
+    def carbon_emissions_cumulative_existing(self) -> Attribute:
+        return self._carbon_emissions_cumulative_existing
+
+    @carbon_emissions_cumulative_existing.setter
+    def carbon_emissions_cumulative_existing(self, value: Attribute) -> None:
+        self._validate_attribute(value)
+        self._carbon_emissions_cumulative_existing = value
+
+    @property
+    def discount_rate(self) -> Attribute:
+        return self._discount_rate
+
+    @discount_rate.setter
+    def discount_rate(self, value: Attribute) -> None:
+        self._validate_attribute(value)
+        self._discount_rate = value
+
+    @property
+    def knowledge_spillover_rate(self) -> Attribute:
+        return self._knowledge_spillover_rate
+
+    @knowledge_spillover_rate.setter
+    def knowledge_spillover_rate(self, value: Attribute) -> None:
+        self._validate_attribute(value)
+        self._knowledge_spillover_rate = value
+
+    @property
+    def knowledge_depreciation_rate(self) -> Attribute:
+        return self._knowledge_depreciation_rate
+
+    @knowledge_depreciation_rate.setter
+    def knowledge_depreciation_rate(self, value: Attribute) -> None:
+        self._validate_attribute(value)
+        self._knowledge_depreciation_rate = value
+
+    @property
+    def market_share_unbounded(self) -> Attribute:
+        return self._market_share_unbounded
+
+    @market_share_unbounded.setter
+    def market_share_unbounded(self, value: Attribute) -> None:
+        self._validate_attribute(value)
+        self._market_share_unbounded = value
+
+    @property
+    def set_nodes(self) -> Attribute:
+        return self._set_nodes
+
+    @set_nodes.setter
+    def set_nodes(self, value: Attribute) -> None:
+        self._validate_attribute(value)
+        if value.default_value:
+            raise ValueError(
+                "The attribute 'set_nodes' must not have"
+                "a default value. Please set the default value to `[]` and "
+                "enter the nodes and coordinates as a `df`."
+            )
+        self._set_nodes = value
+
+    @property
+    def set_edges(self) -> Attribute:
+        return self._set_edges
+
+    @set_edges.setter
+    def set_edges(self, value: Attribute) -> None:
+        self._validate_attribute(value)
+        if value.default_value:
+            raise ValueError(
+                "The attribute 'set_nodes' must not have"
+                "a default value. Please set the default value to `[]` and "
+                "enter the nodes and coordinates as a `df`."
+            )
+        self._set_edges = value
 
     # ---------- Methods ----------
 
-    def create_nodes(self):
-        set_nodes = [
-            "AT",
-            "BE",
-            "BG",
-            "CH",
-            "CZ",
-            "DE",
-            "DK",
-            "EE",
-            "EL",
-            "ES",
-            "FI",
-            "FR",
-            "HR",
-            "HU",
-            "IE",
-            "IT",
-            "LT",
-            "LU",
-            "LV",
-            "NL",
-            "NO",
-            "PL",
-            "PT",
-            "RO",
-            "SE",
-            "SI",
-            "SK",
-            "UK",
-        ]
-        centroids = pd.read_csv(
-            self.source_path
-            / "01-energy_system"
-            / "nodes_edges"
-            / "countries_centroids.csv"
-        ).set_index("ISO")
-        centroids = centroids.rename({"GR": "EL", "GB": "UK"}, axis=0).sort_index()
-        centroids = centroids[
-            centroids["COUNTRY"] != "Canarias"
-        ]  # kick out canarias that also has ES as code
-        centroids = centroids.loc[set_nodes, ["longitude", "latitude"]].rename(
-            {"longitude": "lon", "latitude": "lat"}, axis=1
-        )
-        centroids.index.name = "node"
-        centroids.to_csv(self.output_path / "set_nodes.csv")
-        centroids = centroids.reset_index()
-        self.set_nodes = centroids
+    def _set_set_nodes(self) -> Attribute:
+        attr = NUTSshp(source_path=self.source_path).get_set_nodes(self)
+        return attr
 
-    def create_edges(self):
-        connectivity_matrix = pd.DataFrame(
-            index=self.set_nodes["node"], columns=self.set_nodes["node"], data=0
-        )
-        # from shapefile
-        gdf = gpd.read_file(
-            self.source_path
-            / "01-energy_system"
-            / "nodes_edges"
-            / "NUTS_RG_60M_2021_3035.shp"
-        )
-        countries = gdf[gdf["NUTS_ID"].isin(self.set_nodes["node"])]
-        for index, row in countries.iterrows():
-            neighbors = countries[countries.geometry.touches(row["geometry"])][
-                "NUTS_ID"
-            ]
-            connectivity_matrix.loc[row["NUTS_ID"], neighbors] = 1
-        connectivity_matrix = connectivity_matrix.stack()
-        nodes_in_edges = connectivity_matrix[connectivity_matrix == 1].to_frame()
-        nodes_in_edges["edge"] = nodes_in_edges.index.map(lambda idx: "-".join(idx))
-        nodes_in_edges.index.names = ["node_from", "node_to"]
-        set_edges = nodes_in_edges.drop(columns=0)
-        set_edges_touching = set_edges.reset_index().set_index("edge")
-        # nodes from ENTSOE TYNDP 2020-scenario.xlsx
-        # load nodes and edges
-        additional_set_edges = pd.DataFrame(columns=["node_from", "node_to"])
-        nodes = pd.read_csv(
-            self.source_path / "01-energy_system" / "nodes_edges" / "Nodes_Dict.csv",
-            delimiter=";",
-        )
-        edges = pd.read_csv(
-            self.source_path / "01-energy_system" / "nodes_edges" / "Lines_Dict.csv",
-            delimiter=";",
-        )
-        edges = edges[~edges["line_id"].str.contains("Exp")]
-        # iterate through nodes to find corresponding edges
-        set_nodes = copy.deepcopy(self.set_nodes["node"])
-        set_nodes[set_nodes == "EL"] = "GR"
-        for node in set_nodes:
-            node_ids = nodes["node_id"][nodes["country"] == node].reset_index(drop=True)
-            connected_node_id_from_node = []
-            connected_node_id_to_node = []
-            for node_id in node_ids:
-                connected_node_id_from_node.extend(
-                    list(edges["node_b"][(edges["node_a"] == node_id)])
-                )
-                connected_node_id_to_node.extend(
-                    list(edges["node_a"][(edges["node_b"] == node_id)])
-                )
-            # append to set_edges
-            set_edges_temp_from_node = pd.DataFrame(columns=["node_from", "node_to"])
-            connected_node_from_node = nodes["country"][
-                nodes["node_id"].apply(lambda n: n in connected_node_id_from_node)
-            ]
-            # only nodes which are in self.set_nodes
-            set_edges_temp_from_node["node_to"] = connected_node_from_node[
-                connected_node_from_node.isin(set_nodes)
-            ]
-            set_edges_temp_from_node["node_from"] = node
-            set_edges_temp_to_node = pd.DataFrame(columns=["node_from", "node_to"])
-            connected_node_to_node = nodes["country"][
-                nodes["node_id"].apply(lambda n: n in connected_node_id_to_node)
-            ]
-            # only nodes which are in self.set_nodes
-            set_edges_temp_to_node["node_from"] = connected_node_to_node[
-                connected_node_to_node.isin(set_nodes)
-            ]
-            set_edges_temp_to_node["node_to"] = node
-            additional_set_edges = pd.concat(
-                [additional_set_edges, set_edges_temp_from_node, set_edges_temp_to_node]
-            )
-        # remove edges where node_from = node_to
-        additional_set_edges = additional_set_edges[
-            additional_set_edges["node_from"] != additional_set_edges["node_to"]
-        ]
+    def _set_set_edges(self) -> Attribute:
+        attr = Edges(source_path=self.source_path).get_set_edges(self)
+
         # manual connections NO-BE and NO-FR for gas, and SE-LT for electricity
-        manual_additional_edges = pd.DataFrame(
-            data=[["NO", "FR"], ["NO", "BE"], ["SE", "LT"]],
-            columns=["node_from", "node_to"],
-        )
-        additional_set_edges = pd.concat(
-            [additional_set_edges, manual_additional_edges]
-        )
-        # flip direction of edge
-        additional_set_edges_flipped = additional_set_edges.rename(
-            columns={"node_from": "node_to", "node_to": "node_from"}
-        )
-        additional_set_edges = pd.concat(
-            [additional_set_edges, additional_set_edges_flipped]
-        ).drop_duplicates()
-        # substitute greece
-        additional_set_edges[additional_set_edges == "GR"] = "EL"
-        # set edge name
-        additional_set_edges["edge"] = additional_set_edges.apply(
-            lambda row: row["node_from"] + "-" + row["node_to"], axis=1
-        )
-        additional_set_edges = additional_set_edges.set_index("edge")
-        additional_set_edges = additional_set_edges.loc[
-            additional_set_edges.index.difference(set_edges_touching.index)
-        ]
-        set_edges = pd.concat([set_edges_touching, additional_set_edges])
-        self.set_edges = set_edges.sort_index()
-        self.set_edges_offshore = additional_set_edges.sort_index()
+        set_edges = attr.df
+        set_edges.loc["NO-FR", :] = ["NO", "FR"]
+        set_edges.loc["FR-NO", :] = ["FR", "NO"]
+        set_edges.loc["NO-BE", :] = ["NO", "BE"]
+        set_edges.loc["BE-NO", :] = ["BE", "NO"]
+        set_edges.loc["SE-LT", :] = ["SE", "LT"]
+        set_edges.loc["LT-SE", :] = ["LT", "SE"]
+        attr.set_data(df=set_edges.drop_duplicates().sort_index())
+
         # write csv
-        self.set_edges.to_csv(self.output_path / "set_edges.csv")
+        return attr

@@ -1,49 +1,50 @@
 from __future__ import annotations
-from typing import Dict, Optional
-from zen_creator.datasets.dataset import Dataset
-from zen_creator.utils.default_config import Config
-from zen_creator.datasets.combined_datasets.dataset_collection import DatasetCollection
-import os
-import pandas as pd
+
+from typing import TYPE_CHECKING, Dict
+
+if TYPE_CHECKING:
+    from zen_creator.datasets.dataset import Dataset
+    from zen_creator.elements.element import Element
+
+from zen_creator.datasets.dataset_collection import DatasetCollection
+from zen_creator.datasets.datasets.DIW import DIW
+from zen_creator.datasets.datasets.potencia import Potencia
+from zen_creator.utils.attribute import Attribute
 
 
-class UserMetricsDatasetCollection(DatasetCollection):
-    """
-    Concrete dataset collection providing user-related metrics.
-    """
+class Template(DatasetCollection):
+    """Template class for dataset collections."""
 
-    def __init__(self, config: Optional[Config] = None):
-        # Initialize subclass-specific attributes FIRST
-        self.source = "internal_db"
+    name = "template"
 
-        # Call base initializer (this sets name, config, and calls _get_data)
-        super().__init__(
-            name="user_metrics",
-            config=config,
-        )
+    def __init__(self, source_path: Path | str):
+        super().__init__(source_path=source_path)
 
     def _get_data(self) -> Dict[str, Dataset]:
-        """
-        Build and return the datasets in this collection.
-        """
-
-        # Example data (replace with real loading logic)
-        user_counts = [10, 20, 30]
-        active_users = [7, 15, 22]
+        """Load all available data sources."""
 
         return {
-            "user_counts": Dataset(
-                data=user_counts,
-                metadata={
-                    "description": "Total registered users per month",
-                    "source": self.source,
-                },
-            ),
-            "active_users": Dataset(
-                data=active_users,
-                metadata={
-                    "description": "Active users per month",
-                    "source": self.source,
-                },
-            ),
+            "DIW Berlin": DIW(self.source_path),
+            "potencia": Potencia(self.source_path),
         }
+
+    def get_max_load(self, element: Element, **kwargs) -> Attribute:
+        """
+        Function for creating max_load attribute.
+
+        Functions for other attributes should follow the same naming
+        convention i.e. get_<attribute_name>.
+
+        This function uses information from self.data and returns an object
+        of class Attribute. Any internal functions which are called by this
+        function should begin with an underscore to clearly mark them as
+        internal.
+        """
+        attr = Attribute("max_load", element)
+        data = self.data["DIW Berlin"]  # use the dataset property to access the dataset
+        unit = self._max_load_unit()
+        attr.set_data(default_value=0, df=data, unit=unit)
+        return attr
+
+    def _max_load_unit(self):
+        return "MW"

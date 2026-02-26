@@ -1,14 +1,17 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from zen_creator.model import Model
+    pass
 
-from zen_creator.datasets.techno_economic_dataset import TechnoEconomicDataset
-from zen_creator.datasets.datasets.ECB import ECB
-import pandas as pd
-import numpy as np
 from pathlib import Path
+
+import numpy as np
+import pandas as pd
+
+from zen_creator.datasets.datasets.ECB import ECB
+from zen_creator.datasets.techno_economic_dataset import TechnoEconomicDataset
 
 
 class Potencia(TechnoEconomicDataset):

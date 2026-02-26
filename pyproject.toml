@@ -47,3 +47,26 @@ dev = [
     "mypy==1.19.1"
 ]
 
+[tool.black]
+line-length = 88
+target-version = ["py311", "py312", "py313"]
+
+[tool.ruff]
+line-length = 88
+fix = false
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "D400", "D415"] # add D in future
+ignore = []
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.isort]
+known-first-party = ["your_package_name"]
+
+[tool.mypy]
+warn_unused_configs = true
+ignore_missing_imports = true
+check_untyped_defs = false
+disallow_untyped_defs = false
