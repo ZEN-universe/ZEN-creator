@@ -14,7 +14,7 @@ from zen_creator.utils.attribute import Attribute
 class ElectrodeBoiler(ConversionTechnology):
 
     name: str = "electrode_boiler"
-    
+
     def __init__(self, model: Model):
         super().__init__(model=model)
 

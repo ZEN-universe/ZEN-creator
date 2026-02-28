@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Dict
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from zen_creator.datasets.dataset import Dataset
     from zen_creator.elements.element import Element
 

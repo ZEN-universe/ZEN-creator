@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator.datasets.dataset_collections.dataset_collection_technoeconomic_parameters import (
+from zen_creator.datasets.dataset_collections import (
     EconomicParameters,
 )
 from zen_creator.elements import (

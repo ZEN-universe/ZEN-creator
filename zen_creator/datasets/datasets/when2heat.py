@@ -13,6 +13,8 @@ from zen_creator.datasets.dataset import Dataset
 class When2Heat(Dataset):
     """Dataset class for When2Heat data."""
 
+    name = "when2heat"
+
     def __init__(self, model: Model):
         super().__init__(name="when2heat", model=model)
 

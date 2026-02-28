@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from zen_creator.utils.default_config import Config
 
 import pandas as pd
@@ -113,14 +115,15 @@ class EconomicParameters(DatasetCollection):
     def get_construction_time(self, technology: str) -> float | None:
         """Get the construction time of a technology."""
         raise NotImplementedError(
-            "Construction time retrieval not finalized yet. Analagous to get_efficiency and get_lifetime methods."
+            "Construction time retrieval not finalized yet. Analagous to "
+            "get_efficiency and get_lifetime methods."
         )
-        df_cts = {}
-        for data_source in self.data_sources:
-            if technology in data_source.available_technologies_construction_time:
-                df_ct = data_source.get_construction_time(technology)
-                df_cts[data_source.name] = df_ct
-        if df_cts:
-            df_ct = pd.Series(df_cts)
-            return df_ct
-        return None
+        # df_cts = {}
+        # for data_source in self.data_sources:
+        #     if technology in data_source.available_technologies_construction_time:
+        #         df_ct = data_source.get_construction_time(technology)
+        #         df_cts[data_source.name] = df_ct
+        # if df_cts:
+        #     df_ct = pd.Series(df_cts)
+        #     return df_ct
+        # return None

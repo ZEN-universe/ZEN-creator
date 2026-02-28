@@ -7,11 +7,11 @@ if TYPE_CHECKING:
 from abc import ABC
 from typing import Type
 
-from zen_creator.elements import Element
+import zen_creator.elements.carriers as carriers
 import zen_creator.elements.conversion_technologies as conversion_technologies
 import zen_creator.elements.storage_technologies as storage_technologies
 import zen_creator.elements.transport_technologies as transport_technologies
-import zen_creator.elements.carriers as carriers
+from zen_creator.elements import Element
 
 
 class Sector(ABC):
@@ -67,7 +67,7 @@ class Electricity(Sector):
             conversion_technologies.Photovoltaics,
             conversion_technologies.LigniteCoalPlant,
             storage_technologies.PumpedHydro,
-            transport_technologies.PowerLine
+            transport_technologies.PowerLine,
         ]
 
 

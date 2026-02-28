@@ -12,8 +12,8 @@ from zen_creator.utils.attribute import Attribute
 
 
 class HeatPump(ConversionTechnology):
-    
-    name:str = "heat_pump"
+
+    name: str = "heat_pump"
 
     def __init__(self, model: Model):
         super().__init__(model=model)

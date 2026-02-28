@@ -70,7 +70,7 @@ class TYNDP_2020_edges(Dataset):
             # append to set_edges
             set_edges_temp_from_node = pd.DataFrame(columns=["node_from", "node_to"])
             connected_node_from_node = nodes["country"][
-                nodes["node_id"].apply(lambda n: n in connected_node_id_from_node)
+                nodes["node_id"].isin(connected_node_id_from_node)
             ]
             # only nodes which are in self.set_nodes
             set_edges_temp_from_node["node_to"] = connected_node_from_node[
@@ -79,7 +79,7 @@ class TYNDP_2020_edges(Dataset):
             set_edges_temp_from_node["node_from"] = node
             set_edges_temp_to_node = pd.DataFrame(columns=["node_from", "node_to"])
             connected_node_to_node = nodes["country"][
-                nodes["node_id"].apply(lambda n: n in connected_node_id_to_node)
+                nodes["node_id"].isin(connected_node_id_to_node)
             ]
             # only nodes which are in self.set_nodes
             set_edges_temp_to_node["node_from"] = connected_node_to_node[
@@ -111,7 +111,7 @@ class TYNDP_2020_edges(Dataset):
         attr = Attribute(
             name="set_edges",
             element=element,
-            default_value=[],
+            default_value=None,
             df=set_edges,
             source=self.metadata,
         )

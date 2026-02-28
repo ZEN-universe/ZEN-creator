@@ -114,7 +114,7 @@ class NUTSshp(Dataset):
         attr = Attribute(
             "set_nodes",
             element=element,
-            default_value=[],
+            default_value=None,
             df=set_nodes,
             source=self.metadata,
         )

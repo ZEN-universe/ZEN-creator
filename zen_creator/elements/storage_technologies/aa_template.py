@@ -14,6 +14,7 @@ from zen_creator.utils.attribute import Attribute
 class TemplateStorageTechnology(StorageTechnology):
 
     name: str = "template_storage_technology"
+
     def __init__(self, model: Model):
         super().__init__(model=model)
 

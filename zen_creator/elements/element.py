@@ -96,7 +96,7 @@ class Element:
 
         # write data files
         self.save_data()
-    
+
     def get_output_path(self) -> Path:
         """
         Get path to element and create that directory.
@@ -109,10 +109,10 @@ class Element:
 
             attr = getattr(self, attr_name)
 
-            #skip for attributes such as set_nodes or set_edges with not default
-            if attr.default_value: 
+            # skip for attributes such as set_nodes or set_edges with not default
+            if attr.default_value is not None:
                 output[attr_name] = attr.default_to_dict()
-        
+
         return output
 
     def save_attributes(self):

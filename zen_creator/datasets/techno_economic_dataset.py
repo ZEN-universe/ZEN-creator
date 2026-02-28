@@ -4,7 +4,7 @@ from abc import abstractmethod
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    pass
+    from pathlib import Path
 
 import pandas as pd
 

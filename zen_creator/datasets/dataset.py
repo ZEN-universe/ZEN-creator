@@ -165,20 +165,3 @@ class Dataset(ABC, metaclass=SingletonRegistryMeta):
     @abstractmethod
     def _get_data(self) -> Union[pd.DataFrame, Dict[str, pd.DataFrame]]:
         """Return the dataset as a DataFrame or dict of DataFrames."""
-
-    # # ----- Methods to get data -----
-    # def create_time_interval(self):
-    #     """ this method sets a year and then creates the time interval for which the data is extracted
-    #      ToDo: maybe move to model??
-    #     """
-    #     # set year for which data is extracted
-    #     self.data_general_year = self.model.config.time_settings.data_general_year
-    #     self.data_timeseries_year = self.model.config.time_settings.data_timeseries_year
-    #     self.time_start = pd.Timestamp(year=self.data_general_year, month=1, day=1, hour=0, tz='Europe/Brussels')
-    #     self.time_end = pd.Timestamp(year=self.data_general_year + 1, month=1, day=1, hour=0, tz='Europe/Brussels')
-    #     self.time_start_ts = pd.Timestamp(year=self.data_timeseries_year, month=1, day=1, hour=0, tz='Europe/Brussels')
-    #     self.time_end_ts = pd.Timestamp(year=self.data_timeseries_year + 1, month=1, day=1, hour=0, tz='Europe/Brussels')
-    #     self.time_start_history = pd.Timestamp(year=1900, month=1, day=1, hour=0, tz='Europe/Brussels')
-    #     self.time_end_history = pd.Timestamp.today()
-    #     self.time_range = pd.date_range(self.time_start, self.time_end, freq="h")[:-1]
-    #     self.time_range_ts = pd.date_range(self.time_start_ts, self.time_end_ts, freq="h")[:-1]

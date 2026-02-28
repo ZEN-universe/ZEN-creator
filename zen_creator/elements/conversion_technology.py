@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 
 from abc import ABC, abstractmethod
 
-from zen_creator.elements import Technology
+from zen_creator.elements.technology import Technology
 from zen_creator.utils.attribute import Attribute
 
 
@@ -16,7 +16,7 @@ class ConversionTechnology(Technology, ABC):
     name = "conversion_technology"
 
     def __init__(self, model: Model, power_unit: str = "MW"):
-        super().__init__(model = model, power_unit=power_unit)
+        super().__init__(model=model, power_unit=power_unit)
 
         # copy attributes from superclass
         # copy to prevent override

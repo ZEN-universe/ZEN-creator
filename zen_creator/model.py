@@ -1,24 +1,21 @@
+import shutil
 from functools import cached_property
 from pathlib import Path
 from typing import Type
 
-from zen_creator.elements.element import Element
-from zen_creator.elements.energy_system import EnergySystem
 from zen_creator.elements import (
-    Technology,
     Carrier,
     ConversionTechnology,
-    TransportTechnology,
-    StorageTechnology,
-    RetrofittingTechnology,
     EnergySystem,
+    RetrofittingTechnology,
+    StorageTechnology,
+    Technology,
+    TransportTechnology,
 )
-
-
+from zen_creator.elements.element import Element
 from zen_creator.sectors import Sector
-from zen_creator.utils.default_config import Config, load_config
+from zen_creator.utils.default_config import Config
 from zen_creator.utils.system_file import SystemFile
-import shutil
 
 
 class Model:
@@ -27,10 +24,10 @@ class Model:
         # set attributes from input arguments
         self.config: Config = config if config is not None else Config()
         self.name: str = self.config.name
-        self.output_folder: Path = Path(self.config.main_settings.output_folder)
+        self.output_folder: Path = Path(self.config.output_folder)
         self.source_path: Path | None = (
-            Path(self.config.main_settings.source_path)
-            if self.config.main_settings.source_path is not None
+            Path(self.config.source_path)
+            if self.config.source_path is not None
             else None
         )
 
@@ -38,41 +35,14 @@ class Model:
         self.energy_system: EnergySystem | None = EnergySystem(self)
         self.elements: dict[str, Element] = dict()
 
-        for sector in self.config.sector_settings.sectors:
+        for sector in self.config.sectors.include:
             self.add_sector_by_name(sector)
 
-        for element in self.config.sector_settings.elements:
+        for element in self.config.elements.include:
             self.add_element_by_name(element)
 
-        for element in self.config.sector_settings.elements_remove:
+        for element in self.config.elements.exclude:
             self.remove_element_by_name(element)
-
-    # -------- Constructors --------------------------------------------------------
-
-    @classmethod
-    def from_config(cls, config_path: Path):
-        """
-        Construct model from a configuration file.
-
-        Also includes the building of the model, i.e. setting all attributes of
-        all elements based on the config file.
-
-        :param config: Description
-        :type config: Config
-        """
-
-        raise NotImplementedError(
-            "Model construction from config file path is " "is not implemented yet."
-        )
-        name = "model_1"  # ToDo - fix once config structure finalized
-        out_path = Path(".")
-        model = cls(name, out_path)
-        model.config = load_config(config_path)["model_1"]  # ToDo fix config loading
-        #        model.energy_system = EnergySystem(model)
-        for sector in model.config.sector_settings.sectors:
-            model.add_sector(sector)
-        model.build()
-        return model
 
     @classmethod
     def from_existing(
@@ -366,8 +336,10 @@ class Model:
 
         # remove output path if it exists
         if self.output_path.exists():
-            print(f"Output path {self.output_path} aready exists. Deleting "
-                  "existing contents.")
+            print(
+                f"Output path {self.output_path} aready exists. Deleting "
+                "existing contents."
+            )
             shutil.rmtree(self.output_path)
 
         # write system.json
@@ -420,7 +392,7 @@ class Model:
                 )
 
             carriers = carriers.union(reference_carrier)
-        
+
         for technology in self.conversion_technologies.values():
             input_carriers = set(technology.input_carrier.default_value)
             output_carriers = set(technology.output_carrier.default_value)

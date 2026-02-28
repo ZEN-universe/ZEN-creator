@@ -6,7 +6,6 @@ if TYPE_CHECKING:
     pass
 
 import os
-from asyncio import as_completed
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
 import numpy as np
@@ -21,6 +20,8 @@ from zen_creator.datasets.dataset import Dataset
 
 class ENTSOEAPI(Dataset):
     """Dataset class for ENTSOE data."""
+
+    name = "entsoe_api"
 
     def __init__(self):
         super().__init__(name="entsoe_api")
@@ -121,12 +122,12 @@ class ENTSOEAPI(Dataset):
             text = client.query_load(
                 country_code=area, start=self.time_start_ts, end=self.time_end_ts
             )
-        except:
+        except Exception:
             try:
                 text = client.query_load_forecast(
                     country_code=area, start=self.time_start_ts, end=self.time_end_ts
                 )
-            except:
+            except Exception:
                 return node, None
 
         try:

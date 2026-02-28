@@ -18,7 +18,7 @@ class DatasetCollectionElectricity(DatasetCollection):
     name = "dataset_collection_electricity"
 
     def __init__(self, source_path: Path | str):
-        super().__init__(sourceL_path=source_path)
+        super().__init__(source_path=source_path)
 
     # ------ Metadata properties ------
     @property
@@ -49,7 +49,8 @@ class DatasetCollectionElectricity(DatasetCollection):
             heating_technology_share = self.calculate_total_heat(
                 df_heat, siec, tech_names, tech_names_DH
             )
-            # use idees heating technology share to modify share between electrode boiler and heat pump
+            # use idees heating technology share to modify share between
+            # electrode boiler and heat pump
             heating_share_idees = self.calculate_idees_heating_share()
             # adapt heating technology share
             heating_technology_share = self.adapt_heating_shares(
@@ -108,9 +109,12 @@ class DatasetCollectionElectricity(DatasetCollection):
             if self.ds.td.cost_comp.check_if_available(
                 "heat_pump", df_type="tech", variable="efficiency"
             ):
-                # efficiency_HP = \
-                #     self.ds.td.cost_comp.get_average(df_type="tech", technology="heat_pump", variable="efficiency",
-                #                                metric="median")[0].iloc[0]
+                # efficiency_HP = self.ds.td.cost_comp.get_average(
+                #     df_type="tech",
+                #     technology="heat_pump",
+                #     variable="efficiency",
+                #     metric="median",
+                # )[0].iloc[0]
                 efficiency_HP = self.ds.td.cop_hp.mean().mean()
                 efficiency_EB = self.ds.td.cost_comp.get_average(
                     df_type="tech",
@@ -128,7 +132,8 @@ class DatasetCollectionElectricity(DatasetCollection):
             fin_con["electrode_boiler"] -= (
                 fin_con["heat_pump"] / efficiency_HP * efficiency_EB
             )
-            # fin_con is in quantities of input_carrier (except heat pump) --> convert to output_carrier heat with efficiencies
+            # fin_con is in quantities of input_carrier (except heat pump) -->
+            # convert to output_carrier heat with efficiencies
             for tech in fin_con.columns:
                 if tech != "heat" and tech != "heat_pump":
                     if self.ds.td.cost_comp.check_if_available(
@@ -163,11 +168,12 @@ class DatasetCollectionElectricity(DatasetCollection):
         return heating_technology_share
 
     def get_demand(self):
-        self.model.datasets["combined_datasets_electricity"].get_electricity_demand()
-        Carrier.get_by_name("heat").demand
-        self.model.datasets[
-            "combined_dataset_technology"
-        ].calculate_heating_technology_share()
+        # self.model.datasets["combined_datasets_electricity"].get_electricity_demand()
+        # # Carrier.get_by_name("heat").demand
+        # self.model.datasets[
+        #     "combined_dataset_technology"
+        # ].calculate_heating_technology_share()
         raise NotImplementedError(
-            "Method to calculate electricity demand based on heat demand and heating technology share is not implemented yet."
+            "Method to calculate electricity demand based on heat demand and "
+            "heating technology share is not implemented yet."
         )

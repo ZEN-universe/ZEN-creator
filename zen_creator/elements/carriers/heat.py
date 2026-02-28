@@ -19,4 +19,8 @@ class Heat(Carrier):
     # def _set_demand(self) -> Attribute:
     #     attr = super().demand
     #     demand_data = DatasetCollectionHeat(self.model.source_path).get_demand()
-    #     return attr.set_data(df=demand_data,unit="GW", source="EU Building Observatory and When2Heat Dataset")
+    #     return attr.set_data(
+    #         df=demand_data,
+    #         unit="GW",
+    #         source="EU Building Observatory and When2Heat Dataset",
+    #     )

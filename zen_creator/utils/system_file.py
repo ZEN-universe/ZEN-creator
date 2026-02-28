@@ -22,16 +22,29 @@ class SystemFile:
             "set_storage_technologies",
             "set_transport_technologies",
             "set_retrofitting_technologies",
-            "set_nodes",
+            # "set_transport_tehnologies_loss_exponential",
+            # "use_existing_capacities",
+            # "allow_investment",
+            # "double_capex_transport",
+            # "unaggregated_time_steps_per_year",
+            "conduct_time_series_aggregation",
+            "aggregated_time_steps_per_year",
             "reference_year",
+            # "total_hours_per_year",
             "optimized_years",
             "interval_between_years",
-            "aggregated_time_steps_per_year",
-            "conduct_time_series_aggregation",
+            "set_nodes",
             "use_rolling_horizon",
             "years_in_rolling_horizon",
             "years_in_decision_horizon",
             "conduct_scenario_analysis",
+            # "run_default_scenario",
+            # "clean_sub_scenarios",
+            # "storage_periodicity",
+            # "multiyear_periodicity",
+            # "exclude_parameters_from_TSA",
+            # "knowledge_depreciation_rate",
+            # "storage_charge_discharge_binary",
         ]
 
     # ---------- Properties ----------
@@ -85,7 +98,7 @@ class SystemFile:
     def set_nodes(self) -> SystemAttribute:
         return SystemAttribute(
             "set_nodes",
-            value=sorted(self.model.energy_system.set_nodes.df.index.to_list()),
+            value=sorted(self.model.config.system.nodes),
             default_value=[],
             element=self,
         )
@@ -94,7 +107,7 @@ class SystemFile:
     def reference_year(self) -> SystemAttribute:
         return SystemAttribute(
             "reference_year",
-            value=self.model.config.time_settings.reference_year,
+            value=self.model.config.system.reference_year,
             element=self,
         )
 
@@ -102,7 +115,7 @@ class SystemFile:
     def optimized_years(self) -> SystemAttribute:
         return SystemAttribute(
             "optimized_years",
-            value=self.model.config.time_settings.optimized_years,
+            value=self.model.config.system.optimized_years,
             element=self,
         )
 
@@ -110,7 +123,7 @@ class SystemFile:
     def interval_between_years(self) -> SystemAttribute:
         return SystemAttribute(
             "interval_between_years",
-            value=self.model.config.time_settings.interval_between_years,
+            value=self.model.config.system.interval_between_years,
             element=self,
         )
 
@@ -118,7 +131,7 @@ class SystemFile:
     def aggregated_time_steps_per_year(self) -> SystemAttribute:
         return SystemAttribute(
             "aggregated_time_steps_per_year",
-            value=self.model.config.time_settings.aggregated_time_steps_per_year,
+            value=self.model.config.system.aggregated_time_steps_per_year,
             element=self,
         )
 
@@ -126,7 +139,7 @@ class SystemFile:
     def conduct_time_series_aggregation(self) -> SystemAttribute:
         return SystemAttribute(
             "conduct_time_series_aggregation",
-            value=self.model.config.time_settings.conduct_time_series_aggregation,
+            value=self.model.config.system.conduct_time_series_aggregation,
             default_value=False,
             element=self,
         )
@@ -135,7 +148,7 @@ class SystemFile:
     def use_rolling_horizon(self) -> SystemAttribute:
         return SystemAttribute(
             "use_rolling_horizon",
-            value=self.model.config.time_settings.use_rolling_horizon,
+            value=self.model.config.system.use_rolling_horizon,
             default_value=False,
             element=self,
         )
@@ -144,7 +157,7 @@ class SystemFile:
     def years_in_rolling_horizon(self) -> SystemAttribute:
         return SystemAttribute(
             "years_in_rolling_horizon",
-            value=self.model.config.time_settings.years_in_rolling_horizon,
+            value=self.model.config.system.years_in_rolling_horizon,
             default_value=1,
             element=self,
         )
@@ -153,7 +166,7 @@ class SystemFile:
     def years_in_decision_horizon(self) -> SystemAttribute:
         return SystemAttribute(
             "years_in_decision_horizon",
-            value=self.model.config.time_settings.years_in_decision_horizon,
+            value=self.model.config.system.years_in_decision_horizon,
             default_value=1,
             element=self,
         )
@@ -162,7 +175,7 @@ class SystemFile:
     def conduct_scenario_analysis(self) -> SystemAttribute:
         return SystemAttribute(
             "conduct_scenario_analysis",
-            value=self.model.config.sensitivity_settings.conduct_scenario_analysis,
+            value=self.model.config.system.conduct_scenario_analysis,
             default_value=False,
             element=self,
         )

@@ -14,7 +14,7 @@ from zen_creator.utils.attribute import Attribute
 class NaturalGasStorage(StorageTechnology):
 
     name: str = "natural_gas_storage"
-    
+
     def __init__(self, model: Model):
         super().__init__(model=model)
 
@@ -23,4 +23,6 @@ class NaturalGasStorage(StorageTechnology):
         return attr.set_data(default_value=100, source="assumption")
 
     def _set_reference_carrier(self) -> Attribute:
-        return Attribute(name="reference_carrier", default_value=["natural_gas"], element=self)
+        return Attribute(
+            name="reference_carrier", default_value=["natural_gas"], element=self
+        )

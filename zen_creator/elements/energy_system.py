@@ -114,19 +114,20 @@ class EnergySystem(Element):
             unit="1",
             source=(
                 "1. Mannhardt, J., Gabrielli, P. & Sansavini, G. "
-                "Understanding the vicious cycle of myopic foresight and constrained technology deployment in transforming the European energy system. "
-                "iScience 27, (2024)."
+                "Understanding the vicious cycle of myopic foresight and "
+                "constrained technology deployment in transforming the "
+                "European energy system. iScience 27, (2024)."
             ),
             element=self,
         )
         self.set_nodes = Attribute(
             "set_nodes",
-            default_value=[],
+            default_value=None,
             element=self,
         )
         self.set_edges = Attribute(
             "set_edges",
-            default_value=[],
+            default_value=None,
             element=self,
         )
 

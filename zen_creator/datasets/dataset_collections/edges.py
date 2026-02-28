@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING, Dict
 import pandas as pd
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from zen_creator.datasets.dataset import Dataset
     from zen_creator.elements.element import Element
 
@@ -48,7 +50,7 @@ class Edges(DatasetCollection):
         # Create edges
         attr = Attribute(
             name="set_edges",
-            default_value=[],
+            default_value=None,
             element=element,
             df=set_edges,
             source=self.metadata,

@@ -38,7 +38,11 @@ class Potencia(TechnoEconomicDataset):
 
     # ------ Metadata properties ------
     def _get_author(self) -> str:
-        return "Mantzos, L., Wiesenthal, T., Neuwahl, F. & Rózsai, M. The POTEnCIA Central scenario: an EU energy outlook to 2050. JRC Science for Policy Report 346 (2019) doi:10.2760/32835."
+        return (
+            "Mantzos, L., Wiesenthal, T., Neuwahl, F. & Rózsai, M. "
+            "The POTEnCIA Central scenario: an EU energy outlook to 2050. "
+            "JRC Science for Policy Report 346 (2019) doi:10.2760/32835."
+        )
 
     def _get_publication_year(self) -> int:
         return 2019
@@ -150,7 +154,9 @@ class Potencia(TechnoEconomicDataset):
     #     """Method to filter the dataframe."""
     #     df_filtered = df.copy()
     #     if not tech_df:
-    #         mask_capex = df_filtered.index.get_level_values("variable").isin(["capex"])
+    #         mask_capex = (
+    #             df_filtered.index.get_level_values("variable").isin(["capex"])
+    #         )
     #         mask_ref = df_filtered.index.get_level_values("scenario").isin(["ref"])
     #         mask_size = df_filtered.index.get_level_values("plant_size").isin(["M"])
     #         df_filtered = df_filtered.loc[mask_capex & mask_ref & mask_size]
@@ -225,16 +231,25 @@ class Potencia(TechnoEconomicDataset):
                 "Supercritical steam turbine",
                 "Electricity only with CCS",
             ),
+            # source: # https://world-nuclear.org/information-library/
+            # nuclear-fuel-cycle/nuclear-power-reactors/
+            # advanced-nuclear-power-reactors.aspx
             "nuclear": (
                 "Nuclear power plants",
                 "Nuclear III",
                 "Electricity only",
-            ),  # https://world-nuclear.org/information-library/nuclear-fuel-cycle/nuclear-power-reactors/advanced-nuclear-power-reactors.aspx
+            ),
+            # source: https://world-nuclear.org/information-library/
+            # nuclear-fuel-cycle/nuclear-power-reactors/
+            # advanced-nuclear-power-reactors.aspx
             "smr": (
                 "Nuclear power plants",
                 "Nuclear IV",
                 "Electricity only",
-            ),  # https://world-nuclear.org/information-library/nuclear-fuel-cycle/nuclear-power-reactors/advanced-nuclear-power-reactors.aspx
+            ),
+            # source: https://world-nuclear.org/information-library/
+            # nuclear-fuel-cycle/nuclear-power-reactors/
+            # advanced-nuclear-power-reactors.aspx
             "biomass_plant": (
                 "Biomass and waste fired power plants",
                 "Fluidized bed combustion",
@@ -250,11 +265,13 @@ class Potencia(TechnoEconomicDataset):
                 "Fluidized bed combustion",
                 "Electricity only",
             ),
+            # compared the largest BNEF oil plants, both Steam Engine and IGCC,
+            # but modern ones are IGCC
             "oil_plant": (
                 "Fuel oil fired power plants",
                 "Integrated gasification combined cycle",
                 "Electricity only",
-            ),  # compared the largest BNEF oil plants, both Steam Engine and IGCC, but modern ones are IGCC
+            ),
             "pumped_hydro": ("Pumped storage", "Pumped storage", "Electricity only"),
             "fuel_cell": (
                 "Fuel cells",
@@ -328,23 +345,27 @@ class Potencia(TechnoEconomicDataset):
 
     def get_construction_time(self, technology):
         raise NotImplementedError("Method not implemented for Potencia dataset.")
-        ct = int(df_construction_time.loc[technology].squeeze())
-        df_ct = pd.Series(index=self.get_years(), data=ct)
-        df_ct.index.name = "year"
-        df_ct.name = "construction_time"
-        return df_ct
+        # ct = int(df_construction_time.loc[technology].squeeze())
+        # df_ct = pd.Series(index=self.get_years(), data=ct)
+        # df_ct.index.name = "year"
+        # df_ct.name = "construction_time"
+        # return df_ct
 
     def _convert_finance_data(self, df: pd.DataFrame, target_year) -> pd.DataFrame:
         """Method to convert finance data to target money year and align units."""
         variables = df.index.get_level_values("variable").unique()
-        assert all(
-            var in self.vars.keys() for var in variables
-        ), f"Potencia finance data contains unknown variables: {variables.difference(self.vars.keys())}"
+        assert all(var in self.vars.keys() for var in variables), (
+            "Potencia finance data contains unknown variables: "
+            f"{variables.difference(self.vars.keys())}"
+        )
         assert (
             self.get_units("money") == "Euro"
             and self.get_units("power") == "kW"
             and self.get_units("energy") == "kWh"
-        ), "Potencia capex data unit conversion assumes Euro/kW and Euro/kWh as target unit"
+        ), (
+            "Potencia capex data unit conversion assumes Euro/kW and "
+            "Euro/kWh as target unit"
+        )
         new_index = df.index.get_level_values("variable").map(self.vars)
         df.index = pd.MultiIndex.from_arrays(
             [df.index.get_level_values("technology"), new_index],

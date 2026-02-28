@@ -11,5 +11,6 @@ from zen_creator.elements import Carrier
 class NaturalGas(Carrier):
 
     name: str = "natural_gas"
+
     def __init__(self, model: Model):
         super().__init__(model=model)

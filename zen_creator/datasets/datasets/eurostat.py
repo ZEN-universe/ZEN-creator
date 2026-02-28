@@ -7,7 +7,6 @@ if TYPE_CHECKING:
     from zen_creator.model import Model
 
 import copy
-from asyncio import as_completed
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import eurostat
@@ -18,6 +17,8 @@ from zen_creator.datasets.dataset import Dataset
 
 class EurostatApi(Dataset):
     """Dataset class for Eurostat data."""
+
+    name = "eurostat"
 
     def __init__(self, model: Model):
         super().__init__(name="eurostat", model=model)
@@ -162,7 +163,9 @@ class EurostatApi(Dataset):
         dataset_HH = "nrg_d_hhq"
         unit_HH = "TJ"
         start_period = self.eurostat_start_year
-        # TODO figure out what is wrong with the data hint: ["FC_OTH_HH_E", "FC_OTH_HH_E_LE", "FC_OTH_HH_E_CK"] for PL are missing completely (=0)
+        # TODO figure out what is wrong with the data hint:
+        # ["FC_OTH_HH_E", "FC_OTH_HH_E_LE", "FC_OTH_HH_E_CK"] for PL are
+        # missing completely (=0)
         if not os.path.exists(
             self.model.source_path
             / "08-processed_files"

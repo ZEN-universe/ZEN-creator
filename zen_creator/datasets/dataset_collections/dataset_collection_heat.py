@@ -49,7 +49,8 @@ class DatasetCollectionHeat(DatasetCollection):
             heating_technology_share = self.calculate_total_heat(
                 df_heat, siec, tech_names, tech_names_DH
             )
-            # use idees heating technology share to modify share between electrode boiler and heat pump
+            # use idees heating technology share to modify share between
+            # electrode boiler and heat pump
             heating_share_idees = self.calculate_idees_heating_share()
             # adapt heating technology share
             heating_technology_share = self.adapt_heating_shares(
@@ -108,9 +109,12 @@ class DatasetCollectionHeat(DatasetCollection):
             if self.ds.td.cost_comp.check_if_available(
                 "heat_pump", df_type="tech", variable="efficiency"
             ):
-                # efficiency_HP = \
-                #     self.ds.td.cost_comp.get_average(df_type="tech", technology="heat_pump", variable="efficiency",
-                #                                metric="median")[0].iloc[0]
+                # efficiency_HP = self.ds.td.cost_comp.get_average(
+                #     df_type="tech",
+                #     technology="heat_pump",
+                #     variable="efficiency",
+                #     metric="median",
+                # )[0].iloc[0]
                 efficiency_HP = self.ds.td.cop_hp.mean().mean()
                 efficiency_EB = self.ds.td.cost_comp.get_average(
                     df_type="tech",
@@ -128,7 +132,8 @@ class DatasetCollectionHeat(DatasetCollection):
             fin_con["electrode_boiler"] -= (
                 fin_con["heat_pump"] / efficiency_HP * efficiency_EB
             )
-            # fin_con is in quantities of input_carrier (except heat pump) --> convert to output_carrier heat with efficiencies
+            # fin_con is in quantities of input_carrier (except heat pump) -->
+            # convert to output_carrier heat with efficiencies
             for tech in fin_con.columns:
                 if tech != "heat" and tech != "heat_pump":
                     if self.ds.td.cost_comp.check_if_available(
@@ -271,8 +276,14 @@ class DatasetCollectionHeat(DatasetCollection):
         """returns manual heat demand for nodes in TWh."""
         heat_demand = {
             "CH": 100.66,
-            # source Energieperspektiven Bundesamt für Energie, Table 8 https://www.bfe.admin.ch/bfe/en/home/politik/energieperspektiven-2050-plus.exturl.html/aHR0cHM6Ly9wdWJkYi5iZmUuYWRtaW4uY2gvZGUvcHVibGljYX/Rpb24vZG93bmxvYWQvMTAzMjQ=.html
+            # source Energieperspektiven Bundesamt für Energie, Table 8
+            # https://www.bfe.admin.ch/bfe/en/home/politik/
+            # energieperspektiven-2050-plus.exturl.html/
+            # aHR0cHM6Ly9wdWJkYi5iZmUuYWRtaW4uY2gvZGUvcHVibGljYX/
+            # Rpb24vZG93bmxvYWQvMTAzMjQ=.html
             "NO": 40 * 7.1 / 4.6,
-            # measured from screen, source DNV Energy Transition Norway, page 19 https://www.norskindustri.no/siteassets/dokumenter/rapporter-og-brosjyrer/energy-transition-norway-2021.pdf
+            # measured from screen, source DNV Energy Transition Norway, page 19
+            # https://www.norskindustri.no/siteassets/dokumenter/
+            # rapporter-og-brosjyrer/energy-transition-norway-2021.pdf
         }
         return heat_demand[node]

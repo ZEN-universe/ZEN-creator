@@ -13,6 +13,8 @@ from zen_creator.datasets.dataset import Dataset
 class EUBuildingObservatory(Dataset):
     """Dataset class for EU Building Observatory data."""
 
+    name = "eu_building_observatory"
+
     def __init__(self, model: Model):
         super().__init__(name="eu_building_observatory", model=model)
 

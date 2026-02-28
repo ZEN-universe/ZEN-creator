@@ -13,7 +13,8 @@ from zen_creator.utils.attribute import Attribute
 
 class PumpedHydro(StorageTechnology):
 
-    name:str = "pumped_hydro"
+    name: str = "pumped_hydro"
+
     def __init__(self, model: Model):
         super().__init__(model=model)
 
@@ -22,4 +23,6 @@ class PumpedHydro(StorageTechnology):
         return attr.set_data(default_value=50, source="assumption")
 
     def _set_reference_carrier(self) -> Attribute:
-        return Attribute(name="reference_carrier", default_value=["electricity"], element=self)
+        return Attribute(
+            name="reference_carrier", default_value=["electricity"], element=self
+        )

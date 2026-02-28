@@ -1,8 +1,8 @@
 import os
 from pathlib import Path
 
-from zen_creator.elements import conversion_technologies as conversion_technologies
 import zen_creator.sectors as sectors
+from zen_creator.elements import conversion_technologies as conversion_technologies
 from zen_creator.elements.energy_system import EnergySystem
 from zen_creator.model import Model
 from zen_creator.utils.default_config import load_config
@@ -14,10 +14,6 @@ source_path = (
 )  # TODO make configurable
 config_path = Path(os.path.join(source_path, "config.yaml"))
 config = load_config(config_path)["model_1"]  # ToDo fix config loading
-
-
-# Create from existing model# existing_model_path = "C:\\Users\\funkec\\Documents\\GITHUB\\01_Models\\01_ZEN_universe\\03_ZEN_data\\Past_Publications\\Crystal_Ball"
-# model = Model.from_existing(existing_model_path)
 
 # Create model from scratch --------------------------------------------
 model = Model(config)

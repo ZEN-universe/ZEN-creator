@@ -18,4 +18,6 @@ class Electricity(Carrier):
     # def _set_demand(self) -> Attribute:
     #     attr = super().demand
     #     demand = DatasetCollectionElectricity(self.model.source_path).get_demand()
-    #     return attr.set_data(df=demand,unit="GW", source="ENTSOE Transparency Platform")
+    #     return attr.set_data(
+    #         df=demand, unit="GW", source="ENTSOE Transparency Platform"
+    #     )

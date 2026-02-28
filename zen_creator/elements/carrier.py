@@ -16,7 +16,7 @@ class Carrier(Element):
     name = "carrier"
 
     def __init__(self, model: Model, power_unit: str = "MW"):
-        super().__init__(model = model, power_unit=power_unit)
+        super().__init__(model=model, power_unit=power_unit)
 
         # copy attributes from superclass
         self._attribute_names = list(self._attribute_names)  # copy to prevent override

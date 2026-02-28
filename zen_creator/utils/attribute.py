@@ -183,8 +183,6 @@ class Attribute:
                         "'output_carrier' support list default values."
                     )
                 )
-        elif self.default_value is None:
-            raise ValueError(f"Attribute {self.name} has no default value set.")
         else:
             raise ValueError(
                 f"Attribute {self.name} has default value of unsupported "

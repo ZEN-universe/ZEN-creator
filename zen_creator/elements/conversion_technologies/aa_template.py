@@ -5,14 +5,15 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator.elements import   ConversionTechnology
+from zen_creator.elements import ConversionTechnology
 from zen_creator.utils.attribute import Attribute
 
 
 class Template(ConversionTechnology):
     name: str = "template_conversion_technology"
+
     def __init__(self, model: Model, power_unit: str = "MW"):
-        super().__init__(model=model, power_unit = power_unit)
+        super().__init__(model=model, power_unit=power_unit)
 
     def _set_lifetime(self) -> Attribute:
         attr = self._lifetime

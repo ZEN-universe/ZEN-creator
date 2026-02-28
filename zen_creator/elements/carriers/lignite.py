@@ -11,7 +11,7 @@ from zen_creator.utils.attribute import Attribute
 
 
 class Lignite(Carrier):
-    
+
     name = "lignite"
 
     def __init__(self, model: Model):
