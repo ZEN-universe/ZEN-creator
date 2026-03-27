@@ -31,4 +31,5 @@ An example list is shown below. Update these sections to match the changes propo
 - [ ] Code changes have been tested locally and all tests pass.
 - [ ] Code has been formatted via ``black .`` in a terminal window.
 - [ ] Linter ``ruff check .`` passes all checks.
+- [ ] Type Checker  ``mypy .`` passes all checks.
 
