@@ -1,9 +1,54 @@
 ################################
-ZEN-Creator Class Diagram
+ZEN-Creator Class Structure
 ################################
 
-Overview
---------
+Purpose
+-------
+
+The ``zen_creator`` package is built around a structured object model for
+constructing, modifying, validating, and writing ZEN-garden input data.
+
+The code is organized into clear layers, each with a specific job:
+
+- ``Model`` orchestrates workflow and serialization.
+- ``Element`` subclasses represent technologies, carriers, and the energy system.
+- ``Attribute`` encapsulates default values, tabular data, units, and provenance.
+- ``Dataset`` and ``DatasetCollection`` classes encapsulate raw data loading and
+  transformation.
+
+
+Core Architecture
+-----------------
+
+.. mermaid::
+   :zoom:
+
+   classDiagram
+       class Model
+       class Config
+       class Sector
+       class Element
+       class EnergySystem
+       class Attribute
+       class Dataset
+       class DatasetCollection
+
+       Model --> Config
+       Model --> Sector
+       Model --> Element
+       Model --> EnergySystem
+       EnergySystem --|> Element
+       Element --> Attribute
+       DatasetCollection o-- Dataset
+       Dataset ..> Attribute
+
+
+Model Layer
+-----------
+
+``Model`` is the main coordinating class. It creates model objects from
+configuration or existing model folders, applies updates, runs checks, and
+writes output files.
 
 .. mermaid::
    :zoom:
@@ -43,33 +88,48 @@ Overview
            +elements: list <<property>>
        }
 
+       class Config
+
+       Model --> Sector
+       Model --> Config
+
+Key methods:
+
+- ``from_existing()``: load an existing ZEN-garden model folder and overwrite
+  defaults with existing values.
+- ``build()``: execute all element-specific ``_set_<attribute>()`` hooks to
+  apply class-defined logic.
+- ``validate()``: run consistency checks before writing.
+- ``write()``: serialize ``system.json``, ``energy_system``, and all elements.
+
+
+Element Layer
+-------------
+
+All physical model parts derive from ``Element``. ``Element`` provides shared
+behavior for path handling, build logic, overwrite logic, and writing files.
+
+.. mermaid::
+   :zoom:
+
+   classDiagram
        class Element {
-       }
-
-       class DatasetCollection {
-       }
-
-       class Dataset {
-       }
-
-       class Config {
-       }
-
-       class EnergySystem {
-           +price_carbon_emissions_annual_overshoot: Attribute <<property>>
-           +carbon_emissions_budget: Attribute <<property>>
-           +carbon_emissions_annual_limit: Attribute <<property>>
-           +price_carbon_emissions_budget_overshoot: Attribute <<property>>
-           +price_carbon_emissions: Attribute <<property>>
-           +carbon_emissions_cumulative_existing: Attribute <<property>>
-           +discount_rate: Attribute <<property>>
-           +knowledge_spillover_rate: Attribute <<property>>
-           +knowledge_depreciation_rate: Attribute <<property>>
-           +market_share_unbounded: Attribute <<property>>
-           +set_nodes: Attribute <<property>>
-           +set_edges: Attribute <<property>>
-           +set_default_values_energy_system() None
+           +name: str
+           +subpath: str <<class variable>>
+           +model: Model
+           +config: Config
+           +power_unit: str
+           +source_path: Path <<property>>
+           +relative_output_path: Path <<property>>
+           +output_path: Path <<property>>
+           +attributes: dict <<property>>
+           +overwrite_from_existing_model() None
+           +build() None
            +write() None
+           +get_output_path() Path
+           +attributes_to_dict() dict
+           +save_attributes() None
+           +save_data() None
        }
 
        class Attribute {
@@ -87,66 +147,108 @@ Overview
            +save_data() None
        }
 
-       <<abstract>> Sector
-       <<abstract>> Dataset
-       <<abstract>> Element
-       <<abstract>> DatasetCollection
-
-       DatasetCollection o-- Dataset
-       Model --> Sector
-       Model --> Element
-       Model --> EnergySystem
-       Model --> Config
        Element --> Attribute
-       EnergySystem --> Attribute
-       Dataset ..> Attribute
-       DatasetCollection ..> Dataset
-       Sector o-- Element
+
+Key attributes and methods:
+
+- ``Element.attributes``: the main map of all attributes that will be written.
+- ``Element.build()``: automatically calls ``_set_<attribute_name>()`` when
+  implemented by subclasses.
+- ``Attribute.set_data()``: main method for setting defaults, units, data,
+  yearly variations, and source metadata.
+- ``Attribute.default_to_dict()`` and ``Attribute.save_data()``: convert values
+  in memory into output files.
 
 
-Subclasses of Elements
-----------------------
+Energy System Class
+-------------------
+
+``EnergySystem`` is a specialized ``Element`` that stores global model settings
+and network-level structures (nodes and edges).
 
 .. mermaid::
    :zoom:
 
    classDiagram
-       class Element {
-           +subpath: str <<class variable>>
-           +name: str
-           +model: Model
-           +config: Config
-           +power_unit: str
-           +source_path: Path <<property>>
-           +relative_output_path: Path <<property>>
-           +output_path: Path <<property>>
-           +attributes: dict <<property>>
-           +overwrite_from_existing_model() None
-           +build() None
+       class EnergySystem {
+           +price_carbon_emissions_annual_overshoot: Attribute <<property>>
+           +carbon_emissions_budget: Attribute <<property>>
+           +carbon_emissions_annual_limit: Attribute <<property>>
+           +price_carbon_emissions_budget_overshoot: Attribute <<property>>
+           +price_carbon_emissions: Attribute <<property>>
+           +carbon_emissions_cumulative_existing: Attribute <<property>>
+           +discount_rate: Attribute <<property>>
+           +knowledge_spillover_rate: Attribute <<property>>
+           +knowledge_depreciation_rate: Attribute <<property>>
+           +market_share_unbounded: Attribute <<property>>
+           +set_nodes: Attribute <<property>>
+           +set_edges: Attribute <<property>>
+           +set_default_values_energy_system() None
            +write() None
-           +get_output_path() Path
-           +attributes_to_dict() dict
-           +save_attributes() None
-           +save_data() None
        }
 
+       class Element
+       EnergySystem --|> Element
+
+Key behavior:
+
+- Holds system-wide carbon, market, and learning assumptions.
+- Manages graph-defining attributes ``set_nodes`` and ``set_edges``.
+- Overrides ``write()`` to also write unit-related files in the
+  ``energy_system`` folder.
+
+
+Element Hierarchy
+-----------------
+
+Technology and carrier classes follow a simple inheritance hierarchy.
+
+.. mermaid::
+   :zoom:
+
+   classDiagram
+       class Element
+       class Technology
+       class Carrier
+       class ConversionTechnology
+       class StorageTechnology
+       class TransportTechnology
+       class RetrofittingTechnology
+
+       <<abstract>> Element
+       <<abstract>> Technology
+       <<abstract>> ConversionTechnology
+       <<abstract>> StorageTechnology
+       <<abstract>> TransportTechnology
+       <<abstract>> RetrofittingTechnology
+
+       Element <|-- Technology
+       Element <|-- Carrier
+       Technology <|-- ConversionTechnology
+       Technology <|-- StorageTechnology
+       Technology <|-- TransportTechnology
+       ConversionTechnology <|-- RetrofittingTechnology
+
+
+Technology and Carrier APIs
+---------------------------
+
+The classes below define the most important technology and carrier attributes
+that are commonly customized in subclasses.
+
+.. mermaid::
+   :zoom:
+
+   classDiagram
        class Technology {
-           +name: str
-           +subpath: str
            +capacity_addition_min: Attribute <<property>>
            +capacity_addition_max: Attribute <<property>>
-           +capacity_addition_unbounded: Attribute <<property>>
            +capacity_existing: Attribute <<property>>
-           +capacity_investment_existing: Attribute <<property>>
            +capacity_limit: Attribute <<property>>
-           +carbon_intensity_technology: Attribute <<property>>
-           +construction_time: Attribute <<property>>
-           +lifetime: Attribute <<property>>
-           +min_load: Attribute <<property>>
-           +max_load: Attribute <<property>>
-           +max_diffusion_rate: Attribute <<property>>
            +opex_specific_variable: Attribute <<property>>
            +opex_specific_fixed: Attribute <<property>>
+           +construction_time: Attribute <<property>>
+           +lifetime: Attribute <<property>>
            +reference_carrier: Attribute <<property>>
            +set_default_values_technology() None
            +_set_lifetime() Attribute*
@@ -154,13 +256,9 @@ Subclasses of Elements
        }
 
        class Carrier {
-           +name: str
-           +subpath: str
            +demand: Attribute <<property>>
            +availability_import: Attribute <<property>>
            +availability_export: Attribute <<property>>
-           +availability_import_yearly: Attribute <<property>>
-           +availability_export_yearly: Attribute <<property>>
            +price_import: Attribute <<property>>
            +price_export: Attribute <<property>>
            +carbon_intensity_carrier_import: Attribute <<property>>
@@ -169,9 +267,25 @@ Subclasses of Elements
            +set_default_values() None
        }
 
+Key behavior:
+
+- ``Technology`` defines the shared investment and operation attributes.
+- ``Carrier`` defines demand, availability, prices, and carrier-specific carbon
+  intensity attributes.
+- Required abstract hooks in ``Technology`` ensure that every concrete
+  technology class defines ``lifetime`` and ``reference_carrier``.
+
+
+Technology Subclass APIs
+------------------------
+
+Each technology subtype adds a focused set of attributes and required hooks.
+
+.. mermaid::
+   :zoom:
+
+   classDiagram
        class ConversionTechnology {
-           +name: str
-           +subpath: str
            +capex_specific_conversion: Attribute <<property>>
            +input_carrier: Attribute <<property>>
            +output_carrier: Attribute <<property>>
@@ -183,30 +297,27 @@ Subclasses of Elements
        }
 
        class StorageTechnology {
-           +name: str
-           +subpath: str
            +efficiency_charge: Attribute <<property>>
            +efficiency_discharge: Attribute <<property>>
            +self_discharge: Attribute <<property>>
            +capex_specific_storage: Attribute <<property>>
            +capex_specific_storage_energy: Attribute <<property>>
-           +capacity_addition_min_energy: Attribute <<property>>
-           +capacity_addition_max_energy: Attribute <<property>>
            +capacity_existing_energy: Attribute <<property>>
            +capacity_limit_energy: Attribute <<property>>
-           +min_load_energy: Attribute <<property>>
-           +max_load_energy: Attribute <<property>>
-           +capacity_investment_existing_energy: Attribute <<property>>
-           +opex_specific_fixed_energy: Attribute <<property>>
            +energy_to_power_ratio_min: Attribute <<property>>
            +energy_to_power_ratio_max: Attribute <<property>>
            +flow_storage_inflow: Attribute <<property>>
            +set_default_values_storage_technology() None
        }
 
+       class TransportTechnology {
+           +transport_loss_factor_linear: Attribute <<property>>
+           +capex_per_distance_transport: Attribute <<property>>
+           +distance: Attribute <<property>>
+           +set_default_values_transport_technology() None
+       }
+
        class RetrofittingTechnology {
-           +name: str
-           +subpath: str
            +retrofit_flow_coupling_factor: Attribute <<property>>
            +retrofit_reference_carrier: Attribute <<property>>
            +set_default_values_retrofitting_technology() None
@@ -214,32 +325,22 @@ Subclasses of Elements
            +_set_retrofit_reference_carrier() Attribute*
        }
 
-       class TransportTechnology {
-           +name: str
-           +subpath: str
-           +transport_loss_factor_linear: Attribute <<property>>
-           +capex_per_distance_transport: Attribute <<property>>
-           +distance: Attribute <<property>>
-           +set_default_values_transport_technology() None
-       }
+Key behavior:
 
-       <<abstract>> Element
-       <<abstract>> Technology
-       <<abstract>> ConversionTechnology
-       <<abstract>> StorageTechnology
-       <<abstract>> RetrofittingTechnology
-       <<abstract>> TransportTechnology
-
-       Element <|-- Technology
-       Element <|-- Carrier
-       Technology <|-- ConversionTechnology
-       Technology <|-- StorageTechnology
-       Technology <|-- TransportTechnology
-       ConversionTechnology <|-- RetrofittingTechnology
+- ``ConversionTechnology`` enforces explicit carrier interfaces and conversion
+  factors.
+- ``StorageTechnology`` adds power-energy coupling and storage-specific
+  efficiency/loss attributes.
+- ``TransportTechnology`` focuses on distance-dependent losses and costs.
+- ``RetrofittingTechnology`` extends conversion technologies with retrofit
+  coupling attributes.
 
 
-Dataset Classes
----------------
+Data Layer
+----------
+
+Data classes separate raw data processing from element logic, so element
+subclasses can stay focused on model behavior.
 
 .. mermaid::
    :zoom:
@@ -276,7 +377,6 @@ Dataset Classes
        }
 
        class TechnoEconomicDataset {
-           +name: str
            +available_technologies_finance: list
            +available_technologies_efficiency: list
            +available_technologies_lifetime: list
@@ -293,9 +393,30 @@ Dataset Classes
            +set_available_technologies() None
        }
 
-       <<abstract>> DatasetCollection
        <<abstract>> Dataset
+       <<abstract>> DatasetCollection
        <<abstract>> TechnoEconomicDataset
 
        DatasetCollection o-- Dataset
        Dataset <|-- TechnoEconomicDataset
+
+Key behavior:
+
+- ``Dataset`` defines strict metadata and data-loading hooks via ``_set_*``
+  abstract methods.
+- ``DatasetCollection`` groups multiple dataset objects and exposes aggregate
+  metadata.
+- ``TechnoEconomicDataset`` provides a common interface for finance,
+  efficiency, lifetime, and construction-time data.
+
+
+Workflow Perspective
+--------------------
+
+The main workflow across these classes is:
+
+1. Create model object via ``Model.from_config()`` or ``Model.from_existing()``.
+2. Add or remove sectors/elements on ``Model``.
+3. Implement or adjust subclass ``_set_<attribute_name>()`` hooks.
+4. Run ``Model.build()`` to apply class-defined defaults.
+5. Run ``Model.write()`` to validate and serialize final model files.

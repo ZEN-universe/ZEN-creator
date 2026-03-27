@@ -23,7 +23,7 @@ Clone your forked repository by running the following lines in `Git-Bash
     cd ZEN-creator
 
 Substitute ``<your-username>`` with your Github username. If you gave the forked 
-repository a different name, replace ``ZEN-creator` with the name of your 
+repository a different name, replace ``ZEN-creator`` with the name of your 
 repository.
 
 .. note::
