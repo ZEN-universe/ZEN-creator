@@ -7,8 +7,10 @@ from .nuts_shp import NUTSshp
 from .potencia import Potencia
 from .tyndp_edges import TYNDP_2020_edges
 from .when2heat import When2Heat
+from .aa_template import TemplateDataset
 
 __all__ = [
+    "TemplateDataset",
     "ECB",
     "ENTSOEAPI",
     "EurostatApi",
