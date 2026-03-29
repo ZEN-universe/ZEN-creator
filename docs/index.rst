@@ -20,5 +20,7 @@ Documentation
    :maxdepth: 1
    :caption: Developer Guide
 
+   files/developer_guide/installation
+   files/developer_guide/workflow
    files/developer_guide/class_diagram
    
