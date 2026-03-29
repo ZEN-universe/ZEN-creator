@@ -14,10 +14,10 @@ from zen_creator.datasets.datasets.potencia import Potencia
 from zen_creator.utils.attribute import Attribute
 
 
-class Template(DatasetCollection):
+class TemplateDatasetCollection(DatasetCollection):
     """Template class for dataset collections."""
 
-    name = "template"
+    name = "template_dataset_collection"
 
     def __init__(self, source_path: Path | str):
         super().__init__(source_path=source_path)

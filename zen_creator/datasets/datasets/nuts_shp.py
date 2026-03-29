@@ -1,12 +1,17 @@
+from __future__ import annotations
+
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import geopandas as gpd
 import numpy as np
 import pandas as pd
 
 from zen_creator.datasets.dataset import Dataset
-from zen_creator.elements.element import Element
 from zen_creator.utils.attribute import Attribute
+
+if TYPE_CHECKING:
+    from zen_creator.elements.element import Element
 
 
 class NUTSshp(Dataset[pd.DataFrame]):
@@ -34,6 +39,8 @@ class NUTSshp(Dataset[pd.DataFrame]):
         return "https://ec.europa.eu/eurostat/web/gisco/geodata/statistical-units/territorial-units-statistics"
 
     def _set_path(self) -> Path:
+        if self.source_path is None:
+            raise ValueError("source_path must be set to load the dataset.")
         return self.source_path / "01-energy_system" / "nodes_edges"
 
     def _set_data(self) -> pd.DataFrame:
