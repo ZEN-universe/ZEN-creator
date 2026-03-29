@@ -1,3 +1,4 @@
+import numbers
 from pathlib import Path
 
 import pandas as pd
@@ -168,7 +169,7 @@ class TemplateDataset(Dataset[pd.DataFrame]):
         can be passed as keyword arguments to the function.
         """
         default_value = self.data.at[element.name, "max_load"]
-        if not isinstance(default_value, (int, float)):
+        if not isinstance(default_value, numbers.Real):
             raise ValueError(
                 "Expected numeric value for max_load, got type "
                 f"{type(default_value).__name__}"
