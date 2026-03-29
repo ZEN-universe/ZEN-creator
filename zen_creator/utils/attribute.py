@@ -263,7 +263,7 @@ class Attribute:
         unit: str | None = None,
         df: DataFrame | None = None,
         yearly_variations_df: DataFrame | None = None,
-        source: str | None = None,
+        source: str | dict[str, Any] | None = None,
     ) -> Attribute:
         """Set multiple attribute properties at once.
 

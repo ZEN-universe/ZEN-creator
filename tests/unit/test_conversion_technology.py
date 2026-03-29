@@ -44,6 +44,7 @@ def test_template_conversion_technology_construction(
     assert technology.input_carrier.default_value == ["electricity"]
     assert technology.output_carrier.default_value == ["heat"]
 
+
 def test_template_conversion_technology_build(
     model: Model,
 ):
@@ -59,6 +60,7 @@ def test_template_conversion_technology_build(
     ]
     assert technology.max_load.default_value == 100
     assert technology.max_load.unit == "MW"
+    assert isinstance(technology.max_load.source, dict)
     assert technology.max_load.source["name"] == "template_dataset"
 
 
@@ -81,6 +83,7 @@ def test_template_conversion_technology_write(
     assert attributes["conversion_factor"] == [
         {"electricity": {"default_value": 1, "unit": "GWh/GWh"}}
     ]
+
 
 if __name__ == "__main__":
     pytest.main([__file__])

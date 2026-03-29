@@ -40,7 +40,7 @@ class TemplateDataset(Dataset[pd.DataFrame]):
 
     name = "template_dataset"
 
-    def __init__(self, source_path: Path | str):
+    def __init__(self, source_path: Path | str | None = None):
         super().__init__(source_path=source_path)
 
     def _set_author(self) -> str:
@@ -167,9 +167,15 @@ class TemplateDataset(Dataset[pd.DataFrame]):
         and/or settings which control the result. In this case, the relevant settings
         can be passed as keyword arguments to the function.
         """
+        default_value = self.data.at[element.name, "max_load"]
+        if not isinstance(default_value, (int, float)):
+            raise ValueError(
+                "Expected numeric value for max_load, got type "
+                f"{type(default_value).__name__}"
+            )
         attr = Attribute("max_load", element)
         attr.set_data(
-            default_value=self.data.loc[element.name, "max_load"],
+            default_value=float(default_value),
             unit=self._max_load_unit(),
             source=self.metadata,
         )
