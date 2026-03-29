@@ -9,7 +9,7 @@ from zen_creator.elements import ConversionTechnology
 from zen_creator.utils.attribute import Attribute
 from zen_creator.datasets.datasets import TemplateDataset
 
-class Template(ConversionTechnology):
+class TemplateConversionTechnology(ConversionTechnology):
     """Template class for conversion technologies.
     
     This template is designed as a starting point for users wishing to implement
@@ -122,6 +122,6 @@ class Template(ConversionTechnology):
         datasets or datasetcollections.
         """
 
-        attr = TemplateDataset().get_max_load(element=self)
+        attr = TemplateDataset(self.model.config.source_path).get_max_load(element=self)
         
         return attr

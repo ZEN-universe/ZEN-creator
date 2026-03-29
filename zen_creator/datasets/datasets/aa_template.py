@@ -9,8 +9,8 @@ from zen_creator.utils.attribute import Attribute
 
 class TemplateDataset(Dataset[pd.DataFrame]):
     """
-    Template class for datasets. This template is designed as a starting point 
-    for users wishing to implement a new dataset. Please read the 
+    Template class for datasets. This template is designed as a starting point
+    for users wishing to implement a new dataset. Please read the
     docstrings and comments carefully for notes on how to use the template.
 
     All datasets must inherit from the Dataset class and implement the required abstract
@@ -20,79 +20,104 @@ class TemplateDataset(Dataset[pd.DataFrame]):
     that they must be implemented. You can search for `TODO` in this file to quickly
     find all the places where you need to make changes.
 
-    The Dataset class takes a generic type parameter which specifies the 
-    return type of the data property. Please set this to the appropriate type 
-    for your dataset (e.g., pd.DataFrame, Dict[str, pd.DataFrame], etc.) and 
-    adjust the return type of _get_data() accordingly. In this template, we have set 
-    it to pd.DataFrame for demonstration purposes.    
+    The Dataset class takes a generic type parameter which specifies the
+    return type of the data property. Please set this to the appropriate type
+    for your dataset (e.g., pd.DataFrame, Dict[str, pd.DataFrame], etc.) and
+    adjust the return type of _get_data() accordingly. In this template, we have set
+    it to pd.DataFrame for demonstration purposes.
 
     All Datasets are singleton objects, meaning that they only get constructed once
     regardless of how many times they are instantiated. This is because datasets can be
-    large and expensive to load, so we want to avoid loading them multiple times. 
+    large and expensive to load, so we want to avoid loading them multiple times.
     The first time a dataset is instantiated, it will be constructed and loaded
-    as normal. The second time it is instantiated, the existing instance will 
-    be returned instead of constructing a new one. This means that the constructor 
-    and the methods called during construction (i.e., the methods marked 
-    with `TODO` comments) will only be called once, even if the dataset is 
-    instantiated multiple times. This also means that the raw data only gets loaded  
+    as normal. The second time it is instantiated, the existing instance will
+    be returned instead of constructing a new one. This means that the constructor
+    and the methods called during construction (i.e., the methods marked
+    with `TODO` comments) will only be called once, even if the dataset is
+    instantiated multiple times. This also means that the raw data only gets loaded
     once, and subsequent instantiations of the dataset will use the already loaded data.
     """
+
     name = "template_dataset"
 
     def __init__(self, source_path: Path | str):
         super().__init__(source_path=source_path)
 
-    def _get_author(self) -> str:
+    def _set_author(self) -> str:
         """
         Return the author(s) of the dataset.
 
         This method is used to set the self.author property when the
         dataset is constructed.
 
-        `TODO`: This method must be implemented. It should return a string 
+        `TODO`: This method must be implemented. It should return a string
         containing the name(s) of the author(s) of the dataset.
         """
         return "Reliability and Risk Engineering Lab"
 
-    def _get_publication_year(self) -> int:
+    def _set_publication_year(self) -> int:
         """
         Return the publication year of the dataset.
 
         This method is used to set the self.publication_year property when the
         dataset is constructed.
 
-        `TODO`: This method must be implemented. It should return an integer 
+        `TODO`: This method must be implemented. It should return an integer
         representing the publication year of the dataset.
         """
         return 2026
 
-    def _get_url(self) -> str:
+    def _set_title(self) -> str:
+        """
+        Return the title of the dataset.
+
+        This method is used to set the self.title property when the
+        dataset is constructed.
+
+        `TODO`: This method must be implemented. It should return a string
+        giving the title of the dataset.
+        """
+        return "Technology lifetimes and availability data for energy system modeling"
+
+    def _set_publication(self) -> str:
+        """
+        Return the publication where the dataset was published.
+
+        This method is used to set the self.publication property when the
+        dataset is constructed.
+
+        `TODO`: This method must be implemented. It should return a string
+        giving the name of the publication.
+        """
+        return "Journal of Reliability and Risk Engineering"
+
+    def _set_url(self) -> str:
         """
         Return the url from which the dataset was downloaded.
 
         This method is used to set the self.url property when the dataset is
         constructed.
 
-        'TODO': This method must be implemented. It should return a string 
+        'TODO': This method must be implemented. It should return a string
         containing the url from which the dataset was downloaded.
         """
         return "https://example.com/dataset.csv"
 
-    def _get_path(self) -> Path | None:
+    def _set_path(self) -> Path | None:
         """
         Return the path to the dataset file.
 
         This method is used to set the self.path property when the dataset is
         constructed.
 
-        `TODO`: This method must be implemented. It should return a Path object 
-        pointing to the location of the dataset. It should use the self.source_path 
-        argument passed to the constructor to determine the location of the raw 
-        dataset files. 
+        `TODO`: This method must be implemented. It should return a Path object
+        pointing to the location of the dataset. It should use the self.source_path
+        argument passed to the constructor to determine the location of the raw
+        dataset files.
         """
         return Path(".")
 
-    def _get_data(self) -> pd.DataFrame:
+    def _set_data(self) -> pd.DataFrame:
         """
         Load the dataset from self.path.
 
@@ -107,13 +132,18 @@ class TemplateDataset(Dataset[pd.DataFrame]):
         constructed. It therefore cannot take any inpyut arguments, but can
         access self.path and any other properties of the dataset.
 
-        'TODO': This method must be implemented. 
+        'TODO': This method must be implemented.
         """
-        # can access self.path to load the dataset, 
+        # can access self.path to load the dataset,
         # but here we will just return a dummy dataset for demonstration purposes
         data = pd.DataFrame(
-            {"max_load": [100, 150, 200], "availability_import": {1, 2, 3}},
-            index=["heat_pump", "photovoltaics", "wind_onshore"],
+            {"max_load": [100, 150, 200, 250], "availability_import": [1, 2, 3, 4]},
+            index=[
+                "template_conversion_technology",
+                "template_storage_technology",
+                "template_transport_technology",
+                "template_retrofitting_technology",
+            ],
         )
 
         return data
@@ -134,21 +164,21 @@ class TemplateDataset(Dataset[pd.DataFrame]):
 
         Additional keyword arguments can be added to the function signature if needed.
         These can be helpful if, for example, the dataset has multiple configurations
-        and/or settings which control the result. In this case, the relevant settings 
+        and/or settings which control the result. In this case, the relevant settings
         can be passed as keyword arguments to the function.
         """
         attr = Attribute("max_load", element)
         attr.set_data(
-            default_value = self.data.loc[element.name, "max_load"],
-            unit = self._max_load_unit()
-            source = self.metadata
+            default_value=self.data.loc[element.name, "max_load"],
+            unit=self._max_load_unit(),
+            source=self.metadata,
         )
         return attr
 
     def _max_load_unit(self):
         """
-        Helper function for creating the 'max_load' attribute. 
-        
+        Helper function for creating the 'max_load' attribute.
+
         All helper functions should begin with an underscore to clearly mark them as
         internal.
         """
