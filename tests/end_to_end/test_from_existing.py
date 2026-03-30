@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from tests.utils.compare_trees import compare_trees
 from zen_creator.model import Model
+from zen_creator.utils.compare_trees import compare_trees
 
 
 def test_crystal_ball():

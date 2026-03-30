@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-import json
+from pathlib import Path
 
 import pytest
 
 from zen_creator.elements.carriers.aa_template import TemplateCarrier
 from zen_creator.model import Model
+from zen_creator.utils.compare_trees import compare_files
 
 
 def test_template_carrier_construction(
@@ -37,20 +38,21 @@ def test_template_carrier_build(
 def test_template_carrier_write(
     model: Model,
 ):
-    """Write persists ``attributes.json`` with values available after build()."""
+    """Write persists ``attributes.json`` and matches the reference output file."""
     carrier = TemplateCarrier(model=model)
     carrier.build()
     carrier.write()
 
     attributes_path = carrier.output_path / "attributes.json"
+    reference_path = (
+        Path(__file__).parent
+        / "fixtures"
+        / "template_carrier"
+        / "attributes_carrier.json"
+    )
 
-    assert attributes_path.exists()
-
-    attributes = json.loads(attributes_path.read_text())
-    assert attributes["demand"]["default_value"] == 0.0
-    assert attributes["demand"]["unit"] == "MW"
-    assert attributes["price_shed_demand"]["default_value"] == "inf"
-    assert attributes["price_shed_demand"]["unit"] == "Euro/MWh"
+    differences = compare_files(reference_path, attributes_path)
+    assert differences == [], "\n".join(differences)
 
 
 if __name__ == "__main__":

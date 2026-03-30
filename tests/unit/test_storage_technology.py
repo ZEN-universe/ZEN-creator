@@ -7,7 +7,7 @@ depend on external source files in this template setup.
 
 from __future__ import annotations
 
-import json
+from pathlib import Path
 
 import pytest
 
@@ -15,6 +15,7 @@ from zen_creator.elements.storage_technologies.aa_template import (
     TemplateStorageTechnology,
 )
 from zen_creator.model import Model
+from zen_creator.utils.compare_trees import compare_files
 
 
 def test_template_storage_technology_construction(
@@ -46,19 +47,21 @@ def test_template_storage_technology_build(
 def test_template_storage_technology_write(
     model: Model,
 ):
-    """Write persists ``attributes.json`` with values created by build()."""
+    """Write persists ``attributes.json`` and matches the reference output file."""
     technology = TemplateStorageTechnology(model=model)
     technology.build()
     technology.write()
 
     attributes_path = technology.output_path / "attributes.json"
+    reference_path = (
+        Path(__file__).parent
+        / "fixtures"
+        / "template_storage_technology"
+        / "attributes_storage_technology.json"
+    )
 
-    assert attributes_path.exists()
-
-    attributes = json.loads(attributes_path.read_text())
-    assert attributes["lifetime"]["default_value"] == 25.0
-    assert attributes["max_load"]["default_value"] == 150.0
-    assert attributes["max_load"]["unit"] == "MW"
+    differences = compare_files(reference_path, attributes_path)
+    assert differences == [], "\n".join(differences)
 
 
 if __name__ == "__main__":

@@ -7,7 +7,7 @@ depend on external source files in this template setup.
 
 from __future__ import annotations
 
-import json
+from pathlib import Path
 
 import pytest
 
@@ -15,6 +15,7 @@ from zen_creator.elements.conversion_technologies.aa_template import (
     TemplateConversionTechnology,
 )
 from zen_creator.model import Model
+from zen_creator.utils.compare_trees import compare_files
 
 
 def test_template_conversion_technology_construction(
@@ -51,22 +52,21 @@ def test_template_conversion_technology_build(
 def test_template_conversion_technology_write(
     model: Model,
 ):
-    """Write persists ``attributes.json`` with values created by build()."""
+    """Write persists ``attributes.json`` and matches the reference output file."""
     technology = TemplateConversionTechnology(model=model)
     technology.build()
     technology.write()
 
     attributes_path = technology.output_path / "attributes.json"
+    reference_path = (
+        Path(__file__).parent
+        / "fixtures"
+        / "template_conversion_technology"
+        / "attributes_conversion_technology.json"
+    )
 
-    assert attributes_path.exists()
-
-    attributes = json.loads(attributes_path.read_text())
-    assert attributes["lifetime"]["default_value"] == 25.0
-    assert attributes["max_load"]["default_value"] == 100.0
-    assert attributes["max_load"]["unit"] == "MW"
-    assert attributes["conversion_factor"] == [
-        {"electricity": {"default_value": 1, "unit": "GWh/GWh"}}
-    ]
+    differences = compare_files(reference_path, attributes_path)
+    assert differences == [], "\n".join(differences)
 
 
 if __name__ == "__main__":
