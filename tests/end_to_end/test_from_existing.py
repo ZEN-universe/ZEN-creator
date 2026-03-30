@@ -23,6 +23,8 @@ def test_crystal_ball():
 
     # create and save model
     model = Model.from_existing(existing_model_path=existing_model_path)
+
+    # save under new name
     model.output_folder = Path(".//tests//end_to_end//outputs")
     model.name = "test_crystal_ball"
     model.write()

@@ -16,13 +16,15 @@ class DatasetCollection(ABC, metaclass=SingletonRegistryMeta):
 
     name: str
 
-    def __init__(self, source_path: Path | str):
+    def __init__(self, source_path: Path | str | None = None):
         """Initialize a DatasetCollection instance.
 
         Args:
-            source_path (Path | str): Path to the source data directory.
+            source_path (Path | str | None): Path to the source data directory.
         """
-        self.source_path = Path(source_path)  # Type: Path
+        self.source_path: Path | None = (
+            Path(source_path) if source_path is not None else None
+        )
 
         # Internal storage for validated properties
         self._data: Dict[str, Dataset] = {}

@@ -3,21 +3,10 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Iterator
 
 import pandas as pd
-import pytest
 
 from zen_creator.datasets.datasets import TemplateDataset
-from zen_creator.utils.singleton_registry_meta import SingletonRegistryMeta
-
-
-@pytest.fixture(autouse=True)
-def reset_singleton_registries() -> Iterator[None]:
-    """Reset singleton registries for test isolation."""
-    SingletonRegistryMeta._registries.clear()
-    yield
-    SingletonRegistryMeta._registries.clear()
 
 
 def test_template_dataset_construction(tmp_path: Path) -> None:

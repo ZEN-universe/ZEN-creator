@@ -109,8 +109,8 @@ class TemplateConversionTechnology(ConversionTechnology):
         technology is built.
 
         This method is an example of how to create an attribute using information from
-        a dataset. It is not required for all technologies, but can be used if there
-        are attributes that depend on data from a dataset.
+        a dataset. It is not required for all technologies. Use this syntax
+        when attributes need to be initialized with data from a dataset.
 
         Attributes should be returned directly from the dataset method
         "get_<attribute_name>" of the relevant dataset. In this example, we
