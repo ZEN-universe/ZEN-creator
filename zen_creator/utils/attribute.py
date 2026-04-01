@@ -87,6 +87,7 @@ class Attribute:
         default_value: DefaultValue = None,
         base_technology: str | None = None,
         df: DataFrame | None = None,
+        year_specific_dfs: dict[int, DataFrame] | None = None,
         yearly_variations_df: DataFrame | None = None,
         source: str | dict[str, Any] | None = None,
     ):
@@ -103,17 +104,19 @@ class Attribute:
         """
         self.name: str = name
         self.element: Element = element
-        self._default_value = None
+        self._default_value: DefaultValue = None
         self._unit = None
-        self._df = None
-        self._yearly_variations_df = None
-        self._source = None
+        self._df: DataFrame | None = None
+        self._yearly_variations_df: DataFrame | None = None
+        self._year_specific_dfs: dict[int, DataFrame] = {}
+        self._source: str | dict[str, Any] | None = None
 
         # Use setters to ensure validation is applied during initialization
         self.base_technology = base_technology
         self.default_value = default_value
         self.unit = unit
         self.df = df
+        self.year_specific_dfs = year_specific_dfs or {}
         self.yearly_variations_df = yearly_variations_df
         self.source = source
         self.base_technology = base_technology
@@ -228,6 +231,11 @@ class Attribute:
             ValueError: If any index name is not allowed.
         """
         if value is not None:
+            if self.year_specific_dfs:
+                raise ValueError(
+                    f"Cannot set yearly variations data for attribute '{self.name}' "
+                    f"when year-specific time series data is present."
+                )
             if self._yearly_variations_df is not None:
                 print(
                     f"Warning: Overwriting existing yearly variations data for "
@@ -238,6 +246,45 @@ class Attribute:
             )
 
         self._yearly_variations_df = value
+
+    @property
+    def year_specific_dfs(self) -> dict[int, DataFrame]:
+        """Get the year-specific time series data."""
+        return self._year_specific_dfs
+
+    @year_specific_dfs.setter
+    def year_specific_dfs(self, value: dict[int, DataFrame]) -> None:
+        """Set the year-specific time series data with validation.
+
+        Args:
+            value: A dictionary mapping years to pandas DataFrames.
+                The keys of the dictionary should be
+                integers representing years, and the values should be
+                DataFrames with appropriate indices.
+
+        Raises:
+            ValueError: If any index name is not allowed.
+        """
+        if (self.yearly_variations_df is not None) and value:
+            raise ValueError(
+                f"Cannot set year-specific data for attribute"
+                f"'{self.name}' when yearly variations data is present."
+            )
+        if not isinstance(value, dict):
+            raise ValueError(
+                f"year_specific_dfs must be a dictionary mapping years to "
+                f"DataFrames. Got {type(value).__name__}."
+            )
+        for year, df in value.items():
+            if not isinstance(year, int):
+                raise ValueError(
+                    f"Year key '{year}' in year_specific_dfs must be an integer."
+                )
+            self._validate_dataframe_indices(
+                df, self._ALLOWED_YEARLY_VARIATIONS_INDEX_NAMES
+            )
+
+        self._year_specific_dfs = value
 
     @property
     def source(self) -> str | dict[str, Any] | None:
@@ -307,6 +354,7 @@ class Attribute:
         self._load_attributes_from_json(attributes_file)
         self._load_time_series_data(existing_element_path)
         self._load_yearly_variations_data(existing_element_path)
+        self._load_year_specific_time_series_data(existing_element_path)
 
     def _load_attributes_from_json(self, file_path: Path) -> None:
         """Load attribute defaults from a JSON file.
@@ -355,6 +403,21 @@ class Attribute:
         variations_file = data_dir / f"{self.name}_yearly_variation.csv"
         if variations_file.exists():
             self.yearly_variations_df = pd.read_csv(variations_file, index_col=0)
+
+    def _load_year_specific_time_series_data(self, data_dir: Path) -> None:
+        """Load year-specific time-series data from CSV files.
+
+        The csv files must have the name format "{attribute_name}_{year}.csv",
+        e.g. "capacity_addition_max_2030.csv".
+
+        Args:
+            data_dir: Directory containing the year-specific data files.
+        """
+        for file in data_dir.glob(f"{self.name}_*.csv"):
+            year_str = file.stem.split("_")[-1]
+            if year_str.isdigit():
+                year = int(year_str)
+                self.year_specific_dfs[year] = pd.read_csv(file, index_col=0)
 
     # ---------- Output Methods ----------
 
@@ -408,6 +471,13 @@ class Attribute:
             )
             file_path = os.path.join(folder_path, f"{self.name}_yearly_variation.csv")
             self.yearly_variations_df.to_csv(file_path)
+        for year, df in self.year_specific_dfs.items():
+            print(
+                f"Saving year-specific data for attribute '{self.name}' of element "
+                f"'{element_name}' for year {year}..."
+            )
+            file_path = os.path.join(folder_path, f"{self.name}_{year}.csv")
+            df.to_csv(file_path)
 
     def _convert_default_value_to_serializable(self) -> Any:
         """Convert default value to a serializable format.

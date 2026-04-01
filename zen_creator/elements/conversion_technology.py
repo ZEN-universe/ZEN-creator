@@ -109,7 +109,6 @@ class ConversionTechnology(Technology, ABC):
         self._validate_attribute(value)
         self._conversion_factor = value
 
-
     @property
     def min_full_load_hours_fraction(self) -> Attribute:
         return self._min_full_load_hours_fraction
