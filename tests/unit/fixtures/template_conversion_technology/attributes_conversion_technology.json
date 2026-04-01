@@ -55,6 +55,10 @@
         "default_value": 25.0,
         "unit": "1"
     },
+    "min_full_load_hours_fraction": {
+        "default_value": 0,
+        "unit": "1"
+    },
     "reference_carrier": {
         "default_value": [
             "heat"

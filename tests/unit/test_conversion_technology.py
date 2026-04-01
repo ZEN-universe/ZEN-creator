@@ -70,4 +70,4 @@ def test_template_conversion_technology_write(
 
 
 if __name__ == "__main__":
-    pytest.main([__file__])
+    pytest.main([__file__, "-k", "test_template_conversion_technology_write"])

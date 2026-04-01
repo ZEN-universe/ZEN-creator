@@ -52,6 +52,7 @@ class ConversionTechnology(Technology, ABC):
         self.min_full_load_hours_fraction = Attribute(
             name="min_full_load_hours_fraction",
             default_value=0,
+            unit="1",
             element=self,
         )
         self._input_carrier = self._set_input_carrier()
