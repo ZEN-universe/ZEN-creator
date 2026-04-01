@@ -72,5 +72,9 @@
   "output_carrier": {
     "default_value": []
   },
-  "conversion_factor": []
+  "conversion_factor": [],
+  "min_full_load_hours_fraction": {
+    "default_value": 0,
+    "unit": "1"
+  }
 }

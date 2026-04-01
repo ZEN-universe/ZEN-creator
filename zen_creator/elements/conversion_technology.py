@@ -29,6 +29,7 @@ class ConversionTechnology(Technology, ABC):
             "input_carrier",
             "output_carrier",
             "conversion_factor",
+            "min_full_load_hours_fraction",
         ]
         self._attribute_names.extend(self._subclass_attribute_names)
 
@@ -46,6 +47,11 @@ class ConversionTechnology(Technology, ABC):
         self._conversion_factor = Attribute(
             name="conversion_factor",
             default_value=[],
+            element=self,
+        )
+        self.min_full_load_hours_fraction = Attribute(
+            name="min_full_load_hours_fraction",
+            default_value=0,
             element=self,
         )
         self._input_carrier = self._set_input_carrier()
@@ -102,6 +108,16 @@ class ConversionTechnology(Technology, ABC):
     def conversion_factor(self, value: Attribute) -> None:
         self._validate_attribute(value)
         self._conversion_factor = value
+
+
+    @property
+    def min_full_load_hours_fraction(self) -> Attribute:
+        return self._min_full_load_hours_fraction
+
+    @min_full_load_hours_fraction.setter
+    def min_full_load_hours_fraction(self, value: Attribute) -> None:
+        self._validate_attribute(value)
+        self._min_full_load_hours_fraction = value
 
     # ---------- Mandatory attributes to be filled for each technology --------
 
