@@ -98,5 +98,9 @@
         "unit": "GW/((kilotCO2eq/hour))"
       }
     }
-  ]
+  ],
+  "min_full_load_hours_fraction": {
+    "default_value": 0,
+    "unit": "1"
+  }
 }

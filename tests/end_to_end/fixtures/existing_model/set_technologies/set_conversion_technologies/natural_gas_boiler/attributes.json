@@ -81,5 +81,9 @@
   "capacity_addition_unbounded": {
     "default_value": 0.0,
     "unit": "GW"
+  },
+  "min_full_load_hours_fraction": {
+    "default_value": 0,
+    "unit": "1"
   }
 }
