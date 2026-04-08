@@ -325,32 +325,23 @@ class EnergySystem(Element, ABC):
 
 class GenericEnergySystem(EnergySystem):
 
-    name: str = "energy_system"
+    name: str = "generic_energy_system" # for element registry
 
     def __init__(self, model: Model):
+        self.name = "energy_system"  # overwrite with new name
         super().__init__(model=model)
 
     # ---------- Default methods ----------
-
     def _set_set_nodes(self) -> Attribute:
-        attr = NUTSshp(source_path=self.source_path).get_set_nodes(self)
-        return attr
+        """Return the set_nodes attribute.
+
+        TODO: Replace this placeholder with your node-loading logic.
+        """
+        return Attribute(name="set_nodes", default_value=None, element=self)
 
     def _set_set_edges(self) -> Attribute:
-        attr = Edges(source_path=self.source_path).get_set_edges(self)
+        """Return the set_edges attribute.
 
-        # check that edges are not empty
-        if (set_edges := attr.df) is None or set_edges.empty:
-            raise ValueError("No edges are set in the energy system.")
-
-        # manual connections NO-BE and NO-FR for gas, and SE-LT for electricity
-        set_edges.loc["NO-FR", :] = ["NO", "FR"]
-        set_edges.loc["FR-NO", :] = ["FR", "NO"]
-        set_edges.loc["NO-BE", :] = ["NO", "BE"]
-        set_edges.loc["BE-NO", :] = ["BE", "NO"]
-        set_edges.loc["SE-LT", :] = ["SE", "LT"]
-        set_edges.loc["LT-SE", :] = ["LT", "SE"]
-        attr.set_data(df=set_edges.drop_duplicates().sort_index())
-
-        # write csv
-        return attr
+        TODO: Replace this placeholder with your edge-loading logic.
+        """
+        return Attribute(name="set_edges", default_value=None, element=self)
