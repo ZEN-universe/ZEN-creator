@@ -9,6 +9,7 @@ from zen_creator.elements import (
     EnergySystem,
     GenericCarrier,
     GenericConversionTechnology,
+    GenericEnergySystem,
     GenericRetrofittingTechnology,
     GenericStorageTechnology,
     GenericTransportTechnology,
@@ -75,7 +76,7 @@ class Model:
         model.source_path = model.config.source_path
 
         # initialize other attributes
-        model.energy_system = EnergySystem(model)
+        model.energy_system = GenericEnergySystem(model)
         model.elements = dict()
 
         insert = model.config.elements.insert

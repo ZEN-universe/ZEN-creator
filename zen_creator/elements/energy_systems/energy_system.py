@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -14,7 +15,7 @@ from zen_creator.elements.element import Element
 from zen_creator.utils.attribute import Attribute
 
 
-class EnergySystem(Element):
+class EnergySystem(Element, ABC):
     name = "energy_system"
 
     def __init__(self, model: Model):
@@ -307,7 +308,29 @@ class EnergySystem(Element):
             with open(file_path_interp, "w") as json_file:
                 json.dump(param_interp_config.model_dump(), json_file, indent=4)
 
-    # ---------- Custom Methods ----------
+    # ---------- Mandatory attributes to be filled for each energy system --------
+
+    @abstractmethod
+    def _set_set_nodes(self) -> Attribute:
+        raise NotImplementedError(
+            "All subclasses of EnergySystem must implement `_set_set_nodes()`"
+        )
+
+    @abstractmethod
+    def _set_set_edges(self) -> Attribute:
+        raise NotImplementedError(
+            "All subclasses of EnergySystem must implement `_set_set_edges()`"
+        )
+
+
+class GenericEnergySystem(EnergySystem):
+
+    name: str = "energy_system"
+
+    def __init__(self, model: Model):
+        super().__init__(model=model)
+
+    # ---------- Default methods ----------
 
     def _set_set_nodes(self) -> Attribute:
         attr = NUTSshp(source_path=self.source_path).get_set_nodes(self)

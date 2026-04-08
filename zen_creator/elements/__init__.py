@@ -8,7 +8,7 @@ from .conversion_technologies.retrofitting_technology import (
     RetrofittingTechnology,
 )
 from .element import Element
-from .energy_system import EnergySystem
+from .energy_systems.energy_system import EnergySystem, GenericEnergySystem
 from .storage_technologies.storage_technology import (
     GenericStorageTechnology,
     StorageTechnology,
@@ -22,6 +22,7 @@ from .transport_technologies.transport_technology import (
 __all__ = [
     "Element",
     "EnergySystem",
+    "GenericEnergySystem",
     "Carrier",
     "GenericCarrier",
     "Technology",
