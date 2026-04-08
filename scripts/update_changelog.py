@@ -22,9 +22,19 @@ environment for use in subsequent workflow steps.
 import os
 import re
 import tomllib  # Python 3.11+
+from dataclasses import dataclass, field
 from datetime import date, datetime
 from pathlib import Path
 from typing import Tuple
+
+
+@dataclass
+class ChangeCategory:
+    title: str
+    changes: list[str] = field(default_factory=list)
+
+
+CategorizedChanges = dict[str, ChangeCategory]
 
 
 def extract_pr_info(pr_body_file: Path) -> Tuple[str, str, str]:
@@ -79,7 +89,9 @@ def get_zen_garden_version(pyproject_toml_file: Path) -> str:
     return version
 
 
-def parse_changes_from_pr_body(pr_body: str, pr_number: str, pr_author: str) -> dict:
+def parse_changes_from_pr_body(
+    pr_body: str, pr_number: str, pr_author: str
+) -> CategorizedChanges:
     """Parse pull request body and categorize changes.
 
     Expects a section in the pull request titled "Detailed list of changes" with
@@ -119,12 +131,12 @@ def parse_changes_from_pr_body(pr_body: str, pr_number: str, pr_author: str) -> 
 
     # Parse each line: expect "- type: description"
     # Format: "Section Tytle": {"Keyword": keyword, "changes": changes}
-    categorized_changes = {
-        "feat": {"title": "New Features ✨", "changes": []},
-        "fix": {"title": "Bug Fixes 🐛", "changes": []},
-        "docs": {"title": "Documentation Changes 📝", "changes": []},
-        "chore": {"title": "Maintenance Tasks 🧹", "changes": []},
-        "breaking": {"title": "BREAKING CHANGES ⚠️", "changes": []},
+    categorized_changes: CategorizedChanges = {
+        "feat": ChangeCategory("New Features ✨"),
+        "fix": ChangeCategory("Bug Fixes 🐛"),
+        "docs": ChangeCategory("Documentation Changes 📝"),
+        "chore": ChangeCategory("Maintenance Tasks 🧹"),
+        "breaking": ChangeCategory("BREAKING CHANGES ⚠️"),
     }
     for line in changes_section.splitlines():
         line = line.strip()
@@ -133,18 +145,18 @@ def parse_changes_from_pr_body(pr_body: str, pr_number: str, pr_author: str) -> 
             change_type = m.group(1).lower()
             description = m.group(2).strip() + f" {pr_info}"
             if change_type in categorized_changes:
-                categorized_changes[change_type]["changes"].append(description)
+                categorized_changes[change_type].changes.append(description)
             else:
                 raise ValueError(f"Unrecognized change type {change_type} in PR body")
 
     # Check if any valid changes
-    if not any([item["changes"] for item in categorized_changes.values()]):
+    if not any([item.changes for item in categorized_changes.values()]):
         raise ValueError("Detailed list of changes are empty or could not be processed")
 
     return categorized_changes
 
 
-def determine_bump_type(categorized_changes: dict) -> str:
+def determine_bump_type(categorized_changes: CategorizedChanges) -> str:
     """Determine the semantic version bump required.
 
     Bump precedence:
@@ -157,11 +169,11 @@ def determine_bump_type(categorized_changes: dict) -> str:
         str: The version bump type determined semantically.
     """
     # Determine semantic version bump
-    if categorized_changes["breaking"]["changes"]:
+    if categorized_changes["breaking"].changes:
         semver_bump = "major"
-    elif categorized_changes["feat"]["changes"]:
+    elif categorized_changes["feat"].changes:
         semver_bump = "minor"
-    elif categorized_changes["fix"]["changes"]:
+    elif categorized_changes["fix"].changes:
         semver_bump = "patch"
     else:
         semver_bump = "none"
@@ -276,8 +288,8 @@ def parse_changelog(changelog_file: Path) -> Tuple[str, str, str]:
 
 
 def parse_unversioned_changes(
-    unversioned_changes: str, categorized_changes: dict
-) -> dict:
+    unversioned_changes: str, categorized_changes: CategorizedChanges
+) -> CategorizedChanges:
     """Extracts bullet-point changes from an unversioned changelog section.
 
     This function scans a markdown-formatted changelog string for sections
@@ -300,7 +312,7 @@ def parse_unversioned_changes(
         change entries added to each category's `"changes"` list.
     """
     for change_type, item in categorized_changes.items():
-        title = item["title"]
+        title = item.title
         match = re.search(
             rf"###\s*{re.escape(title)}\s*\n(.*?)(?=\n## |\n### |\Z)",
             unversioned_changes,
@@ -314,14 +326,14 @@ def parse_unversioned_changes(
             line = line.strip()
             m = re.match(r"-\s*(.*)", line)  # search correct format
             if m:  # remove empty lines
-                categorized_changes[change_type]["changes"].append(m.group(1))
+                categorized_changes[change_type].changes.append(m.group(1))
 
     return categorized_changes
 
 
 def update_changelog(
     header: str,
-    categorized_changes: dict,
+    categorized_changes: CategorizedChanges,
     changelog_existing: str,
     semver_bump: str,
     new_version: str,
@@ -356,10 +368,10 @@ def update_changelog(
         changelog_addition += f"\n## [Unversioned Changes] - {date.today()} \n"
 
     for items in categorized_changes.values():
-        if items["changes"]:
-            title = items["title"]
+        if items.changes:
+            title = items.title
             changelog_addition += f"\n### {title}\n"
-            for change in items["changes"]:
+            for change in items.changes:
                 changelog_addition += f"- {change}\n"
 
     return (

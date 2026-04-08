@@ -10,10 +10,10 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
+import shutil
 import sys
 from importlib.metadata import version as get_version
 from pathlib import Path
-import shutil
 
 sys.path.insert(0, os.path.abspath(".."))
 sys.path.append(os.path.abspath("_ext"))
@@ -138,6 +138,7 @@ html_favicon = "files/figures/general/zen_garden_logo_text.png"
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 # html_static_path = ['_static']
+
 
 ## ----------------------------------------------------------------------------
 # copy changelog to allow it to appear in the documentation.
