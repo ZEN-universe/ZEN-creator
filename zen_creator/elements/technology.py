@@ -128,7 +128,9 @@ class Technology(Element, ABC):
         self._lifetime = Attribute(
             "lifetime", default_value=np.nan, unit="1", element=self
         )
-        self._reference_carrier =  Attribute(name="reference_carrier", default_value=[], element=self)
+        self._reference_carrier = Attribute(
+            name="reference_carrier", default_value=[], element=self
+        )
 
     # ---------- Properties ----------
 

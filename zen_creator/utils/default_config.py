@@ -48,6 +48,7 @@ class ElementTypeList(Subscriptable):
     Config for list of elements by type.
     """
 
+    energy_system: str = ""
     set_sectors: list[str] = Field(default_factory=list)
     set_conversion_technologies: list[str] = Field(default_factory=list)
     set_storage_technologies: list[str] = Field(default_factory=list)

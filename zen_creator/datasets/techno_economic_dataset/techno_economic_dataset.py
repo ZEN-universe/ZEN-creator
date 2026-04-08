@@ -1,17 +1,18 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Generic, Optional
+from typing import TYPE_CHECKING, Dict, Generic, Optional, TypeVar, Union
 
 if TYPE_CHECKING:
     from pathlib import Path
 
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import pandas as pd
 
-from zen_creator.datasets.dataset import Dataset, T
+from ..datasets.dataset import Dataset
+
+T = TypeVar("T", bound=Union[pd.DataFrame, Dict[str, pd.DataFrame]])
 
 
 class TechnoEconomicDataset(Dataset[T], Generic[T]):

@@ -9,8 +9,6 @@ import numpy as np
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator.datasets.dataset_collections.edges import Edges
-from zen_creator.datasets.datasets.nuts_shp import NUTSshp
 from zen_creator.elements.element import Element
 from zen_creator.utils.attribute import Attribute
 
@@ -333,13 +331,11 @@ class GenericEnergySystem(EnergySystem):
 
     # ---------- Default methods ----------
     def _set_set_nodes(self) -> Attribute:
-        """Return the set_nodes attribute.
-        """
-        attr = self.set_nodes # get current value
+        """Return the set_nodes attribute."""
+        attr = self.set_nodes  # get current value
         return attr
 
     def _set_set_edges(self) -> Attribute:
-        """Return the set_edges attribute.
-        """
-        attr = self.set_edges # get current value
+        """Return the set_edges attribute."""
+        attr = self.set_edges  # get current value
         return attr

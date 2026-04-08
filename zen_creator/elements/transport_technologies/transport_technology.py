@@ -97,4 +97,3 @@ class GenericTransportTechnology(TransportTechnology):
     def _set_reference_carrier(self) -> Attribute:
         attr = self.reference_carrier  # get current value
         return attr
-        

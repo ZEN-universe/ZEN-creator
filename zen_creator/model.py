@@ -20,7 +20,7 @@ from zen_creator.elements import (
 )
 from zen_creator.elements.element import Element
 from zen_creator.sectors import Sector
-from zen_creator.utils.default_config import Config
+from zen_creator.utils.default_config import Config, ElementTypeList
 
 
 class Model:
@@ -75,38 +75,16 @@ class Model:
         model.output_folder = model.config.output_folder
         model.source_path = model.config.source_path
 
-        # initialize other attributes
-        model.energy_system = GenericEnergySystem(model)
-        model.elements = dict()
-
         insert = model.config.elements.insert
         exclude = model.config.elements.exclude
 
+        # initialize energy system
+        model._initialize_energy_system(insert.energy_system)
+
         # Add sectors (using a loop directly)
-        for sector in insert.set_sectors:
-            model.add_sector_by_name(sector)
+        model._initialize_sectors(insert.set_sectors)
 
-        # Add technologies by iterating over the technology types
-        element_map = {
-            "set_conversion_technologies": "conversion_technology",
-            "set_storage_technologies": "storage_technology",
-            "set_transport_technologies": "transport_technology",
-            "set_retrofitting_technologies": "retrofitting_technology",
-            "set_carriers": "carrier",
-        }
-        for element_set, element_type in element_map.items():
-            element_list = getattr(insert, element_set)
-            for element in element_list:
-                model.add_element_by_name(element, element_type)
-
-        # Remove sectors that should be excluded
-        # ToDo:
-
-        # Remove technologies that should be excluded
-        for element_set in element_map.keys():
-            element_list = getattr(exclude, element_set)
-            for element in element_list:
-                model.remove_element_by_name(element)
+        model._initialize_technologies_and_carriers(insert, exclude)
 
         return model
 
@@ -170,6 +148,93 @@ class Model:
             element.overwrite_from_existing_model(existing_model_path)
 
         return model
+
+    def _initialize_energy_system(self, energy_system_name: str) -> None:
+        """Initialize the model's energy system instance.
+
+        If ``energy_system_name`` is empty, the default
+        :class:`GenericEnergySystem` is used. Otherwise, the method resolves
+        the class through the energy-system registry and instantiates it.
+
+        Args:
+            energy_system_name: Registered class name of the energy system to
+                instantiate.
+
+        Raises:
+            ValueError: If the configured class name is not found in the
+                registry.
+            TypeError: If the resolved class is not a subclass of
+                :class:`EnergySystem`.
+        """
+        if not energy_system_name:
+            self.energy_system = GenericEnergySystem(self)
+            return
+
+        energy_system_cls = EnergySystem.get_by_name(energy_system_name)
+
+        # Validate energy system class
+        if energy_system_cls is None:
+            raise ValueError(
+                f"Energy system class '{energy_system_name}' not found. "
+                "Please verify that this class definition exists and has been "
+                "imported."
+            )
+        if not issubclass(energy_system_cls, EnergySystem):
+            raise TypeError(
+                f"Expected a subclass of 'EnergySystem', got"
+                f"'{type(energy_system_cls).__name__}' instead."
+            )
+
+        self.energy_system = energy_system_cls(model=self)
+
+    def _initialize_sectors(self, sector_names: list[str]) -> None:
+        """Initialize model sectors by their registered names.
+
+        Each sector contributes its declared elements to ``self.elements`` via
+        :meth:`add_sector_by_name`.
+
+        Args:
+            sector_names: List of sector names to add to the model.
+        """
+        for sector in sector_names:
+            self.add_sector_by_name(sector)
+
+    def _initialize_technologies_and_carriers(
+        self, insert_config: ElementTypeList, exclude_config: ElementTypeList
+    ) -> None:
+        """Initialize technologies and carriers from insert/exclude config.
+
+        The method first adds elements listed in ``insert_config`` and then
+        removes elements listed in ``exclude_config``. This two-step process
+        keeps behavior consistent with existing config semantics.
+
+        Args:
+            insert_config: Element lists to be added to the model.
+            exclude_config: Element lists to be removed from the model after
+                insertion.
+        """
+
+        # Add technologies by iterating over the technology types
+        element_map = {
+            "set_conversion_technologies": "conversion_technology",
+            "set_storage_technologies": "storage_technology",
+            "set_transport_technologies": "transport_technology",
+            "set_retrofitting_technologies": "retrofitting_technology",
+            "set_carriers": "carrier",
+        }
+        for element_set, element_type in element_map.items():
+            element_list = getattr(insert_config, element_set)
+            for element in element_list:
+                self.add_element_by_name(element, element_type)
+
+        # Remove sectors that should be excluded
+        # TODO:
+
+        # Remove technologies that should be excluded
+        for element_set in element_map.keys():
+            element_list = getattr(exclude_config, element_set)
+            for element in element_list:
+                self.remove_element_by_name(element)
 
     # -------- Properties ----------------------------------------------------------
     @property

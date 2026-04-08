@@ -40,6 +40,7 @@ class RetrofittingTechnology(ConversionTechnology, ABC):
         self._retrofit_reference_carrier = Attribute(
             name="retrofit_reference_carrier", default_value=[], element=self
         )
+
     # ---------- Properties ----------
 
     @property
@@ -112,4 +113,3 @@ class GenericRetrofittingTechnology(RetrofittingTechnology):
     def _set_retrofit_reference_carrier(self) -> Attribute:
         attr = self.retrofit_reference_carrier  # get default value
         return attr
-

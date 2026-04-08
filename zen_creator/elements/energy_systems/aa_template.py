@@ -28,12 +28,30 @@ class TemplateEnergySystem(EnergySystem):
     def _set_set_nodes(self) -> Attribute:
         """Return the set_nodes attribute.
 
+        The attribute `set_nodes` must have a default value of `None`
+        so that it does not get written to the `attributes.json` file
+        for the energy system. The attribute data should contain
+        a dataframe of nodes and their latitute and longitude coordinates.
+
+        The `energy_system.set nodes` attribute defined in
+        this function *should not* be used to get a list
+        of nodes. Please use model.config.system.set_nodes instead. The node
+        list in the configurations is always up to date, while the dataframe
+        saved here my contain coordinates for additional nodes.
+
         TODO: Replace this placeholder with your node-loading logic.
         """
         return Attribute(name="set_nodes", default_value=None, element=self)
 
     def _set_set_edges(self) -> Attribute:
         """Return the set_edges attribute.
+
+        Return the set_nodes attribute.
+
+        The attribute `set_edges` must have a default value of `None`
+        so that it does not get written to the `attributes.json` file
+        for the energy system. The attribute data should contain
+        a dataframe of edges names and their `to` and `from` nodes.
 
         TODO: Replace this placeholder with your edge-loading logic.
         """

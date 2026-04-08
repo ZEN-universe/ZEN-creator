@@ -7,8 +7,9 @@ if TYPE_CHECKING:
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-from zen_creator.datasets.dataset import Dataset
 from zen_creator.utils.singleton_registry_meta import SingletonRegistryMeta
+
+from ..datasets.dataset import Dataset
 
 
 class DatasetCollection(ABC, metaclass=SingletonRegistryMeta):

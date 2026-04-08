@@ -5,10 +5,12 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from zen_creator.datasets.dataset import Dataset
+    from zen_creator.datasets.datasets.dataset import Dataset
     from zen_creator.elements.element import Element
 
-from zen_creator.datasets.dataset_collection import DatasetCollection
+from zen_creator.datasets.dataset_collections.dataset_collection import (
+    DatasetCollection,
+)
 from zen_creator.datasets.datasets import TemplateDataset
 from zen_creator.utils.attribute import Attribute
 

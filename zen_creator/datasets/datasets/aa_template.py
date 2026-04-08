@@ -3,9 +3,10 @@ from pathlib import Path
 
 import pandas as pd
 
-from zen_creator.datasets.dataset import Dataset
 from zen_creator.elements.element import Element
 from zen_creator.utils.attribute import Attribute
+
+from .dataset import Dataset
 
 
 class TemplateDataset(Dataset[pd.DataFrame]):
