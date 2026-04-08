@@ -3,12 +3,12 @@ from .conversion_technologies.conversion_technology import (
     ConversionTechnology,
     GenericConversionTechnology,
 )
-from .element import Element
-from .energy_system import EnergySystem
 from .conversion_technologies.retrofitting_technology import (
     GenericRetrofittingTechnology,
     RetrofittingTechnology,
 )
+from .element import Element
+from .energy_system import EnergySystem
 from .storage_technologies.storage_technology import (
     GenericStorageTechnology,
     StorageTechnology,

@@ -25,3 +25,8 @@ Documentation
    files/developer_guide/class_diagram
    files/developer_guide/add_new_params
    
+.. toctree::
+   :maxdepth: 1
+   :caption: Change Log
+
+   files/generated/changelog
