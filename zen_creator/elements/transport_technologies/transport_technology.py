@@ -91,8 +91,10 @@ class GenericTransportTechnology(TransportTechnology):
         super().__init__(model=model, power_unit=power_unit)
 
     def _set_lifetime(self) -> Attribute:
-        attr = self.lifetime  # get default value
+        attr = self.lifetime  # get current value
         return attr
 
     def _set_reference_carrier(self) -> Attribute:
-        return Attribute(name="reference_carrier", default_value=[], element=self)
+        attr = self.reference_carrier  # get current value
+        return attr
+        

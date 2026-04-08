@@ -325,7 +325,7 @@ class EnergySystem(Element, ABC):
 
 class GenericEnergySystem(EnergySystem):
 
-    name: str = "generic_energy_system" # for element registry
+    name: str = "generic_energy_system"  # for element registry
 
     def __init__(self, model: Model):
         self.name = "energy_system"  # overwrite with new name
@@ -334,14 +334,12 @@ class GenericEnergySystem(EnergySystem):
     # ---------- Default methods ----------
     def _set_set_nodes(self) -> Attribute:
         """Return the set_nodes attribute.
-
-        TODO: Replace this placeholder with your node-loading logic.
         """
-        return Attribute(name="set_nodes", default_value=None, element=self)
+        attr = self.set_nodes # get current value
+        return attr
 
     def _set_set_edges(self) -> Attribute:
         """Return the set_edges attribute.
-
-        TODO: Replace this placeholder with your edge-loading logic.
         """
-        return Attribute(name="set_edges", default_value=None, element=self)
+        attr = self.set_edges # get current value
+        return attr

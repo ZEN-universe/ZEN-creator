@@ -25,7 +25,7 @@ def test_template_storage_technology_construction(
     technology = TemplateStorageTechnology(model=model)
 
     assert technology.name == "template_storage_technology"
-    assert technology.reference_carrier.default_value == ["heat"]
+    assert technology.reference_carrier.default_value == []
 
 
 def test_template_storage_technology_build(

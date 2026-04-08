@@ -34,9 +34,12 @@ class RetrofittingTechnology(ConversionTechnology, ABC):
 
     def set_default_values_retrofitting_technology(self):
         """Initialize internal attributes to default values."""
-        self._retrofit_flow_coupling_factor = self._set_retrofit_flow_coupling_factor()
-        self._retrofit_reference_carrier = self._set_retrofit_reference_carrier()
-
+        self._retrofit_flow_coupling_factor = Attribute(
+            name="retrofit_flow_coupling_factor", default_value=1.0, element=self
+        )
+        self._retrofit_reference_carrier = Attribute(
+            name="retrofit_reference_carrier", default_value=[], element=self
+        )
     # ---------- Properties ----------
 
     @property
@@ -91,20 +94,22 @@ class GenericRetrofittingTechnology(RetrofittingTechnology):
         return attr
 
     def _set_reference_carrier(self) -> Attribute:
-        return Attribute(name="reference_carrier", default_value=[], element=self)
+        attr = self.reference_carrier  # get default value
+        return attr
 
     def _set_input_carrier(self) -> Attribute:
-        return Attribute(name="input_carrier", default_value=[], element=self)
+        attr = self.input_carrier  # get default value`
+        return attr
 
     def _set_output_carrier(self) -> Attribute:
-        return Attribute(name="output_carrier", default_value=[], element=self)
+        attr = self.output_carrier  # get default value
+        return attr
 
     def _set_retrofit_flow_coupling_factor(self) -> Attribute:
-        return Attribute(
-            name="retrofit_flow_coupling_factor", default_value=1.0, element=self
-        )
+        attr = self.retrofit_flow_coupling_factor  # get default value
+        return attr
 
     def _set_retrofit_reference_carrier(self) -> Attribute:
-        return Attribute(
-            name="retrofit_reference_carrier", default_value=[], element=self
-        )
+        attr = self.retrofit_reference_carrier  # get default value
+        return attr
+

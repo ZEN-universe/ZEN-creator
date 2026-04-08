@@ -25,9 +25,9 @@ def test_template_conversion_technology_construction(
     technology = TemplateConversionTechnology(model=model)
 
     assert technology.name == "template_conversion_technology"
-    assert technology.reference_carrier.default_value == ["heat"]
-    assert technology.input_carrier.default_value == ["electricity"]
-    assert technology.output_carrier.default_value == ["heat"]
+    assert technology.reference_carrier.default_value == []
+    assert technology.input_carrier.default_value == []
+    assert technology.output_carrier.default_value == []
 
 
 def test_template_conversion_technology_build(

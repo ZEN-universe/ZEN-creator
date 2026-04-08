@@ -38,6 +38,7 @@ class TemplateEnergySystem(EnergySystem):
         TODO: Replace this placeholder with your edge-loading logic.
         """
         return Attribute(name="set_edges", default_value=None, element=self)
+
     def _set_set_nodes(self) -> Attribute:
         attr = NUTSshp(source_path=self.source_path).get_set_nodes(self)
         return attr

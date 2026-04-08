@@ -25,7 +25,7 @@ def test_template_transport_technology_construction(
     technology = TemplateTransportTechnology(model=model)
 
     assert technology.name == "template_transport_technology"
-    assert technology.reference_carrier.default_value == ["heat"]
+    assert technology.reference_carrier.default_value == []
 
 
 def test_template_transport_technology_build(

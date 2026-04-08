@@ -55,8 +55,12 @@ class ConversionTechnology(Technology, ABC):
             unit="1",
             element=self,
         )
-        self._input_carrier = self._set_input_carrier()
-        self._output_carrier = self._set_output_carrier()
+        self._input_carrier = Attribute(
+            name="input_carrier", default_value=[], element=self
+        )
+        self._output_carrier = Attribute(
+            name="output_carrier", default_value=[], element=self
+        )
 
     # ---------- Properties ----------
 
@@ -152,18 +156,21 @@ class GenericConversionTechnology(ConversionTechnology):
         super().__init__(model=model, power_unit=power_unit)
 
     def _set_lifetime(self) -> Attribute:
-        attr = self.lifetime  # get default value
+        attr = self.lifetime  # get current value
         return attr
 
     def _set_conversion_factor(self) -> Attribute:
-        attr = self.conversion_factor  # get default value
+        attr = self.conversion_factor  # get current value
         return attr
 
     def _set_reference_carrier(self) -> Attribute:
-        return Attribute(name="reference_carrier", default_value=[], element=self)
+        attr = self.reference_carrier  # get current value
+        return attr
 
     def _set_input_carrier(self) -> Attribute:
-        return Attribute(name="input_carrier", default_value=[], element=self)
+        attr = self.input_carrier  # get current value
+        return attr
 
     def _set_output_carrier(self) -> Attribute:
-        return Attribute(name="output_carrier", default_value=[], element=self)
+        attr = self.output_carrier  # get current value
+        return attr

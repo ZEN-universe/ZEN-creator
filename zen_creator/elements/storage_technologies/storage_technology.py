@@ -285,4 +285,5 @@ class GenericStorageTechnology(StorageTechnology):
         return attr
 
     def _set_reference_carrier(self) -> Attribute:
-        return Attribute(name="reference_carrier", default_value=[], element=self)
+        attr = self.reference_carrier  # get default value
+        return attr
