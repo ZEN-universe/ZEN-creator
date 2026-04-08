@@ -22,16 +22,19 @@ environment for use in subsequent workflow steps.
 import os
 import re
 import tomllib  # Python 3.11+
-from dataclasses import dataclass, field
 from datetime import date, datetime
 from pathlib import Path
 from typing import Tuple
 
+from pydantic import BaseModel, Field
 
-@dataclass
-class ChangeCategory:
+
+class ChangeCategory(BaseModel):
     title: str
-    changes: list[str] = field(default_factory=list)
+    changes: list[str] = Field(default_factory=list)
+
+    def __init__(self, title: str, changes: list[str] | None = None):
+        super().__init__(title=title, changes=[] if changes is None else changes)
 
 
 CategorizedChanges = dict[str, ChangeCategory]
@@ -132,11 +135,11 @@ def parse_changes_from_pr_body(
     # Parse each line: expect "- type: description"
     # Format: "Section Tytle": {"Keyword": keyword, "changes": changes}
     categorized_changes: CategorizedChanges = {
-        "feat": ChangeCategory("New Features ✨"),
-        "fix": ChangeCategory("Bug Fixes 🐛"),
-        "docs": ChangeCategory("Documentation Changes 📝"),
-        "chore": ChangeCategory("Maintenance Tasks 🧹"),
-        "breaking": ChangeCategory("BREAKING CHANGES ⚠️"),
+        "feat": ChangeCategory(title="New Features ✨"),
+        "fix": ChangeCategory(title="Bug Fixes 🐛"),
+        "docs": ChangeCategory(title="Documentation Changes 📝"),
+        "chore": ChangeCategory(title="Maintenance Tasks 🧹"),
+        "breaking": ChangeCategory(title="BREAKING CHANGES ⚠️"),
     }
     for line in changes_section.splitlines():
         line = line.strip()
