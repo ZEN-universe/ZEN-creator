@@ -9,8 +9,8 @@ description="ZEN-creator allows for the creation and management of datasets for 
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [
-  { name="Jacob Mannhardt", email="zen-garden@ethz.ch" },
-  { name="Christoph Funke"},
+  { name="Christoph Funke", email="zen-garden@ethz.ch" },
+  { name="Jacob Mannhardt"},
 ]
 
 dependencies = [
