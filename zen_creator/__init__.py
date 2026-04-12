@@ -13,6 +13,7 @@ from .model import Model
 from .sectors import Sector
 from .utils.compare_trees import compare_trees
 from .utils.default_config import Config
+from .utils.attribute import Attribute
 
 __all__ = [
 	"Model",
@@ -30,4 +31,5 @@ __all__ = [
 	"Dataset",
 	"DatasetCollection",
 	"TechnoEconomicDataset",
+    "Attribute",
 ]

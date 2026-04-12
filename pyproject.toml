@@ -2,6 +2,12 @@
 requires = ["flit_core >=3.2,<4"]
 build-backend = "flit_core.buildapi"
 
+[tool.flit.module]
+name = "zen_creator"
+
+[tool.flit.sdist]
+include = ["zen_creator/py.typed"]
+
 [project]
 name = "zen_creator"
 version = "1.0.0"

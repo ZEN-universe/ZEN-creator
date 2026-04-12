@@ -2,7 +2,7 @@
 import difflib
 import json
 from pathlib import Path
-from typing import List
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -13,8 +13,8 @@ import pandas as pd
 TOLERANCE = 10**-12
 
 
-def json_diff(obj1, obj2, path=""):
-    diffs = []
+def json_diff(obj1: Any, obj2: Any, path: str = "") -> list[str]:
+    diffs: list[str] = []
 
     if (type(obj1) is not type(obj2)) and not (
         isinstance(obj1, int) and isinstance(obj2, float)  # exclude int -> float
@@ -69,7 +69,7 @@ def json_diff(obj1, obj2, path=""):
 # ----------------------------
 
 
-def text_diff(file1, file2):
+def text_diff(file1: str | Path, file2: str | Path) -> list[str]:
     with open(file1, "r", encoding="utf-8") as f1:
         lines1 = f1.readlines()
 
@@ -87,9 +87,9 @@ def text_diff(file1, file2):
 # ----------------------------
 
 
-def csv_diff(file1: str, file2: str, tol: float = 1e-10) -> List[str]:
+def csv_diff(file1: str | Path, file2: str | Path, tol: float = 1e-10) -> list[str]:
 
-    differences: List[str] = []
+    differences: list[str] = []
 
     # Load CSV files
     df1 = pd.read_csv(file1)
@@ -135,7 +135,7 @@ def csv_diff(file1: str, file2: str, tol: float = 1e-10) -> List[str]:
 # ----------------------------
 
 
-def compare_files(file1, file2):
+def compare_files(file1: Path, file2: Path) -> list[str]:
     ext = file1.suffix.lower()
 
     if ext == ".json":
@@ -159,9 +159,9 @@ def compare_files(file1, file2):
 # ----------------------------
 
 
-def build_file_map(root):
+def build_file_map(root: str | Path) -> dict[Path, Path]:
     root = Path(root)
-    file_map = {}
+    file_map: dict[Path, Path] = {}
     for path in root.rglob("*"):
         if path.is_file():
             rel = path.relative_to(root)
@@ -174,7 +174,9 @@ def build_file_map(root):
 # ----------------------------
 
 
-def compare_trees(dir1, dir2, raise_error=True) -> bool:
+def compare_trees(
+    dir1: str | Path, dir2: str | Path, raise_error: bool = True
+) -> bool:
     map1 = build_file_map(dir1)
     map2 = build_file_map(dir2)
 
@@ -182,7 +184,7 @@ def compare_trees(dir1, dir2, raise_error=True) -> bool:
 
     is_equal = True
 
-    log = []
+    log: list[str] = []
 
     for rel_path in sorted(all_paths):
         f1 = map1.get(rel_path)
@@ -195,6 +197,7 @@ def compare_trees(dir1, dir2, raise_error=True) -> bool:
             diffs = ["Only in Tree2"]
             is_equal = False
         else:
+            assert f1 is not None and f2 is not None
             diffs = compare_files(f1, f2)
 
         if diffs:

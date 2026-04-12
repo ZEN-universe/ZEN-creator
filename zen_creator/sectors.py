@@ -18,10 +18,10 @@ class Sector(ABC):
     name: str
     _sector_registry: dict[str, Type[Sector]] = {}
 
-    def __init__(self):
-        self._elements = []
+    def __init__(self) -> None:
+        self._elements: list[type[Element]] = []
 
-    def __init_subclass__(cls, **kwargs):
+    def __init_subclass__(cls, **kwargs: object) -> None:
         super().__init_subclass__(**kwargs)
         if not hasattr(cls, "name"):
             raise Exception(
@@ -29,7 +29,7 @@ class Sector(ABC):
             )
         Sector._sector_registry[cls.name] = cls
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         Control how class will be displayed. Overwritting since singleton.
         """
@@ -40,7 +40,7 @@ class Sector(ABC):
         return self._elements
 
     @elements.setter
-    def elements(self, v):
+    def elements(self, v: list[type[Element]]) -> None:
         """
         Validates elements each time it is set.
 
@@ -58,103 +58,103 @@ class Sector(ABC):
 class Electricity(Sector):
     name = "electricity"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.elements = [
-            carriers.Electricity,
-            carriers.Heat,
-            carriers.Lignite,
-            conversion_technologies.Photovoltaics,
-            conversion_technologies.LigniteCoalPlant,
-            storage_technologies.PumpedHydro,
-            transport_technologies.PowerLine,
+            carriers.Electricity,  # type: ignore[attr-defined]
+            carriers.Heat,  # type: ignore[attr-defined]
+            carriers.Lignite,  # type: ignore[attr-defined]
+            conversion_technologies.Photovoltaics,  # type: ignore[attr-defined]
+            conversion_technologies.LigniteCoalPlant,  # type: ignore[attr-defined]
+            storage_technologies.PumpedHydro,  # type: ignore[attr-defined]
+            transport_technologies.PowerLine,  # type: ignore[attr-defined]
         ]
 
 
 class Heat(Sector):
     name = "heat"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.elements = [
-            carriers.Heat,
-            conversion_technologies.HeatPump,
-            conversion_technologies.ElectrodeBoiler,
+            carriers.Heat,  # type: ignore[attr-defined]
+            conversion_technologies.HeatPump,  # type: ignore[attr-defined]
+            conversion_technologies.ElectrodeBoiler,  # type: ignore[attr-defined]
         ]
 
 
 class PassengerTransport(Sector):
     name = "passenger_transport"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
 
 class TruckTransport(Sector):
     name = "truck_transport"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
 
 class Shipping(Sector):
     name = "shipping"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
 
 class Aviation(Sector):
     name = "aviation"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
 
 class Refining(Sector):
     name = "refining"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
 
 class Hydrogen(Sector):
     name = "hydrogen"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
 
 class Methanol(Sector):
     name = "methanol"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
 
 class Ammonia(Sector):
     name = "ammonia"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
 
 class Carbon(Sector):
     name = "carbon"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
 
 class Cement(Sector):
     name = "cement"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
 
 class Steel(Sector):
     name = "steel"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
