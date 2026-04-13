@@ -87,7 +87,7 @@ def text_diff(file1: str | Path, file2: str | Path) -> list[str]:
 # ----------------------------
 
 
-def csv_diff(file1: str | Path, file2: str | Path, tol: float = 1e-10) -> list[str]:
+def csv_diff(file1: str | Path, file2: str | Path, tol: float = TOLERANCE) -> list[str]:
 
     differences: list[str] = []
 
@@ -116,7 +116,7 @@ def csv_diff(file1: str | Path, file2: str | Path, tol: float = 1e-10) -> list[s
 
         # Numeric columns → compare with tolerance
         if pd.api.types.is_numeric_dtype(s1):
-            comparison = np.isclose(s1, s2, atol=0, rtol=TOLERANCE, equal_nan=True)
+            comparison = np.isclose(s1, s2, atol=0, rtol=tol, equal_nan=True)
         else:
             comparison = (s1 == s2) | (s1.isna() & s2.isna())
 

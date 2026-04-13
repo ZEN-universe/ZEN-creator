@@ -3,6 +3,12 @@
 This file gets automatically updated in ZEN-creator's continuous integration 
 procedures. Do not edit the file manually.
 
+## [v1.1.1] - 2026-04-13 
+
+### Bug Fixes 🐛
+- fix tolerance in compare_csv function. [[🔀 PR #27](https://github.com/ZEN-universe/ZEN-creator/pull/27) @csfunke]
+- remove model-specific sectors that belong to the ZEN-europe model. [[🔀 PR #27](https://github.com/ZEN-universe/ZEN-creator/pull/27) @csfunke]
+
 ## [v1.1.0] - 2026-04-13 
 
 ### New Features ✨
