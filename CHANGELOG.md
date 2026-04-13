@@ -3,6 +3,11 @@
 This file gets automatically updated in ZEN-creator's continuous integration 
 procedures. Do not edit the file manually.
 
+## [v1.2.0] - 2026-04-13 
+
+### New Features ✨
+- enable source tracking in attributes. Sources and data descriptions can now be cleanly printed to a markdown-like string for each element. [[🔀 PR #29](https://github.com/ZEN-universe/ZEN-creator/pull/29) @csfunke]
+
 ## [v1.1.1] - 2026-04-13 
 
 ### Bug Fixes 🐛
