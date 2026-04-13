@@ -10,7 +10,7 @@ include = ["zen_creator/py.typed"]
 
 [project]
 name = "zen_creator"
-version = "1.0.0"
+version = "1.1.0"
 description="ZEN-creator allows for the creation and management of datasets for ZEN-garden."
 readme = "README.md"
 requires-python = ">=3.11"
