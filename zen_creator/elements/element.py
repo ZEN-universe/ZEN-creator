@@ -193,22 +193,23 @@ class Element(Registry["Element"], ABC):
             attr.save_data(out_path, self.name)
 
     def sources_to_str(self) -> str:
-        """Convert the sources of all attributes to a string for logging.
+        """Convert the sources of all attributes to a markdown page.
 
         Returns:
             str: A markdown-formatted string of all sources for this element.
         """
-        output = f"# {self.name}\n"
+        output_lines = [self.name, "=" * len(self.name), ""]
         has_sources = False
 
         for attr_name in self._attribute_names:
             attr = getattr(self, attr_name)
             if attr.sources:
                 has_sources = True
-                output += f"\n## {attr_name}\n\n"
-                output += f"{attr.sources_to_str()}\n"
+                output_lines.extend([attr_name, "-" * len(attr_name), ""])
+                output_lines.append(attr.sources_to_string())
+                output_lines.append("")
 
         if not has_sources:
-            output += "\n_No sources available._\n"
+            output_lines.extend(["_No sources available._", ""])
 
-        return output
+        return "\n".join(output_lines).rstrip()

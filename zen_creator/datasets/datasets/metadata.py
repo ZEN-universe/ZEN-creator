@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from pydantic import ConfigDict
+from pydantic import ConfigDict, field_validator
 
 from zen_creator.utils.default_config import Subscriptable
 
@@ -16,10 +16,10 @@ class MetaData(Subscriptable):
     Attributes:
         name: Unique identifier for the dataset.
         title: Full title of the dataset or publication.
-        author: Primary author or organization responsible for publishing.
+        author: List of authors or organizations responsible for publishing.
         publication: Name of the journal, conference, or publication venue.
         publication_year: Year the dataset or publication was released.
-        url: Web URL pointing to the dataset or publication.
+        url: Optional web URL pointing to the dataset or publication.
         doi: Optional Digital Object Identifier (DOI) for persistent citation.
     """
 
@@ -27,10 +27,10 @@ class MetaData(Subscriptable):
 
     name: str
     title: str
-    author: str
+    author: list[str]
     publication: str
     publication_year: int
-    url: str
+    url: Optional[str] = None
     doi: Optional[str] = None
 
     def to_dict(self) -> dict[str, object]:
@@ -54,8 +54,9 @@ class MetaData(Subscriptable):
             str: Formatted citation string. Example: Smith, J. (2024). Energy
                 Dataset. Nature Energy. https://doi.org/10.1234/example
         """
+        authors_str = ", ".join(self.author)
         citation = (
-            f"{self.author} ({self.publication_year}). {self.title}. "
+            f"{authors_str} ({self.publication_year}). {self.title}. "
             f"{self.publication}."
         )
         if self.doi:
@@ -85,6 +86,17 @@ class SourceInformation(Subscriptable):
     description: str
     metadata: MetaData | dict[str, MetaData]
 
+    @field_validator("metadata")
+    @classmethod
+    def _validate_metadata(cls, value: MetaData | dict[str, MetaData]):
+        """Reject empty metadata dictionaries."""
+        if isinstance(value, dict) and not value:
+            raise ValueError(
+                "SourceInformation.metadata cannot be an empty dictionary. "
+                "Provide MetaData entries."
+            )
+        return value
+
     def to_str(self) -> str:
         """Generate a formatted string with description and associated citations.
 
@@ -97,11 +109,16 @@ class SourceInformation(Subscriptable):
                 multi-source, each citation is prefixed with its source name in
                 brackets.
         """
-        text = self.description + "\n\nCitation:\n"
-        if isinstance(self.metadata, dict):
-            for name, metadata in self.metadata.items():
-                text += f"[{name}] {metadata.to_str()}\n\n"
-        else:
-            text += self.metadata.to_str()
+        lines = [self.description, ""]
 
-        return text
+        if isinstance(self.metadata, dict):
+            lines.append("**Citations**")
+            lines.append("")
+            for name, metadata in self.metadata.items():
+                lines.append(f"- **{name}**: {metadata.to_str()}")
+        else:
+            lines.append("**Citation**")
+            lines.append("")
+            lines.append(self.metadata.to_str())
+
+        return "\n".join(lines)

@@ -19,7 +19,7 @@ def test_template_dataset_construction(tmp_path: Path) -> None:
         dataset.metadata.title
         == "Technology lifetimes and availability data for energy system modeling"
     )
-    assert dataset.metadata.author == "Reliability and Risk Engineering Lab"
+    assert dataset.metadata.author == ["Reliability and Risk Engineering Lab"]
     assert dataset.metadata.publication == "Journal of Reliability and Risk Engineering"
     assert dataset.metadata.publication_year == 2026
     assert dataset.metadata.url == "https://example.com/dataset.csv"
@@ -39,7 +39,7 @@ def test_template_dataset_metadata_construction(tmp_path: Path) -> None:
         "title": (
             "Technology lifetimes and availability data for energy " "system modeling"
         ),
-        "author": "Reliability and Risk Engineering Lab",
+        "author": ["Reliability and Risk Engineering Lab"],
         "publication": "Journal of Reliability and Risk Engineering",
         "publication_year": 2026,
         "url": "https://example.com/dataset.csv",

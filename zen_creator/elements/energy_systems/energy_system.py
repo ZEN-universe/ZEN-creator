@@ -9,7 +9,7 @@ import numpy as np
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator.datasets.datasets.metadata import SourceInformation
+from zen_creator.datasets.datasets.metadata import MetaData, SourceInformation
 from zen_creator.elements.element import Element
 from zen_creator.utils.attribute import Attribute
 
@@ -56,7 +56,6 @@ class EnergySystem(Element, ABC):
             "carbon_emissions_budget",
             default_value=np.inf,
             unit="gigatons",
-            sources=[SourceInformation(description="assumption", metadata={})],
             element=self,
         )
         self._carbon_emissions_annual_limit = Attribute(
@@ -89,7 +88,17 @@ class EnergySystem(Element, ABC):
                     description=(
                         "https://iopscience.iop.org/article/10.1088/1748-9326/ac228a"
                     ),
-                    metadata={},
+                    metadata=MetaData(
+                        name="loffler_2021",
+                        title=(
+                            "Social discounting, social costs of carbon, and "
+                            "their use in energy system models"
+                        ),
+                        author=["Löffler, Konstantin"],
+                        publication_year=2021,
+                        publication="Environmental Research Letters",
+                        doi="10.1088/1748-9326/ac228a",
+                    ),
                 )
             ],
             element=self,
@@ -106,13 +115,18 @@ class EnergySystem(Element, ABC):
             unit="1",
             sources=[
                 SourceInformation(
-                    description=(
-                        "1. Leibowicz, B. D., Krey, V. & Grubler, A. "
-                        "Representing spatial technology diffusion in an energy system "
-                        "optimization model. "
-                        "Technological Forecasting and Social Change 103 (2016)."
+                    description=("Taken from [leibowicz_2016]."),
+                    metadata=MetaData(
+                        name="leibowicz_2016",
+                        title=(
+                            "Representing spatial technology diffusion in an "
+                            "energy system optimization model"
+                        ),
+                        author=["Leibowicz, B. D.", "Krey, V.", "Grubler, A."],
+                        publication="Technological Forecasting and Social Change",
+                        publication_year=2016,
+                        doi="10.1016/j.techfore.2015.06.001",
                     ),
-                    metadata={},
                 )
             ],
             element=self,
@@ -123,13 +137,19 @@ class EnergySystem(Element, ABC):
             unit="1",
             sources=[
                 SourceInformation(
-                    description=(
-                        "1. Mannhardt, J., Gabrielli, P. & Sansavini, G. "
-                        "Understanding the vicious cycle of myopic foresight and "
-                        "constrained technology deployment in transforming the "
-                        "European energy system. iScience 27, (2024)."
+                    description=("Taken from [Mannhardt_2024]"),
+                    metadata=MetaData(
+                        name="Mannhardt_2024",
+                        title=(
+                            "Understanding the vicious cycle of myopic foresight and "
+                            "constrained technology deployment in transforming the "
+                            "European energy system"
+                        ),
+                        author=["Mannhardt, J.", "Gabrielli, P.", "Sansavini, G."],
+                        publication="iScience",
+                        publication_year=2024,
+                        doi="10.1016/j.isci.2024.111369",
                     ),
-                    metadata={},
                 )
             ],
             element=self,

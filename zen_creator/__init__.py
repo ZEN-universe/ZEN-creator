@@ -1,4 +1,10 @@
-from .datasets import Dataset, DatasetCollection, MetaData, TechnoEconomicDataset
+from .datasets import (
+    Dataset,
+    DatasetCollection,
+    MetaData,
+    SourceInformation,
+    TechnoEconomicDataset,
+)
 from .elements import (
     Carrier,
     ConversionTechnology,
@@ -33,4 +39,5 @@ __all__ = [
     "DatasetCollection",
     "TechnoEconomicDataset",
     "Attribute",
+    "SourceInformation",
 ]

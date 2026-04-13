@@ -62,7 +62,7 @@ class TemplateDataset(Dataset[pd.DataFrame]):
                 "Technology lifetimes and availability data for energy "
                 "system modeling"
             ),
-            author="Reliability and Risk Engineering Lab",
+            author=["Reliability and Risk Engineering Lab"],
             publication="Journal of Reliability and Risk Engineering",
             publication_year=2026,
             url="https://example.com/dataset.csv",
