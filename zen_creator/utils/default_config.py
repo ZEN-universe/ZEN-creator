@@ -418,7 +418,7 @@ class Config(Subscriptable):
                 f"Could not find the configuration file {config_path}."
             )
 
-        with open(config_path, "r") as f:
+        with open(config_path, "r", encoding="utf-8") as f:
             user_dict = yaml.safe_load(f) or {}
 
         # create config from file

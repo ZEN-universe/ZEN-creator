@@ -11,6 +11,7 @@ from pathlib import Path
 
 import pytest
 
+from zen_creator.datasets.datasets.metadata import MetaData
 from zen_creator.elements.storage_technologies.aa_template import (
     TemplateStorageTechnology,
 )
@@ -37,11 +38,13 @@ def test_template_storage_technology_build(
     technology.build()
 
     assert technology.lifetime.default_value == 25
-    assert technology.lifetime.source == "assumption"
+    assert len(technology.lifetime.sources) == 1
+    assert technology.lifetime.sources[0].description == "Description of assumption."
     assert technology.max_load.default_value == 150
     assert technology.max_load.unit == "MW"
-    assert isinstance(technology.max_load.source, dict)
-    assert technology.max_load.source["name"] == "template_dataset"
+    assert len(technology.max_load.sources) == 1
+    assert isinstance(technology.max_load.sources[0].metadata, MetaData)
+    assert technology.max_load.sources[0].metadata.name == "template_dataset"
 
 
 def test_template_storage_technology_write(

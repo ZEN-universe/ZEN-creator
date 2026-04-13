@@ -16,13 +16,13 @@ def test_template_dataset_construction(tmp_path: Path) -> None:
     assert dataset.name == "template_dataset"
     assert dataset.source_path == tmp_path
     assert (
-        dataset.title
+        dataset.metadata.title
         == "Technology lifetimes and availability data for energy system modeling"
     )
-    assert dataset.author == "Reliability and Risk Engineering Lab"
-    assert dataset.publication == "Journal of Reliability and Risk Engineering"
-    assert dataset.publication_year == 2026
-    assert dataset.url == "https://example.com/dataset.csv"
+    assert dataset.metadata.author == ["Reliability and Risk Engineering Lab"]
+    assert dataset.metadata.publication == "Journal of Reliability and Risk Engineering"
+    assert dataset.metadata.publication_year == 2026
+    assert dataset.metadata.url == "https://example.com/dataset.csv"
     assert dataset.path == Path(".")
 
     assert isinstance(dataset.data, pd.DataFrame)
@@ -34,12 +34,12 @@ def test_template_dataset_metadata_construction(tmp_path: Path) -> None:
     """Construction exposes metadata with expected template values."""
     dataset = TemplateDataset(source_path=tmp_path)
 
-    assert dataset.metadata == {
+    assert dataset.metadata.to_dict() == {
         "name": "template_dataset",
         "title": (
             "Technology lifetimes and availability data for energy " "system modeling"
         ),
-        "author": "Reliability and Risk Engineering Lab",
+        "author": ["Reliability and Risk Engineering Lab"],
         "publication": "Journal of Reliability and Risk Engineering",
         "publication_year": 2026,
         "url": "https://example.com/dataset.csv",

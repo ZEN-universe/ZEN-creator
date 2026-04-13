@@ -6,6 +6,7 @@ if TYPE_CHECKING:
     from zen_creator.model import Model
 
 from zen_creator.datasets.datasets import TemplateDataset
+from zen_creator.datasets.datasets.metadata import MetaData, SourceInformation
 from zen_creator.elements import ConversionTechnology
 from zen_creator.utils.attribute import Attribute
 
@@ -81,7 +82,20 @@ class TemplateConversionTechnology(ConversionTechnology):
         """
 
         attr = self._lifetime
-        return attr.set_data(default_value=25, source="assumption")
+        return attr.set_data(
+            default_value=25,
+            source=SourceInformation(
+                description="Description of assumption.",
+                metadata=MetaData(
+                    name="datasource1",
+                    title="Study of lifetime of template conversion technology.",
+                    author=["ZEN Creator"],
+                    publication="ZEN Creator Journal",
+                    publication_year=2026,
+                    url="",
+                ),
+            ),
+        )
 
     def _set_conversion_factor(self) -> Attribute:
         """
