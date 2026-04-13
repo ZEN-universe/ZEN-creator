@@ -174,9 +174,7 @@ def build_file_map(root: str | Path) -> dict[Path, Path]:
 # ----------------------------
 
 
-def compare_trees(
-    dir1: str | Path, dir2: str | Path, raise_error: bool = True
-) -> bool:
+def compare_trees(dir1: str | Path, dir2: str | Path, raise_error: bool = True) -> bool:
     map1 = build_file_map(dir1)
     map2 = build_file_map(dir2)
 
