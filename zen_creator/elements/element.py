@@ -191,3 +191,24 @@ class Element(Registry["Element"], ABC):
         for attr_name in self._attribute_names:
             attr = getattr(self, attr_name)
             attr.save_data(out_path, self.name)
+
+    def sources_to_str(self) -> str:
+        """Convert the sources of all attributes to a string for logging.
+
+        Returns:
+            str: A markdown-formatted string of all sources for this element.
+        """
+        output = f"# {self.name}\n"
+        has_sources = False
+
+        for attr_name in self._attribute_names:
+            attr = getattr(self, attr_name)
+            if attr.sources:
+                has_sources = True
+                output += f"\n## {attr_name}\n\n"
+                output += f"{attr.sources_to_str()}\n"
+
+        if not has_sources:
+            output += "\n_No sources available._\n"
+
+        return output

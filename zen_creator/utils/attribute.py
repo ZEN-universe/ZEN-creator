@@ -16,6 +16,8 @@ from typing import TYPE_CHECKING, Any, Union
 import numpy as np
 import pandas as pd
 
+from zen_creator.datasets.datasets.metadata import SourceInformation
+
 if TYPE_CHECKING:
     from zen_creator.elements.element import Element
 
@@ -77,7 +79,7 @@ class Attribute:
     _unit: str | None
     _df: DataFrame | None
     _yearly_variations_df: DataFrame | None
-    _source: str | dict[str, Any] | None
+    _sources: list[SourceInformation]
 
     def __init__(
         self,
@@ -89,7 +91,7 @@ class Attribute:
         df: DataFrame | None = None,
         year_specific_dfs: dict[int, DataFrame] | None = None,
         yearly_variations_df: DataFrame | None = None,
-        source: str | dict[str, Any] | None = None,
+        sources: list[SourceInformation] | None = None,
     ):
         """Initialize an Attribute.
 
@@ -100,7 +102,7 @@ class Attribute:
             default_value: Default value for the attribute (optional).
             df: Time-series data as a pandas DataFrame or Series (optional).
             yearly_variations_df: Yearly variation factors (optional).
-            source: Source information for this attribute (optional).
+            sources: Ordered source information entries for this attribute (optional).
         """
         self.name: str = name
         self.element: Element = element
@@ -109,7 +111,7 @@ class Attribute:
         self._df: DataFrame | None = None
         self._yearly_variations_df: DataFrame | None = None
         self._year_specific_dfs: dict[int, DataFrame] = {}
-        self._source: str | dict[str, Any] | None = None
+        self._sources: list[SourceInformation] = []
 
         # Use setters to ensure validation is applied during initialization
         self.base_technology = base_technology
@@ -118,7 +120,7 @@ class Attribute:
         self.df = df
         self.year_specific_dfs = year_specific_dfs or {}
         self.yearly_variations_df = yearly_variations_df
-        self.source = source
+        self.sources = sources or []
         self.base_technology = base_technology
 
     # ---------- Properties ----------
@@ -287,42 +289,68 @@ class Attribute:
         self._year_specific_dfs = value
 
     @property
-    def source(self) -> str | dict[str, Any] | None:
-        """Get the source information."""
-        return self._source
+    def sources(self) -> list[SourceInformation]:
+        """Get the ordered source information entries."""
+        return self._sources
 
-    @source.setter
-    def source(self, value: str | dict[str, Any] | None) -> None:
-        """Set the source information.
+    @sources.setter
+    def sources(self, value: list[SourceInformation]) -> None:
+        """Set ordered source information entries.
 
         Args:
-            value: Source identifier or metadata dictionary.
+            value: Ordered list of SourceInformation objects.
         """
-        if self._source is not None:
-            print(f"Warning: Overwriting existing source for attribute '{self.name}'.")
-        self._source = value
+        if not isinstance(value, list):
+            raise ValueError(
+                f"Attribute '{self.name}' sources must be a list. "
+                f"Got {type(value).__name__}."
+            )
+
+        for i, source_info in enumerate(value):
+            if not isinstance(source_info, SourceInformation):
+                raise ValueError(
+                    f"Entry {i} in sources for attribute '{self.name}' must be a "
+                    f"SourceInformation object. Got {type(source_info).__name__}."
+                )
+
+        self._sources = list(value)
+
+    def add_source(self, source: SourceInformation) -> None:
+        """Append a source entry while preserving insertion order.
+
+        Args:
+            source: Source information to append.
+        """
+        if not isinstance(source, SourceInformation):
+            raise ValueError(
+                f"Source for attribute '{self.name}' must be a SourceInformation "
+                f"object. Got {type(source).__name__}."
+            )
+        self._sources.append(source)
 
     # ---------- Data Manipulation Methods ----------
 
     def set_data(
         self,
+        source: SourceInformation,
         default_value: DefaultValue = None,
         unit: str | None = None,
         df: DataFrame | None = None,
         yearly_variations_df: DataFrame | None = None,
-        source: str | dict[str, Any] | None = None,
     ) -> Attribute:
         """Set multiple attribute properties at once.
 
         This is a convenience method for setting multiple properties in a chain.
-        All parameters are optional; only provided values will be updated.
+        The source parameter is mandatory. It should contain a SourceInformation
+        object that includes a description of changes and the corresponding
+        Dataset/DatasetCollection MetaData to ensure proper source tracking.
 
         Args:
             default_value: Default value for the attribute.
             unit: Unit of measurement.
             df: Time-series data.
             yearly_variations_df: Yearly variation factors.
-            source: Source information.
+            source: Source information to append to the ordered source list.
 
         Returns:
             Self for method chaining.
@@ -335,8 +363,7 @@ class Attribute:
             self.df = df
         if yearly_variations_df is not None:
             self.yearly_variations_df = yearly_variations_df
-        if source is not None:
-            self.source = source
+        self.add_source(source)
         return self
 
     # ---------- Model Data Methods ----------
@@ -561,6 +588,22 @@ class Attribute:
             unit = new_unit
 
         return unit
+
+    def sources_to_str(self) -> str:
+        """Serialize the ordered sources into a readable numbered string.
+
+        Returns:
+            A multi-line string where each source is prefixed with its insertion
+            order so the sequence of additions remains visible.
+        """
+        if not self._sources:
+            return ""
+
+        blocks: list[str] = []
+        for index, source in enumerate(self._sources, start=1):
+            blocks.append(f"Step {index}\n{source.to_str()}")
+
+        return "\n\n----\n\n".join(blocks)
 
     # ---------- Validation Helpers ----------
 

@@ -7,6 +7,7 @@ from zen_creator.elements.element import Element
 from zen_creator.utils.attribute import Attribute
 
 from .dataset import Dataset
+from .metadata import MetaData, SourceInformation
 
 
 class TemplateDataset(Dataset[pd.DataFrame]):
@@ -17,8 +18,8 @@ class TemplateDataset(Dataset[pd.DataFrame]):
 
     All datasets must inherit from the Dataset class and implement the required abstract
     methods. These methods are called during the construction of the dataset object to
-    set the author, title, publication, publication_year, url, path, and data properties
-    of the dataset. Each of these methods is marked with a `TODO` comment to indicate
+    set the metadata, path, and data properties of the dataset. Each of
+    these methods is marked with a `TODO` comment to indicate
     that they must be implemented. You can search for `TODO` in this file to quickly
     find all the places where you need to make changes.
 
@@ -45,65 +46,27 @@ class TemplateDataset(Dataset[pd.DataFrame]):
     def __init__(self, source_path: Path | str | None = None):
         super().__init__(source_path=source_path)
 
-    def _set_author(self) -> str:
+    def _set_metadata(self) -> MetaData:
         """
-        Return the author(s) of the dataset.
+        Return citation metadata for the dataset.
 
-        This method is used to set the self.author property when the
+        This method is used to set the self.metadata property when the
         dataset is constructed.
 
-        `TODO`: This method must be implemented. It should return a string
-        containing the name(s) of the author(s) of the dataset.
+        `TODO`: This method must be implemented. It should return a MetaData
+        object containing citation information for the dataset.
         """
-        return "Reliability and Risk Engineering Lab"
-
-    def _set_publication_year(self) -> int:
-        """
-        Return the publication year of the dataset.
-
-        This method is used to set the self.publication_year property when the
-        dataset is constructed.
-
-        `TODO`: This method must be implemented. It should return an integer
-        representing the publication year of the dataset.
-        """
-        return 2026
-
-    def _set_title(self) -> str:
-        """
-        Return the title of the dataset.
-
-        This method is used to set the self.title property when the
-        dataset is constructed.
-
-        `TODO`: This method must be implemented. It should return a string
-        giving the title of the dataset.
-        """
-        return "Technology lifetimes and availability data for energy system modeling"
-
-    def _set_publication(self) -> str:
-        """
-        Return the publication where the dataset was published.
-
-        This method is used to set the self.publication property when the
-        dataset is constructed.
-
-        `TODO`: This method must be implemented. It should return a string
-        giving the name of the publication.
-        """
-        return "Journal of Reliability and Risk Engineering"
-
-    def _set_url(self) -> str:
-        """
-        Return the url from which the dataset was downloaded.
-
-        This method is used to set the self.url property when the dataset is
-        constructed.
-
-        'TODO': This method must be implemented. It should return a string
-        containing the url from which the dataset was downloaded.
-        """
-        return "https://example.com/dataset.csv"
+        return MetaData(
+            name=self.name,
+            title=(
+                "Technology lifetimes and availability data for energy "
+                "system modeling"
+            ),
+            author="Reliability and Risk Engineering Lab",
+            publication="Journal of Reliability and Risk Engineering",
+            publication_year=2026,
+            url="https://example.com/dataset.csv",
+        )
 
     def _set_path(self) -> Path | None:
         """
@@ -179,7 +142,10 @@ class TemplateDataset(Dataset[pd.DataFrame]):
         attr.set_data(
             default_value=float(default_value),
             unit=self._max_load_unit(),
-            source=self.metadata,
+            source=SourceInformation(
+                description="Description of how max_load was determined.",
+                metadata=self.metadata,
+            ),
         )
         return attr
 

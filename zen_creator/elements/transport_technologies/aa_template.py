@@ -6,6 +6,7 @@ if TYPE_CHECKING:
     from zen_creator.model import Model
 
 from zen_creator.datasets.datasets import TemplateDataset
+from zen_creator.datasets.datasets.metadata import SourceInformation
 from zen_creator.elements import TransportTechnology
 from zen_creator.utils.attribute import Attribute
 
@@ -55,7 +56,12 @@ class TemplateTransportTechnology(TransportTechnology):
         """
 
         attr = self._lifetime
-        return attr.set_data(default_value=25, source="assumption")
+        return attr.set_data(
+            default_value=25,
+            source=SourceInformation(
+                description="Description of assumption.", metadata={}
+            ),
+        )
 
     # ----Example of an optional method for creating an attribute using a dataset ------
 

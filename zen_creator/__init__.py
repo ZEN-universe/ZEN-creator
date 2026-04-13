@@ -1,4 +1,4 @@
-from .datasets import Dataset, DatasetCollection, TechnoEconomicDataset
+from .datasets import Dataset, DatasetCollection, MetaData, TechnoEconomicDataset
 from .elements import (
     Carrier,
     ConversionTechnology,
@@ -29,6 +29,7 @@ __all__ = [
     "StorageTechnology",
     "TransportTechnology",
     "Dataset",
+    "MetaData",
     "DatasetCollection",
     "TechnoEconomicDataset",
     "Attribute",

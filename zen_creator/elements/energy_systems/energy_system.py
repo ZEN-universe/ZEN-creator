@@ -9,6 +9,7 @@ import numpy as np
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
+from zen_creator.datasets.datasets.metadata import SourceInformation
 from zen_creator.elements.element import Element
 from zen_creator.utils.attribute import Attribute
 
@@ -49,28 +50,25 @@ class EnergySystem(Element, ABC):
             "price_carbon_emissions_annual_overshoot",
             default_value=np.inf,
             unit="Euro/tons",
-            source="assumption",
             element=self,
         )
         self._carbon_emissions_budget = Attribute(
             "carbon_emissions_budget",
             default_value=np.inf,
             unit="gigatons",
-            source="assumption",
+            sources=[SourceInformation(description="assumption", metadata={})],
             element=self,
         )
         self._carbon_emissions_annual_limit = Attribute(
             "carbon_emissions_annual_limit",
             default_value=np.inf,
             unit="gigatons",
-            source="assumption",
             element=self,
         )
         self._price_carbon_emissions_budget_overshoot = Attribute(
             "price_carbon_emissions_budget_overshoot",
             default_value=np.inf,
             unit="Euro/tons",
-            source="assumption",
             element=self,
         )
         self._price_carbon_emissions = Attribute(
@@ -86,38 +84,54 @@ class EnergySystem(Element, ABC):
             "discount_rate",
             default_value=0.05,
             unit="1",
-            source="https://iopscience.iop.org/article/10.1088/1748-9326/ac228a",
+            sources=[
+                SourceInformation(
+                    description=(
+                        "https://iopscience.iop.org/article/10.1088/1748-9326/ac228a"
+                    ),
+                    metadata={},
+                )
+            ],
             element=self,
         )
         self._knowledge_spillover_rate = Attribute(
             "knowledge_spillover_rate",
             default_value=np.inf,
             unit="1",
-            source="assumption",
             element=self,
         )
         self._knowledge_depreciation_rate = Attribute(
             "knowledge_depreciation_rate",
             default_value=0.1,
             unit="1",
-            source=(
-                "1. Leibowicz, B. D., Krey, V. & Grubler, A. "
-                "Representing spatial technology diffusion in an energy system "
-                "optimization model. "
-                "Technological Forecasting and Social Change 103 (2016)."
-            ),
+            sources=[
+                SourceInformation(
+                    description=(
+                        "1. Leibowicz, B. D., Krey, V. & Grubler, A. "
+                        "Representing spatial technology diffusion in an energy system "
+                        "optimization model. "
+                        "Technological Forecasting and Social Change 103 (2016)."
+                    ),
+                    metadata={},
+                )
+            ],
             element=self,
         )
         self._market_share_unbounded = Attribute(
             "market_share_unbounded",
             default_value=0.02,
             unit="1",
-            source=(
-                "1. Mannhardt, J., Gabrielli, P. & Sansavini, G. "
-                "Understanding the vicious cycle of myopic foresight and "
-                "constrained technology deployment in transforming the "
-                "European energy system. iScience 27, (2024)."
-            ),
+            sources=[
+                SourceInformation(
+                    description=(
+                        "1. Mannhardt, J., Gabrielli, P. & Sansavini, G. "
+                        "Understanding the vicious cycle of myopic foresight and "
+                        "constrained technology deployment in transforming the "
+                        "European energy system. iScience 27, (2024)."
+                    ),
+                    metadata={},
+                )
+            ],
             element=self,
         )
         self.set_nodes = Attribute(
