@@ -8,6 +8,7 @@ source tracking with built-in validation for data types and formats.
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 from pathlib import Path
@@ -20,6 +21,8 @@ from zen_creator.datasets.datasets.metadata import SourceInformation
 
 if TYPE_CHECKING:
     from zen_creator.elements.element import Element
+
+logger = logging.getLogger(__name__)
 
 # Type aliases for better readability
 DataFrame = Union[pd.DataFrame, pd.Series]
@@ -210,8 +213,8 @@ class Attribute:
         """
         if value is not None:
             if self._df is not None:
-                print(
-                    f"Warning: Overwriting existing data for attribute '{self.name}'."
+                logger.warning(
+                    f"Overwriting existing data for attribute '{self.name}'."
                 )
             self._validate_dataframe_indices(value, self._ALLOWED_DF_INDEX_NAMES)
 
@@ -239,8 +242,8 @@ class Attribute:
                     f"when year-specific time series data is present."
                 )
             if self._yearly_variations_df is not None:
-                print(
-                    f"Warning: Overwriting existing yearly variations data for "
+                logger.warning(
+                    f"Overwriting existing yearly variations data for "
                     f"attribute '{self.name}'."
                 )
             self._validate_dataframe_indices(
@@ -484,7 +487,7 @@ class Attribute:
             element_name: Name of the element (for logging purposes).
         """
         if self.df is not None:
-            print(
+            logger.info(
                 f"Saving yearly variation data for attribute '{self.name}' of element "
                 f"'{element_name}' ..."
             )
@@ -492,14 +495,14 @@ class Attribute:
             self.df.to_csv(file_path)
 
         if self.yearly_variations_df is not None:
-            print(
+            logger.info(
                 f"Saving data for attribute '{self.name}' of element "
                 f"'{element_name}' ..."
             )
             file_path = os.path.join(folder_path, f"{self.name}_yearly_variation.csv")
             self.yearly_variations_df.to_csv(file_path)
         for year, df in self.year_specific_dfs.items():
-            print(
+            logger.info(
                 f"Saving year-specific data for attribute '{self.name}' of element "
                 f"'{element_name}' for year {year}..."
             )

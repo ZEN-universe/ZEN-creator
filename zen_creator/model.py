@@ -1,4 +1,5 @@
 import json
+import logging
 import shutil
 from pathlib import Path
 from typing import Iterable, Optional, Type
@@ -21,6 +22,8 @@ from zen_creator.elements import (
 from zen_creator.elements.element import Element
 from zen_creator.sectors import Sector
 from zen_creator.utils.default_config import Config, ElementTypeList
+
+logger = logging.getLogger(__name__)
 
 
 class Model:
@@ -138,7 +141,7 @@ class Model:
         model = cls.from_config(config)
 
         # overwrite default values with values from existing model
-        print(
+        logger.info(
             f"Overwrite attributes using existing "
             f"model {existing_model_path} ----------"
         )
@@ -483,7 +486,9 @@ class Model:
             )
 
         if element_name in self.elements:
-            print(f"Element '{element_name}' already exists in the dictionary.")
+            logger.warning(
+                f"Element '{element_name}' already exists in the dictionary."
+            )
             return
 
         # Get type class and generic class
@@ -526,13 +531,15 @@ class Model:
         # initialize element
         element = element_cls(model=self)
 
-        print(f"Add element {element.name}")
+        logger.info(f"Add element {element.name}")
 
         # add (name, element) pair to model.elements
         if element.name not in self.elements:
             self.elements[element.name] = element
         else:
-            print(f"Element '{element.name}' already exists in the dictionary.")
+            logger.warning(
+                f"Element '{element.name}' already exists in the dictionary."
+            )
 
         return
 
@@ -558,7 +565,9 @@ class Model:
         ]
 
         if not matches:
-            print(f"No element of type '{element_cls.__name__}' found in the model.")
+            logger.warning(
+                f"No element of type '{element_cls.__name__}' found in the model."
+            )
             return
 
         if len(matches) > 1:
@@ -579,7 +588,7 @@ class Model:
         Args:
             name (str): The name of the element to remove.
         """
-        print(f"Remove element {name}")
+        logger.info(f"Remove element {name}")
         del self.elements[name]
 
     def add_sector_by_name(self, sector: str) -> None:
@@ -622,7 +631,7 @@ class Model:
                 f"got '{type(sector_cls).__name__}' instead."
             )
 
-        print(f"Add sector: {sector_cls.name} --------")
+        logger.info(f"Add sector: {sector_cls.name} --------")
 
         for element in sector_cls().elements:
             self.add_element(element)
@@ -644,7 +653,7 @@ class Model:
                 f"got '{type(sector_cls).__name__}' instead."
             )
 
-        print(f"Remove sector: {sector_cls.name} --------")
+        logger.info(f"Remove sector: {sector_cls.name} --------")
 
         for element in sector_cls().elements:
             self.remove_element(element)
@@ -655,7 +664,7 @@ class Model:
         """
         Builds the model by calling build() method of all elements.
         """
-        print("Build model --------")
+        logger.info("Build model --------")
 
         # build energy system first
         self.energy_system.build()
@@ -677,7 +686,7 @@ class Model:
 
         # remove output path if it exists
         if self.output_path.exists():
-            print(
+            logger.warning(
                 f"Output path {self.output_path} already exists. Deleting "
                 "existing contents."
             )
@@ -693,7 +702,7 @@ class Model:
         for element in self.elements.values():
             element.write()
 
-        print("Done")
+        logger.info("Done")
 
     def write_system_file(self) -> None:
         """Write the system.json file for the model.

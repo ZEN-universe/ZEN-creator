@@ -1,6 +1,7 @@
 # import difflib
 import difflib
 import json
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -11,6 +12,7 @@ import pandas as pd
 # JSON DEEP DIFF
 # ----------------------------
 TOLERANCE = 10**-12
+logger = logging.getLogger(__name__)
 
 
 def json_diff(obj1: Any, obj2: Any, path: str = "") -> list[str]:
@@ -216,7 +218,7 @@ def compare_trees(dir1: str | Path, dir2: str | Path, raise_error: bool = True) 
                 f"The following differences were found: \n {log_str}"
             )
         else:
-            print(log_str)
+            logger.info(log_str)
 
     return is_equal
 

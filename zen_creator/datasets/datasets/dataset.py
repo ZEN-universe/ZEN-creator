@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Dict, Generic, TypeVar, Union
@@ -9,6 +10,9 @@ import pandas as pd
 from zen_creator.utils.singleton_registry_meta import SingletonRegistryMeta
 
 from .metadata import MetaData
+
+# setup logger
+logger = logging.getLogger(__name__)
 
 # return type of data property
 T = TypeVar("T", bound=Union[pd.DataFrame, Dict[str, pd.DataFrame]])
@@ -30,7 +34,7 @@ class Dataset(ABC, Generic[T], metaclass=SingletonRegistryMeta):
         Args:
             source_path (str | Path | None): Path to the source data directory.
         """
-        print(f"Loading dataset `{self.name}`...")
+        logger.info(f"Loading dataset `{self.name}`...")
         self.source_path: Path | None = (
             Path(source_path) if source_path is not None else None
         )

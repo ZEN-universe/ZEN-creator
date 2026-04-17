@@ -1,3 +1,5 @@
+import logging
+
 from .datasets import (
     Dataset,
     DatasetCollection,
@@ -20,6 +22,8 @@ from .sectors import Sector
 from .utils.attribute import Attribute
 from .utils.compare_trees import compare_trees
 from .utils.default_config import Config
+
+logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 __all__ = [
     "Model",

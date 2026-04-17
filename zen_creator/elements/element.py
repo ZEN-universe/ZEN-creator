@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from abc import ABC
 from typing import TYPE_CHECKING, ClassVar, Type
 
@@ -12,6 +13,8 @@ from pathlib import Path
 
 from zen_creator.utils.attribute import Attribute
 from zen_creator.utils.registry import Registry
+
+logger = logging.getLogger(__name__)
 
 
 class Element(Registry["Element"], ABC):
@@ -177,7 +180,7 @@ class Element(Registry["Element"], ABC):
 
     def save_attributes(self):
         """Save the element's attributes to attributes.json."""
-        print(f"Saving 'attributes.json' for element '{self.name}' ...")
+        logger.info(f"Saving 'attributes.json' for element '{self.name}.'")
 
         out_path = self.output_path
         output = self.attributes_to_dict()
