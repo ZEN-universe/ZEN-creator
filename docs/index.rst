@@ -27,6 +27,12 @@ Documentation
 
 .. toctree::
    :maxdepth: 1
+   :caption: Tutorials and Templates
+
+   files/tutorials_templates/index
+
+.. toctree::
+   :maxdepth: 1
    :caption: API Reference
 
    files/api/zen_creator
