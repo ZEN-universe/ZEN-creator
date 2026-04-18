@@ -1,3 +1,5 @@
+.. _api.dataset_collection:
+
 DatasetCollection
 =================
 
@@ -16,13 +18,12 @@ Use Cases
 Examples
 --------
 
-.. code-block:: python
+The code below shows an example of how to implement a subclass of the
+``DatasetCollection`` abstract class. Please read the docstrings carefully as
+they contain detailed information on required methods and syntax.
 
-   from zen_creator import DatasetCollection
-
-   # Typically extended in project-specific implementations.
-   class MyDatasetCollection(DatasetCollection):
-       pass
+.. literalinclude:: ../../../zen_creator/datasets/dataset_collections/aa_Template.py
+   :language: python
 
 .. rubric:: Summary
 

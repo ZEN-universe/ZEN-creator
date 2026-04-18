@@ -1,3 +1,5 @@
+.. _api.config:
+
 Config
 ======
 
@@ -16,12 +18,11 @@ Use Cases
 Examples
 --------
 
-.. code-block:: python
+The code below shows an example of a full ``config.yaml`` file. This file is
+used to configure ZEN-creator and is required for it to run.
 
-   from pathlib import Path
-   from zen_creator import Config
-
-   config = Config.load_from_yaml(Path("./config.yaml"))
+.. literalinclude:: ../generated/default_config_example.yaml
+   :language: yaml
 
 .. rubric:: Summary
 

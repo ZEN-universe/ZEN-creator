@@ -74,6 +74,9 @@ to users with different goals. The three constructors are:
       model = Model.from_config(Path("./config.yaml"))
       model.write()
 
+For more detailed information about the structure and syntax of the
+``Model`` class, see :ref:`api.model`.
+
 Typical workflow
 ================
 
@@ -84,99 +87,3 @@ A simple workflow usually looks like this:
 3. Call ``model.write()`` to save the modified model.
 
 
-Model Structure
-=================
-
-.. mermaid::
-   :zoom:
-
-   classDiagram
-       class Model {
-           +name: str
-           +config: Config
-           +elements: dict[str, Element]
-           +source_path: Path <<property>>
-           +output_folder: Path <<property>>
-           +output_path: Path <<property>>
-           +energy_system: EnergySystem <<property>>
-           +carriers: dict <<property>>
-           +technologies: dict <<property>>
-           +storage_technologies: dict <<property>>
-           +conversion_technologies: dict <<property>>
-           +transport_technologies: dict <<property>>
-           +retrofitting_technologies: dict <<property>>
-           +from_config() Model <<constructor>>
-           +from_existing() Model <<constructor>>
-           +add_sector_by_name() None
-           +remove_sector() None
-           +add_element_by_name() None
-           +remove_element_by_name() None
-           +build() None
-           +validate() None
-           +write() None
-       }
-
-
-Model attributes
-----------------
-
-.. list-table:: Model attributes
-   :header-rows: 1
-
-   * - Attribute
-     - Description
-   * - ``name``
-     - The model name used in output files and documentation.
-   * - ``config``
-     - The configuration object that defines model setup and included data.
-   * - ``elements``
-     - The complete collection of elements that make up the model.
-   * - ``source_path``
-     - The folder containing the source input data for the model.
-   * - ``output_folder``
-     - The folder where generated model files are written.
-   * - ``output_path``
-     - The resolved path to the model output location.
-   * - ``energy_system``
-     - The energy system element associated with the model.
-   * - ``carriers``
-     - The carrier elements available in the model.
-   * - ``technologies``
-     - The technology elements available in the model.
-   * - ``storage_technologies``
-     - The storage technology elements available in the model.
-   * - ``conversion_technologies``
-     - The conversion technology elements available in the model.
-   * - ``transport_technologies``
-     - The transport technology elements available in the model.
-   * - ``retrofitting_technologies``
-     - The retrofitting technology elements available in the model.
-
-
-
-Model methods
--------------
-
-.. list-table:: Model methods
-   :header-rows: 1
-
-   * - Method
-     - Description
-   * - ``from_config()``
-     - Create a model from a configuration file.
-   * - ``from_existing()``
-     - Load an existing model directory and reuse its current values.
-   * - ``add_sector_by_name()``
-     - Add a sector to the model by its name.
-   * - ``remove_sector()``
-     - Remove a sector from the model.
-   * - ``add_element_by_name()``
-     - Add an element to the model by its name.
-   * - ``remove_element_by_name()``
-     - Remove an element from the model by its name.
-   * - ``build()``
-     - Build the model by applying the class-specific element logic.
-   * - ``validate()``
-     - Validate the model before writing output files.
-   * - ``write()``
-     - Write the model output to disk.

@@ -1,3 +1,5 @@
+.. _api.dataset:
+
 Dataset
 =======
 
@@ -16,13 +18,12 @@ Use Cases
 Examples
 --------
 
-.. code-block:: python
+The code below shows an example of how to implement a subclass of the
+``Dataset`` abstract class. Please read the docstrings carefully as they
+contain detailed information on required methods and syntax.
 
-   from zen_creator import Dataset
-
-   # Typically extended in project-specific implementations.
-   class MyDataset(Dataset):
-       pass
+.. literalinclude:: ../../../zen_creator/datasets/datasets/aa_template.py
+   :language: python
 
 .. rubric:: Summary
 

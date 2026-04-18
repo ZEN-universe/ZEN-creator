@@ -16,13 +16,13 @@ Use Cases
 Examples
 --------
 
-.. code-block:: python
+The code below shows an example of how to implement a subclass of the
+``ConversionTechnology`` abstract class. Please read the docstrings
+carefully as they contain detailed information on required methods and
+syntax.
 
-   from zen_creator import ConversionTechnology
-
-   # Typically extended in project-specific implementations.
-   class MyConversionTechnology(ConversionTechnology):
-       pass
+.. literalinclude:: ../../../zen_creator/elements/conversion_technologies/aa_template.py
+   :language: python
 
 .. rubric:: Summary
 

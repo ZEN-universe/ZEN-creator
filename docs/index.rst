@@ -24,32 +24,37 @@ Documentation
    files/quick_start/getting_started
    files/quick_start/logic_and_structure
 
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Class Templates
-
-   files/templates/conversion_technology
-   files/templates/storage_technology
-   files/templates/transport_technology
-   files/templates/retrofitting_technology
-   files/templates/dataset
-   files/templates/dataset_collection
-   files/templates/configurations
-
 .. toctree::
    :maxdepth: 1
    :caption: API Reference
 
-   files/api/zen_creator
-   files/generated/changelog
+   files/api/model
+   files/api/sector
+   files/api/element
+   files/api/attribute
+   files/api/technology
+   files/api/carrier
+   files/api/energy_system
+   files/api/conversion_technology
+   files/api/retrofitting_technology
+   files/api/storage_technology
+   files/api/transport_technology
+   files/api/dataset
+   files/api/dataset_collection
+   files/api/techno_economic_dataset
+   files/api/config
+   files/api/compare_trees
 
 .. toctree::
    :maxdepth: 1
    :caption: Developer Guide
 
    files/developer_guide/installation
-   files/developer_guide/workflow
-   files/developer_guide/class_diagram
+   files/developer_guide/contributing
    files/developer_guide/add_new_params
 
+.. toctree::
+   :maxdepth: 1
+   :caption: Changelog
+
+   files/generated/changelog
