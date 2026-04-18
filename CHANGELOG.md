@@ -3,6 +3,11 @@
 This file gets automatically updated in ZEN-creator's continuous integration 
 procedures. Do not edit the file manually.
 
+## [Unversioned Changes] - 2026-04-18 
+
+### Documentation Changes 📝
+- refactor and update documentation to match the latest versions of ZEN-creator. [[🔀 PR #34](https://github.com/ZEN-universe/ZEN-creator/pull/34) @csfunke]
+
 ## [v1.2.0] - 2026-04-13 
 
 ### New Features ✨
