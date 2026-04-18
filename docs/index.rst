@@ -18,6 +18,34 @@ Documentation
 
 .. toctree::
    :maxdepth: 1
+   :caption: Quick Start
+
+   files/quick_start/installation
+   files/quick_start/getting_started
+   files/quick_start/logic_and_structure
+
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Class Templates
+
+   files/templates/conversion_technology
+   files/templates/storage_technology
+   files/templates/transport_technology
+   files/templates/retrofitting_technology
+   files/templates/dataset
+   files/templates/dataset_collection
+   files/templates/configurations
+
+.. toctree::
+   :maxdepth: 1
+   :caption: API Reference
+
+   files/api/zen_creator
+   files/generated/changelog
+
+.. toctree::
+   :maxdepth: 1
    :caption: Developer Guide
 
    files/developer_guide/installation
@@ -25,20 +53,3 @@ Documentation
    files/developer_guide/class_diagram
    files/developer_guide/add_new_params
 
-.. toctree::
-   :maxdepth: 1
-   :caption: Tutorials and Templates
-
-   files/tutorials_templates/index
-
-.. toctree::
-   :maxdepth: 1
-   :caption: API Reference
-
-   files/api/zen_creator
-   
-.. toctree::
-   :maxdepth: 1
-   :caption: Change Log
-
-   files/generated/changelog

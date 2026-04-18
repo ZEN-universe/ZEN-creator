@@ -18,6 +18,12 @@ from pathlib import Path
 sys.path.insert(0, os.path.abspath(".."))
 sys.path.append(os.path.abspath("_ext"))
 
+import yaml
+
+from zen_creator.utils.default_config import (
+    Config,
+)
+
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
@@ -147,9 +153,24 @@ html_favicon = "files/figures/general/zen_garden_logo_text.png"
 def copy_changelog(app):
     src = Path(app.confdir).parent / "CHANGELOG.md"
     dst = Path(app.confdir) / "files" / "generated" / "changelog.md"
+    dst.parent.mkdir(parents=True, exist_ok=True)
     if src.exists():
         shutil.copy(src, dst)
+    elif not dst.exists():
+        dst.write_text("# Changelog\n\nNo changelog found in repository root.\n")
+
+
+def write_default_config_example(app):
+    dst = Path(app.confdir) / "files" / "generated" / "default_config_example.yaml"
+    dst.parent.mkdir(parents=True, exist_ok=True)
+
+    example_config = Config().model_dump(mode="python")
+    dst.write_text(
+        yaml.safe_dump(example_config, sort_keys=False, default_flow_style=False),
+        encoding="utf-8",
+    )
 
 
 def setup(app):
     app.connect("builder-inited", copy_changelog)
+    app.connect("builder-inited", write_default_config_example)
