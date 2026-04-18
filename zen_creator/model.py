@@ -65,8 +65,18 @@ class Model:
             config (Config | str | Path): The configuration for the model.
                 Can be a Config object, or a path to a config file.
 
+        Returns:
+            Model: A new Model instance initialized from the configuration.
+
         Raises:
             TypeError: If config is not a valid type.
+
+        Examples:
+            >>> from pathlib import Path
+            >>> from zen_creator.model import Model
+            >>> model = Model.from_config(Path("./config.yaml"))
+            >>> model.build()
+            >>> model.write()
         """
         # set attributes from input arguments
         model = cls()
@@ -126,6 +136,14 @@ class Model:
 
         Raises:
             ValueError: If the existing model path does not exist.
+
+        Examples:
+            >>> from pathlib import Path
+            >>> from zen_creator.model import Model
+            >>> existing = Path("./existing_model")
+            >>> model = Model.from_existing(existing)
+            >>> model.name = "updated_model"
+            >>> model.write()
         """
         existing_model_path = Path(existing_model_path)
 
@@ -458,6 +476,10 @@ class Model:
             TypeError: If element is not a string.
             ValueError: If the element is not registered. Elements get
                 registered when their class definitions are imported.
+
+        Examples:
+            >>> model = Model.from_config("./config.yaml")
+            >>> model.add_element_by_name("electricity", generic="carrier")
         """
         generic_map: dict[
             str,
@@ -600,6 +622,10 @@ class Model:
         Raises:
             TypeError: If sector is not a string.
             ValueError: If the sector is not registered.
+
+        Examples:
+            >>> model = Model.from_config("./config.yaml")
+            >>> model.add_sector_by_name("electricity")
         """
         if not isinstance(sector, str):
             raise TypeError(
@@ -680,6 +706,12 @@ class Model:
 
         This method validates the model, removes any existing output directory,
         writes the system file, and saves all elements.
+
+        Examples:
+            >>> model = Model.from_config("./config.yaml")
+            >>> model.build()
+            >>> model.validate()
+            >>> model.write()
         """
         # verify completeness
         self.validate()

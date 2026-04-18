@@ -9,6 +9,32 @@ Model
    :no-special-members:
 
 
+Overview
+--------
+
+``Model`` is the central container for ZEN-creator input data. It can be
+initialized either from a configuration file or from an existing ZEN-garden
+model folder, then built, validated, and written to disk.
+
+Use Cases
+---------
+
+- Import and modify an existing ZEN-garden input model.
+- Build a new model from configuration for collaborative workflows.
+- Programmatically add and remove sectors or elements before exporting.
+
+.. code-block:: python
+
+  from zen_creator.model import Model
+
+  model = Model.from_config("./config.yaml")
+  model.build()
+  model.write()
+
+See method docstrings (for example ``Model.from_config`` and
+``Model.from_existing``) for more detailed examples.
+
+
 .. rubric:: Summary
 
 .. autosummary::
@@ -63,7 +89,7 @@ Model
 Instance attributes
 ~~~~~~~~~~~~~~~~~~~
 
-.. list-table::
+.. list-table:: Model instance attributes
    :header-rows: 1
 
    * - Attribute
@@ -92,16 +118,7 @@ Properties
    Model.transport_technologies
    Model.retrofitting_technologies
 
-.. autoproperty:: Model.source_path
-  :no-index:
-
-.. autoproperty:: Model.output_folder
-  :no-index:
-
 .. autoproperty:: Model.output_path
-
-.. autoproperty:: Model.energy_system
-  :no-index:
 
 .. autoproperty:: Model.carriers
 
