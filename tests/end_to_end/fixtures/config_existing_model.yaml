@@ -20,6 +20,7 @@ system:
 # add and remove technologies/carriers from the model
 elements:   
   insert:
+    energy_system: energy_system_existing_model
     set_sectors: []
     set_conversion_technologies: 
       - natural_gas_boiler

@@ -1,3 +1,4 @@
+import importlib
 from pathlib import Path
 
 from zen_creator.model import Model
@@ -80,6 +81,8 @@ def test_from_existing_with_config():
 
     The current test case matches ``test_8a`` in ZEN-garden.
     """
+    # import element classes locally to avoid global registry contamination
+    importlib.import_module("tests.end_to_end.fixtures.existing_model_elements")
 
     # set file paths
     existing_model_path = Path(".//tests//end_to_end//fixtures//existing_model")

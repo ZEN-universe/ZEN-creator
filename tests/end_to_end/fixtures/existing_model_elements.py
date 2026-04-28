@@ -75,7 +75,7 @@ def _fixture_csv_source(attr_name: str) -> SourceInformation:
 class ExistingModelEnergySystem(EnergySystem):
     """Energy system that mirrors the existing_model fixture."""
 
-    name = "energy_system"
+    name = "energy_system_existing_model"
 
     def __init__(self, model: Model):
         super().__init__(model=model)

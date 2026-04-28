@@ -25,27 +25,33 @@ def test_from_config():
     Note: Element classes are imported locally to prevent global registry
     contamination when this test runs alongside other tests.
     """
-    # Import element classes locally to prevent registry contamination
-    # from tests.end_to_end.existing_model_elements import (
-    #     ExistingModelEnergySystem,
-    #     ElectricityCarrier,
-    #     HeatCarrier,
-    #     NaturalGasCarrier,
-    #     NaturalGasBoiler,
-    #     Photovoltaics,
-    #     NaturalGasStorage,
-    #     PumpedHydro,
-    #     NaturalGasPipeline,
-    # )
     importlib.import_module("tests.end_to_end.fixtures.existing_model_elements")
 
     config = Config.load_from_yaml(CONFIG_PATH)
     config.source_path = str(EXISTING_MODEL_PATH)
-    config.elements.insert.energy_system = "energy_system"
 
     model = Model.from_config(config)
     model.output_folder = OUTPUT_FOLDER
     model.name = "test_from_config_existing_model_replica"
+    model.build()
+    model.write()
+
+    compare_trees(EXISTING_MODEL_PATH, model.output_path, raise_error=True)
+
+def test_from_config_str():
+    """Recreate the existing_model fixture tree from config and explicit classes.
+
+    Calls the config file via a string path instead of a Config object.
+
+    Note: Element classes are imported locally to prevent global registry
+    contamination when this test runs alongside other tests.
+    """
+
+    importlib.import_module("tests.end_to_end.fixtures.existing_model_elements")
+
+    model = Model.from_config(CONFIG_PATH)
+    model.output_folder = OUTPUT_FOLDER
+    model.name = "test_from_config_str_existing_model_replica"
     model.build()
     model.write()
 
