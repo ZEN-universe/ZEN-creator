@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -285,6 +286,17 @@ class EnergySystem(Element, ABC):
                 "enter the nodes and coordinates as a `df`."
             )
         self._set_edges = value
+
+    # ---------- Property Overloads --------
+    @property
+    def relative_output_path(self) -> Path:
+        """Get the relative output path for the energy system.
+
+        Returns:
+            Path: The relative path for output files.
+        """
+
+        return Path("./energy_system")
 
     # ---------- Method Overloads --------
 

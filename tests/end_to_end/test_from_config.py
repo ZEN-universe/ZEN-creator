@@ -9,6 +9,7 @@ from __future__ import annotations
 import importlib
 from pathlib import Path
 
+import tests.end_to_end.fixtures.existing_model_elements as existing_model_elements
 from zen_creator.model import Model
 from zen_creator.utils.compare_trees import compare_trees
 from zen_creator.utils.default_config import Config
@@ -25,7 +26,7 @@ def test_from_config():
     Note: Element classes are imported locally to prevent global registry
     contamination when this test runs alongside other tests.
     """
-    importlib.import_module("tests.end_to_end.fixtures.existing_model_elements")
+    importlib.reload(existing_model_elements)
 
     config = Config.load_from_yaml(CONFIG_PATH)
     config.source_path = str(EXISTING_MODEL_PATH)
@@ -38,6 +39,7 @@ def test_from_config():
 
     compare_trees(EXISTING_MODEL_PATH, model.output_path, raise_error=True)
 
+
 def test_from_config_str():
     """Recreate the existing_model fixture tree from config and explicit classes.
 
@@ -46,8 +48,7 @@ def test_from_config_str():
     Note: Element classes are imported locally to prevent global registry
     contamination when this test runs alongside other tests.
     """
-
-    importlib.import_module("tests.end_to_end.fixtures.existing_model_elements")
+    importlib.reload(existing_model_elements)
 
     model = Model.from_config(CONFIG_PATH)
     model.output_folder = OUTPUT_FOLDER
