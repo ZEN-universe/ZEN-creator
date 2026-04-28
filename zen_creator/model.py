@@ -113,8 +113,8 @@ class Model:
 
         If not config is specified, a configuration file is created from
         the default configurations. The system configurations, unit
-        unit configurations, model name, and output folder are then taken
-        directly from the
+        configurations, model name, and output folder are then taken
+        directly from the existing model.
 
         This function performs the following steps:
             1. Create a Model object using the configuration file. This
@@ -629,8 +629,7 @@ class Model:
         """
         if not isinstance(sector, str):
             raise TypeError(
-                f"Expected a subclass of 'str', "
-                f"got '{type(sector).__name__}' instead."
+                f"Expected a subclass of 'str', got '{type(sector).__name__}' instead."
             )
 
         sector_cls = Sector._sector_registry.get(sector)
@@ -804,7 +803,6 @@ class Model:
         carriers: set[Carrier] = set()
 
         for technology in self.technologies.values():
-
             reference_carrier = (
                 set(technology.reference_carrier.default_value)
                 if isinstance(technology.reference_carrier.default_value, Iterable)
@@ -820,7 +818,6 @@ class Model:
             carriers = carriers.union(reference_carrier)
 
         for technology in self.conversion_technologies.values():
-
             input_carriers = (
                 set(technology.input_carrier.default_value)
                 if isinstance(technology.input_carrier.default_value, Iterable)

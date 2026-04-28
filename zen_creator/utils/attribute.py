@@ -28,6 +28,44 @@ logger = logging.getLogger(__name__)
 DataFrame = Union[pd.DataFrame, pd.Series]
 DefaultValue = Union[float, list, None]
 
+# Constants for validation
+_ATTRIBUTES_SUPPORTING_LISTS = {
+    "conversion_factor",
+    "reference_carrier",
+    "input_carrier",
+    "output_carrier",
+    "retrofit_reference_carrier",
+}
+
+_ATTRIBUTES_SUPPORTING_BASE_TECHNOLOGY = {"retrofit_flow_coupling_factor"}
+
+_ALLOWED_DF_INDEX_NAMES = {
+    "time",
+    "year",
+    "node",
+    "location",
+    "edge",
+    "carrier",
+    "technology",
+    "year_construction",
+}
+
+_ALLOWED_YEARLY_VARIATIONS_INDEX_NAMES = {
+    "year",
+    "node",
+    "location",
+    "edge",
+    "carrier",
+    "technology",
+}
+
+_UNIT_REPLACEMENTS = {
+    "GW*h": "GWh",
+    "MW*h": "MWh",
+    "kW*h": "kWh",
+    "/h*h": "",
+}
+
 
 class Attribute:
     """Represents a single attribute of an energy system element.
@@ -39,50 +77,6 @@ class Attribute:
         name: The name of the attribute.
         element: The element this attribute belongs to.
     """
-
-    # Constants for validation
-    _ATTRIBUTES_SUPPORTING_LISTS = {
-        "conversion_factor",
-        "reference_carrier",
-        "input_carrier",
-        "output_carrier",
-        "retrofit_reference_carrier",
-    }
-
-    _ATTRIBUTES_SUPPORTING_BASE_TECHNOLOGY = {"retrofit_flow_coupling_factor"}
-
-    _ALLOWED_DF_INDEX_NAMES = {
-        "time",
-        "year",
-        "node",
-        "location",
-        "edge",
-        "carrier",
-        "technology",
-        "year_construction",
-    }
-
-    _ALLOWED_YEARLY_VARIATIONS_INDEX_NAMES = {
-        "year",
-        "node",
-        "location",
-        "edge",
-        "carrier",
-        "technology",
-    }
-
-    _UNIT_REPLACEMENTS = {
-        "GW*h": "GWh",
-        "MW*h": "MWh",
-        "kW*h": "kWh",
-        "/h*h": "",
-    }
-
-    _default_value: DefaultValue
-    _unit: str | None
-    _df: DataFrame | None
-    _yearly_variations_df: DataFrame | None
-    _sources: list[SourceInformation]
 
     def __init__(
         self,
@@ -110,7 +104,7 @@ class Attribute:
         self.name: str = name
         self.element: Element = element
         self._default_value: DefaultValue = None
-        self._unit = None
+        self._unit: str | None = None
         self._df: DataFrame | None = None
         self._yearly_variations_df: DataFrame | None = None
         self._year_specific_dfs: dict[int, DataFrame] = {}
@@ -170,7 +164,7 @@ class Attribute:
         if value is None:
             self._base_technology = value
             return
-        if self.name not in self._ATTRIBUTES_SUPPORTING_BASE_TECHNOLOGY:
+        if self.name not in _ATTRIBUTES_SUPPORTING_BASE_TECHNOLOGY:
             raise ValueError(
                 f"Attribute '{self.name}' cannot have a 'base_technology'."
             )
@@ -216,7 +210,7 @@ class Attribute:
                 logger.warning(
                     f"Overwriting existing data for attribute '{self.name}'."
                 )
-            self._validate_dataframe_indices(value, self._ALLOWED_DF_INDEX_NAMES)
+            self._validate_dataframe_indices(value, _ALLOWED_DF_INDEX_NAMES)
 
         self._df = value
 
@@ -247,7 +241,7 @@ class Attribute:
                     f"attribute '{self.name}'."
                 )
             self._validate_dataframe_indices(
-                value, self._ALLOWED_YEARLY_VARIATIONS_INDEX_NAMES
+                value, _ALLOWED_YEARLY_VARIATIONS_INDEX_NAMES
             )
 
         self._yearly_variations_df = value
@@ -285,9 +279,7 @@ class Attribute:
                 raise ValueError(
                     f"Year key '{year}' in year_specific_dfs must be an integer."
                 )
-            self._validate_dataframe_indices(
-                df, self._ALLOWED_YEARLY_VARIATIONS_INDEX_NAMES
-            )
+            self._validate_dataframe_indices(df, _ALLOWED_YEARLY_VARIATIONS_INDEX_NAMES)
 
         self._year_specific_dfs = value
 
@@ -543,7 +535,7 @@ class Attribute:
         """
         if self.name == "conversion_factor":
             return self.default_value
-        elif self.name in self._ATTRIBUTES_SUPPORTING_LISTS:
+        elif self.name in _ATTRIBUTES_SUPPORTING_LISTS:
             return {"default_value": self.default_value}
         else:
             raise ValueError(
@@ -562,7 +554,7 @@ class Attribute:
             return ""
 
         unit = self.unit
-        for old, new in self._UNIT_REPLACEMENTS.items():
+        for old, new in _UNIT_REPLACEMENTS.items():
             unit = unit.replace(old, new)
 
         unit = self._remove_safe_parentheses(unit)
@@ -619,10 +611,10 @@ class Attribute:
         Raises:
             ValueError: If the attribute doesn't support lists or has invalid structure.
         """
-        if self.name not in self._ATTRIBUTES_SUPPORTING_LISTS:
+        if self.name not in _ATTRIBUTES_SUPPORTING_LISTS:
             raise ValueError(
                 f"Attribute '{self.name}' does not support a list as default value. "
-                f"Only {', '.join(sorted(self._ATTRIBUTES_SUPPORTING_LISTS))} support "
+                f"Only {', '.join(sorted(_ATTRIBUTES_SUPPORTING_LISTS))} support "
                 "lists."
             )
 
