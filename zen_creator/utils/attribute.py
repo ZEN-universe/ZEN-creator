@@ -78,8 +78,6 @@ class Attribute:
         element: The element this attribute belongs to.
     """
 
-    _unit: str | None
-
     def __init__(
         self,
         name: str,
@@ -106,7 +104,7 @@ class Attribute:
         self.name: str = name
         self.element: Element = element
         self._default_value: DefaultValue = None
-        self._unit = None
+        self._unit: str | None = None
         self._df: DataFrame | None = None
         self._yearly_variations_df: DataFrame | None = None
         self._year_specific_dfs: dict[int, DataFrame] = {}
