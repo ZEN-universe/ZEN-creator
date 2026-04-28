@@ -3,10 +3,13 @@
 This file gets automatically updated in ZEN-creator's continuous integration 
 procedures. Do not edit the file manually.
 
-## [Unversioned Changes] - 2026-04-18 
+## [Unversioned Changes] - 2026-04-28 
 
 ### Documentation Changes 📝
 - refactor and update documentation to match the latest versions of ZEN-creator. [[🔀 PR #34](https://github.com/ZEN-universe/ZEN-creator/pull/34) @csfunke]
+
+### Maintenance Tasks 🧹
+- move constants out of Attribute class. [[🔀 PR #39](https://github.com/ZEN-universe/ZEN-creator/pull/39) @manud99]
 
 ## [v1.2.0] - 2026-04-13 
 
