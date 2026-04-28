@@ -9,6 +9,7 @@ procedures. Do not edit the file manually.
 - refactor and update documentation to match the latest versions of ZEN-creator. [[🔀 PR #34](https://github.com/ZEN-universe/ZEN-creator/pull/34) @csfunke]
 
 ### Maintenance Tasks 🧹
+- add end-to-end test for `model.from_config()`. The test demonstrates the usage of this constructor. [[🔀 PR #42](https://github.com/ZEN-universe/ZEN-creator/pull/42) @csfunke]
 - move constants out of Attribute class. [[🔀 PR #39](https://github.com/ZEN-universe/ZEN-creator/pull/39) @manud99]
 
 ## [v1.2.0] - 2026-04-13 
