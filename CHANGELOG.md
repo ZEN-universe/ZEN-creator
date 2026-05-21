@@ -3,9 +3,13 @@
 This file gets automatically updated in ZEN-creator's continuous integration 
 procedures. Do not edit the file manually.
 
-## [Unversioned Changes] - 2026-04-28 
+## [v1.2.1] - 2026-05-21 
+
+### Bug Fixes 🐛
+- edit dataset config structure to allow more flexible dataset handling. [[🔀 PR #44](https://github.com/ZEN-universe/ZEN-creator/pull/44) @csfunke]
 
 ### Documentation Changes 📝
+- add detailed README.md. [[🔀 PR #44](https://github.com/ZEN-universe/ZEN-creator/pull/44) @csfunke]
 - refactor and update documentation to match the latest versions of ZEN-creator. [[🔀 PR #34](https://github.com/ZEN-universe/ZEN-creator/pull/34) @csfunke]
 
 ### Maintenance Tasks 🧹
