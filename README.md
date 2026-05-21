@@ -57,22 +57,11 @@ m.build()
 - `model.carriers`, `model.technologies`: dictionaries of elements
 - `model.output_path`: path where the model will be written
 
-## Testing
-
-
-Run the test suite locally to verify functionality and during development:
-
-```bash
-pytest -q
-```
-
 ## Documentation
 
 The full documentation (API reference, developer guide and examples) is hosted
-online: [ZEN-creator readthedocs](https://zen-creator.readthedocs.io/en/latest/)
+online: [ZEN-creator documentation](https://zen-creator.readthedocs.io/en/latest/)
 
-Contributing
-------------
+## Contributing
 
-See the `docs/developer_guide` directory for contribution guidelines and the
-project `CONTRIBUTING` notes in the documentation.
+project [Contribution Guide](https://zen-creator.readthedocs.io/en/latest/files/developer_guide/contributing.html).
