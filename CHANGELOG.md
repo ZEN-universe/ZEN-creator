@@ -3,6 +3,14 @@
 This file gets automatically updated in ZEN-creator's continuous integration 
 procedures. Do not edit the file manually.
 
+## [v1.3.0] - 2026-06-11 
+
+### New Features ✨
+- allows custom configs for elements and datasets. [[🔀 PR #48](https://github.com/ZEN-universe/ZEN-creator/pull/48) @csfunke]
+
+### Maintenance Tasks 🧹
+- refactors default config by splitting it into multiple files. [[🔀 PR #48](https://github.com/ZEN-universe/ZEN-creator/pull/48) @csfunke]
+
 ## [v1.2.1] - 2026-05-21 
 
 ### Bug Fixes 🐛
