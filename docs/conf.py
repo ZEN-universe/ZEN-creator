@@ -20,9 +20,7 @@ sys.path.append(os.path.abspath("_ext"))
 
 import yaml
 
-from zen_creator.utils.default_config import (
-    Config,
-)
+from zen_creator.utils.config import Config
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information

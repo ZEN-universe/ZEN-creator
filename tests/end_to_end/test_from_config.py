@@ -12,7 +12,7 @@ from pathlib import Path
 import tests.end_to_end.fixtures.existing_model_elements as existing_model_elements
 from zen_creator.model import Model
 from zen_creator.utils.compare_trees import compare_trees
-from zen_creator.utils.default_config import Config
+from zen_creator.utils.config import Config
 
 FIXTURE_ROOT = Path(__file__).parent / "fixtures"
 EXISTING_MODEL_PATH = FIXTURE_ROOT / "existing_model"
