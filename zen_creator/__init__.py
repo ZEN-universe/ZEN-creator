@@ -21,7 +21,16 @@ from .model import Model
 from .sectors import Sector
 from .utils.attribute import Attribute
 from .utils.compare_trees import compare_trees
-from .utils.config import Config, DatasetConfig, DatasetCollectionConfig, TechnologyConfig, CarrierConfig, ConversionTechnologyConfig, TransportTechnologyConfig, StorageTechnologyConfig
+from .utils.config import (
+    CarrierConfig,
+    Config,
+    ConversionTechnologyConfig,
+    DatasetCollectionConfig,
+    DatasetConfig,
+    StorageTechnologyConfig,
+    TechnologyConfig,
+    TransportTechnologyConfig,
+)
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())
 
@@ -50,5 +59,5 @@ __all__ = [
     "CarrierConfig",
     "TransportTechnologyConfig",
     "StorageTechnologyConfig",
-    "ConversionTechnologyConfig"
+    "ConversionTechnologyConfig",
 ]

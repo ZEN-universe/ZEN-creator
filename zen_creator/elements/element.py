@@ -17,7 +17,7 @@ from zen_creator.utils.registry import Registry
 logger = logging.getLogger(__name__)
 
 
-class Element(ABC, Registry["Element"], is_base_registry = True):
+class Element(ABC, Registry["Element"], is_base_registry=True):
     """Base class for all elements in the ZEN model.
 
     This class provides the foundation for carriers, technologies, and other

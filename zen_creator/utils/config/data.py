@@ -8,43 +8,57 @@ from zen_creator.utils.registry import Registry
 from ._base import Subscriptable
 
 
-class DatasetConfig(ABC, Subscriptable, Registry["DatasetConfig"], is_base_registry=True):
+class DatasetConfig(
+    ABC, Subscriptable, Registry["DatasetConfig"], is_base_registry=True
+):
     name: str = "generic_dataset_config"
     type: str
     model_config = ConfigDict(extra="forbid")
 
 
-class DatasetCollectionConfig(ABC, Subscriptable, Registry["DatasetCollectionConfig"], is_base_registry=True):
+class DatasetCollectionConfig(
+    ABC, Subscriptable, Registry["DatasetCollectionConfig"], is_base_registry=True
+):
     name: str = "generic_dataset_collection_config"
     type: str
     model_config = ConfigDict(extra="forbid")
 
 
-class TechnologyConfig(ABC, Subscriptable, Registry["TechnologyConfig"], is_base_registry=True):
+class TechnologyConfig(
+    ABC, Subscriptable, Registry["TechnologyConfig"], is_base_registry=True
+):
     name: str = "generic_technology_config"
     type: str
     model_config = ConfigDict(extra="forbid")
 
 
-class CarrierConfig(ABC, Subscriptable, Registry["CarrierConfig"], is_base_registry=True):
+class CarrierConfig(
+    ABC, Subscriptable, Registry["CarrierConfig"], is_base_registry=True
+):
     name: str = "generic_carrier_config"
     type: str
     model_config = ConfigDict(extra="forbid")
 
 
-class ConversionTechnologyConfig(ABC, Subscriptable, Registry["ConversionTechnologyConfig"], is_base_registry=True):
+class ConversionTechnologyConfig(
+    ABC, Subscriptable, Registry["ConversionTechnologyConfig"], is_base_registry=True
+):
     name: str = "generic_conversion_tech_config"
     type: str
     model_config = ConfigDict(extra="forbid")
 
 
-class StorageTechnologyConfig(ABC, Subscriptable, Registry["StorageTechnologyConfig"], is_base_registry=True):
+class StorageTechnologyConfig(
+    ABC, Subscriptable, Registry["StorageTechnologyConfig"], is_base_registry=True
+):
     name: str = "generic_storage_tech_config"
     type: str
     model_config = ConfigDict(extra="forbid")
 
 
-class TransportTechnologyConfig(ABC, Subscriptable, Registry["TransportTechnologyConfig"], is_base_registry=True):
+class TransportTechnologyConfig(
+    ABC, Subscriptable, Registry["TransportTechnologyConfig"], is_base_registry=True
+):
     name: str = "generic_transport_tech_config"
     type: str
     model_config = ConfigDict(extra="forbid")
@@ -59,9 +73,13 @@ class DataConfig(Subscriptable):
     dataset_collection: Dict[str, DatasetCollectionConfig] = Field(default_factory=dict)
     technology: Dict[str, TechnologyConfig] = Field(default_factory=dict)
     carrier: Dict[str, CarrierConfig] = Field(default_factory=dict)
-    conversion_technology: Dict[str, ConversionTechnologyConfig] = Field(default_factory=dict)
+    conversion_technology: Dict[str, ConversionTechnologyConfig] = Field(
+        default_factory=dict
+    )
     storage_technology: Dict[str, StorageTechnologyConfig] = Field(default_factory=dict)
-    transport_technology: Dict[str, TransportTechnologyConfig] = Field(default_factory=dict)
+    transport_technology: Dict[str, TransportTechnologyConfig] = Field(
+        default_factory=dict
+    )
 
     @classmethod
     def _process_registry_field(

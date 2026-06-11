@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, Generic, Type, TypeVar
+from typing import Dict, Generic, Type, TypeVar, cast
 
 # Define a generic type variable for subclasses of BaseElement
 T = TypeVar("T", bound="Registry")
@@ -47,7 +47,7 @@ class Registry(Generic[T]):
                 f"{type(cls._registry[cls.name])}."
             )
 
-        cls._registry[cls.name] = cls
+        cls._registry[cls.name] = cast(Type[T], cls)
 
     @classmethod
     def get_registry(cls) -> Dict[str, Type[T]]:
