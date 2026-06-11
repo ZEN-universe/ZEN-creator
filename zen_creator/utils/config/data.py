@@ -55,13 +55,13 @@ class DataConfig(Subscriptable):
 
     model_config = ConfigDict(extra="forbid")
 
-    datasets: Dict[str, DatasetConfig] = Field(default_factory=dict)
-    dataset_collections: Dict[str, DatasetCollectionConfig] = Field(default_factory=dict)
-    technologies: Dict[str, TechnologyConfig] = Field(default_factory=dict)
-    carriers: Dict[str, CarrierConfig] = Field(default_factory=dict)
-    conversion_technologies: Dict[str, ConversionTechnologyConfig] = Field(default_factory=dict)
-    storage_technologies: Dict[str, StorageTechnologyConfig] = Field(default_factory=dict)
-    transport_technologies: Dict[str, TransportTechnologyConfig] = Field(default_factory=dict)
+    dataset: Dict[str, DatasetConfig] = Field(default_factory=dict)
+    dataset_collection: Dict[str, DatasetCollectionConfig] = Field(default_factory=dict)
+    technology: Dict[str, TechnologyConfig] = Field(default_factory=dict)
+    carrier: Dict[str, CarrierConfig] = Field(default_factory=dict)
+    conversion_technology: Dict[str, ConversionTechnologyConfig] = Field(default_factory=dict)
+    storage_technology: Dict[str, StorageTechnologyConfig] = Field(default_factory=dict)
+    transport_technology: Dict[str, TransportTechnologyConfig] = Field(default_factory=dict)
 
     @classmethod
     def _process_registry_field(
@@ -103,13 +103,13 @@ class DataConfig(Subscriptable):
             data = {}
 
         registry_mappings = {
-            "datasets": DatasetConfig,
-            "dataset_collections": DatasetCollectionConfig,
-            "technologies": TechnologyConfig,
-            "carriers": CarrierConfig,
-            "conversion_technologies": ConversionTechnologyConfig,
-            "storage_technologies": StorageTechnologyConfig,
-            "transport_technologies": TransportTechnologyConfig,
+            "dataset": DatasetConfig,
+            "dataset_collection": DatasetCollectionConfig,
+            "technology": TechnologyConfig,
+            "carrier": CarrierConfig,
+            "conversion_technology": ConversionTechnologyConfig,
+            "storage_technology": StorageTechnologyConfig,
+            "transport_technology": TransportTechnologyConfig,
         }
 
         for key, base_cls in registry_mappings.items():

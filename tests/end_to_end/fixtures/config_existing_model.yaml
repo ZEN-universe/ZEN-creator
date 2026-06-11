@@ -46,8 +46,8 @@ elements:
 
 # settings for individual data sources
 data:
-  datasets: {}
-  dataset_collections: {}
+  dataset: {}
+  dataset_collection: {}
 
 # settings that go into the energy_system folder
 energy_system:
