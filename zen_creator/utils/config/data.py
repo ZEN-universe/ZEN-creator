@@ -12,7 +12,6 @@ class DatasetConfig(
     ABC, Subscriptable, Registry["DatasetConfig"], is_base_registry=True
 ):
     name: str = "generic_dataset_config"
-    type: str
     model_config = ConfigDict(extra="forbid")
 
 
