@@ -51,7 +51,6 @@ extensions = [
     "myst_parser",
     "sphinx.ext.imgconverter",  # for SVG conversion
     "sphinxcontrib.mermaid",  # for class diagrams
-    "docstring",  # custom extension for inserting docstring text
 ]
 # allow errors in the notebooks
 nbsphinx_allow_errors = True

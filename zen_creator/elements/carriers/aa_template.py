@@ -5,8 +5,33 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator.elements import Carrier
-from zen_creator.utils.attribute import Attribute
+from zen_creator import Attribute, Carrier, CarrierConfig
+
+
+class TemplateCarrierConfig(CarrierConfig):
+    """
+    Configuration class for the TemplateCarrier.
+
+    This class is used to define the configuration parameters for the
+    TemplateCarrier.
+
+    By inheriting from CarrierConfig, these configurations
+    are automatically included in the Config under
+    Config().data.carrier.<carrier_name>.
+    This requires the the class has been imported (i.e. registered) before
+    the config is created.
+
+    Note: All configurations must have default values. The name must match
+    the name of the carrier class.
+    """
+
+    # TODO: state name of the carrier to which the config applies
+    name: str = "template_carrier"
+
+    # TODO: add any additional configuration parameters specific to
+    # the carrier here
+    carrier_setting_1: str = "default_value_1"
+    carrier_setting_2: float = 0.8
 
 
 class TemplateCarrier(Carrier):

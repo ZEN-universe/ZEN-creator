@@ -15,13 +15,14 @@ Use Cases
 Examples
 --------
 
-.. code-block:: python
+The code below shows an example of how to implement a subclass of the
+``EnergySystem`` abstract class. Please read the docstrings
+carefully as they contain detailed information on required methods and
+syntax.
 
-   from zen_creator import EnergySystem
+.. literalinclude:: ../../../zen_creator/elements/energy_systems/aa_template.py
+   :language: python
 
-   # Typically extended in project-specific implementations.
-   class MyEnergySystem(EnergySystem):
-       pass
 
 .. rubric:: Summary
 
