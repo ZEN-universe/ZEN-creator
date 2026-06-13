@@ -209,7 +209,7 @@ class Element(ABC, Registry["Element"], is_base_registry=True):
             if attr.sources:
                 has_sources = True
                 output_lines.extend([attr_name, "-" * len(attr_name), ""])
-                output_lines.append(attr.sources_to_string())
+                output_lines.append(attr.sources_to_str())
                 output_lines.append("")
 
         if not has_sources:
