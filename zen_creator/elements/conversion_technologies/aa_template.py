@@ -5,10 +5,40 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
+from zen_creator import (
+    Attribute,
+    ConversionTechnology,
+    ConversionTechnologyConfig,
+    MetaData,
+    SourceInformation,
+)
 from zen_creator.datasets.datasets import TemplateDataset
-from zen_creator.datasets.datasets.metadata import MetaData, SourceInformation
-from zen_creator.elements import ConversionTechnology
-from zen_creator.utils.attribute import Attribute
+
+
+class TemplateConversionTechnologyConfig(ConversionTechnologyConfig):
+    """
+    Configuration class for the TemplateConversionTechnology.
+
+    This class is used to define the configuration parameters for the
+    TemplateConversionTechnology.
+
+    By inheriting from ConversionTechnologyConfig, these configurations
+    are automatically included in the Config under
+    Config().data.conversion_technology.<technology_name>.
+    This requires the the class has been imported (i.e. registered) before
+    the config is created.
+
+    Note: All configurations must have default values. The name must match
+    the name of the technology class.
+    """
+
+    # TODO: state name of the technology to which the config applies
+    name: str = "template_conversion_technology"
+
+    # TODO: add any additional configuration parameters specific to
+    # the technology here
+    conversion_technology_setting_1: str = "default_value_1"
+    conversion_technology_setting_2: float = 0.8
 
 
 class TemplateConversionTechnology(ConversionTechnology):

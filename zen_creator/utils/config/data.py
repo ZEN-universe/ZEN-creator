@@ -94,7 +94,7 @@ class DataConfig(Subscriptable):
                 specific registry.
             base_config_cls: The base configuration class for the registry (e.g.
                 DatasetConfig, TechnologyConfig, etc.), which is used to access the
-                registry and validate the user input.                       
+                registry and validate the user input.
 
         Returns:
             A dictionary containing the merged and validated configurations for the
