@@ -3,6 +3,15 @@
 This file gets automatically updated in ZEN-creator's continuous integration 
 procedures. Do not edit the file manually.
 
+## [v1.3.1] - 2026-06-13 
+
+### Bug Fixes 🐛
+- fix default config creation for custom element configs. Calling ``Config()`` now creates default values for all element-specific configurations. [[🔀 PR #50](https://github.com/ZEN-universe/ZEN-creator/pull/50) @csfunke]
+- repair ``sources_to_str()`` for elements by updating function call name. [[🔀 PR #50](https://github.com/ZEN-universe/ZEN-creator/pull/50) @csfunke]
+
+### Documentation Changes 📝
+- document element-specific configurations by adding them to the template files. [[🔀 PR #50](https://github.com/ZEN-universe/ZEN-creator/pull/50) @csfunke]
+
 ## [v1.3.0] - 2026-06-11 
 
 ### New Features ✨
