@@ -3,6 +3,11 @@
 This file gets automatically updated in ZEN-creator's continuous integration 
 procedures. Do not edit the file manually.
 
+## [v1.4.0] - 2026-06-15 
+
+### New Features ✨
+- write sources to sources.md along attribute.json files. [[🔀 PR #53](https://github.com/ZEN-universe/ZEN-creator/pull/53) @manud99]
+
 ## [v1.3.1] - 2026-06-13 
 
 ### Bug Fixes 🐛
