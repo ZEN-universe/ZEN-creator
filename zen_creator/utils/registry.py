@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, Generic, Type, TypeVar
+from typing import Dict, Generic, Type, TypeVar, cast
 
 # Define a generic type variable for subclasses of BaseElement
 T = TypeVar("T", bound="Registry")
@@ -20,19 +20,24 @@ class Registry(Generic[T]):
     # The registry will be a dictionary of class names (strings) to class types
     _registry: Dict[str, Type[T]] = {}
 
-    def __init_subclass__(cls, **kwargs):
+    def __init_subclass__(cls, is_base_registry: bool = False, **kwargs):
         """Initialize subclass and register it in its own registry."""
         super().__init_subclass__(**kwargs)
+
+        # Recreate registry to ensure that there is no cross-contamination between
+        # different class that inherit the Registry class
+        # if "_registry" not in cls.__dict__:
+        #     cls._registry = {}
+
+        # Initialize registry if class is intended as base registry
+        if is_base_registry:
+            cls._registry = {}
 
         # Ensure the subclass defines 'name' attribute
         if not hasattr(cls, "name"):
             raise AttributeError(
                 f"Subclass {cls.__name__} should define a class variable 'name'."
             )
-
-        # Initialize the registry if it doesn't already exist
-        if not hasattr(cls, "_registry"):
-            cls._registry = {}
 
         # Check if the name is already used by a different class type
         if cls.name in cls._registry and type(cls._registry[cls.name]) is not type(cls):
@@ -42,7 +47,7 @@ class Registry(Generic[T]):
                 f"{type(cls._registry[cls.name])}."
             )
 
-        cls._registry[cls.name] = cls
+        cls._registry[cls.name] = cast(Type[T], cls)
 
     @classmethod
     def get_registry(cls) -> Dict[str, Type[T]]:

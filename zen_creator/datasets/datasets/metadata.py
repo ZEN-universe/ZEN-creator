@@ -4,7 +4,7 @@ from typing import Optional
 
 from pydantic import ConfigDict, field_validator
 
-from zen_creator.utils.default_config import Subscriptable
+from zen_creator.utils.config import Subscriptable
 
 
 class MetaData(Subscriptable):

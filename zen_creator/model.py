@@ -21,7 +21,7 @@ from zen_creator.elements import (
 )
 from zen_creator.elements.element import Element
 from zen_creator.sectors import Sector
-from zen_creator.utils.default_config import Config, ElementTypeList
+from zen_creator.utils.config import Config, ElementTypeList
 
 logger = logging.getLogger(__name__)
 

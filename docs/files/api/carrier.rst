@@ -16,13 +16,13 @@ Use Cases
 Examples
 --------
 
-.. code-block:: python
+The code below shows an example of how to implement a subclass of the
+``Carrier`` abstract class. Please read the docstrings
+carefully as they contain detailed information on required methods and
+syntax.
 
-   from zen_creator import Carrier
-
-   # Typically extended in project-specific implementations.
-   class MyCarrier(Carrier):
-       pass
+.. literalinclude:: ../../../zen_creator/elements/carriers/aa_template.py
+   :language: python
 
 .. rubric:: Summary
 

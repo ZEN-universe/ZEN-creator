@@ -20,9 +20,7 @@ sys.path.append(os.path.abspath("_ext"))
 
 import yaml
 
-from zen_creator.utils.default_config import (
-    Config,
-)
+from zen_creator.utils.config import Config
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -53,7 +51,6 @@ extensions = [
     "myst_parser",
     "sphinx.ext.imgconverter",  # for SVG conversion
     "sphinxcontrib.mermaid",  # for class diagrams
-    "docstring",  # custom extension for inserting docstring text
 ]
 # allow errors in the notebooks
 nbsphinx_allow_errors = True
