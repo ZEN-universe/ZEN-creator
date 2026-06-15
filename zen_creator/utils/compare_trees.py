@@ -2,6 +2,7 @@
 import difflib
 import json
 import logging
+from os.path import basename
 from pathlib import Path
 from typing import Any
 
@@ -187,6 +188,9 @@ def compare_trees(dir1: str | Path, dir2: str | Path, raise_error: bool = True) 
     log: list[str] = []
 
     for rel_path in sorted(all_paths):
+        if basename(rel_path) == "sources.md":
+            continue  # ignore sources.md files since they are not in the fixtures
+
         f1 = map1.get(rel_path)
         f2 = map2.get(rel_path)
 

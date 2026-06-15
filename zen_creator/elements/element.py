@@ -150,6 +150,9 @@ class Element(ABC, Registry["Element"], is_base_registry=True):
         # write attributes.json file
         self.save_attributes()
 
+        # write sources.md file
+        self.save_sources()
+
         # write data files
         self.save_data()
 
@@ -169,7 +172,6 @@ class Element(ABC, Registry["Element"], is_base_registry=True):
         """
         output = {}
         for attr_name in self._attribute_names:
-
             attr = getattr(self, attr_name)
 
             # skip for attributes such as set_nodes or set_edges with not default
@@ -186,6 +188,19 @@ class Element(ABC, Registry["Element"], is_base_registry=True):
         output = self.attributes_to_dict()
         with (out_path / "attributes.json").open("w") as f:
             json.dump(output, f, indent=4)
+
+    def save_sources(self):
+        """Save the element's sources to sources.md."""
+        if not any(
+            getattr(self, attr_name).sources for attr_name in self._attribute_names
+        ):
+            return
+
+        logger.debug(f"Saving 'sources.md' for element '{self.name}.'")
+
+        out_path = self.output_path
+        with (out_path / "sources.md").open("w") as f:
+            f.write(self.sources_to_str())
 
     def save_data(self):
         """Save the element's data files."""

@@ -733,7 +733,7 @@ class Model:
         for element in self.elements.values():
             element.write()
 
-        logger.info("Done")
+        logger.info("Done writing model")
 
     def write_system_file(self) -> None:
         """Write the system.json file for the model.
