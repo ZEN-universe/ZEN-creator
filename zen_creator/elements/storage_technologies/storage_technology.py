@@ -34,6 +34,7 @@ class StorageTechnology(Technology, ABC):
             "capacity_addition_max_energy",
             "capacity_existing_energy",
             "capacity_limit_energy",
+            "capacity_lower_limit_energy",
             "min_load_energy",
             "max_load_energy",
             "capacity_investment_existing_energy",
@@ -94,6 +95,14 @@ class StorageTechnology(Technology, ABC):
             unit=f"{self.power_unit}*h",
             element=self,
         )
+
+        self._capacity_lower_limit_energy = Attribute(
+            "capacity_lower_limit_energy",
+            default_value=0.0,
+            unit=f"{self.power_unit}*h",
+            element=self,
+        )
+
         self._min_load_energy = Attribute(
             "min_load_energy", default_value=0.0, unit="1", element=self
         )
@@ -207,6 +216,15 @@ class StorageTechnology(Technology, ABC):
     def capacity_limit_energy(self, value: Attribute) -> None:
         self._validate_attribute(value)
         self._capacity_limit_energy = value
+
+    @property
+    def capacity_lower_limit_energy(self) -> Attribute:
+        return self._capacity_lower_limit_energy
+
+    @capacity_lower_limit_energy.setter
+    def capacity_lower_limit_energy(self, value: Attribute) -> None:
+        self._validate_attribute(value)
+        self._capacity_lower_limit_energy = value
 
     @property
     def min_load_energy(self) -> Attribute:
