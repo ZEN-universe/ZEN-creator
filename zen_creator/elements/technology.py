@@ -29,6 +29,7 @@ class Technology(Element, ABC):
             "capacity_addition_unbounded",
             "capacity_existing",
             "capacity_limit",
+            "capacity_lower_limit",
             "min_load",
             "max_load",
             "opex_specific_variable",
@@ -89,6 +90,14 @@ class Technology(Element, ABC):
             unit=f"{self.power_unit}",
             element=self,
         )
+
+        self._capacity_lower_limit = Attribute(
+            "capacity_lower_limit",
+            default_value=0.0,
+            unit=f"{self.power_unit}",
+            element=self,
+        )
+
         self._min_load = Attribute(
             "min_load", default_value=0.0, unit="1", element=self
         )
@@ -178,6 +187,15 @@ class Technology(Element, ABC):
     def capacity_limit(self, value: Attribute) -> None:
         self._validate_attribute(value)
         self._capacity_limit = value
+
+    @property
+    def capacity_lower_limit(self) -> Attribute:
+        return self._capacity_lower_limit
+
+    @capacity_lower_limit.setter
+    def capacity_lower_limit(self, value: Attribute) -> None:
+        self._validate_attribute(value)
+        self._capacity_lower_limit = value
 
     @property
     def min_load(self) -> Attribute:
