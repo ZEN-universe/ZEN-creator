@@ -3,9 +3,13 @@
 This file gets automatically updated in ZEN-creator's continuous integration 
 procedures. Do not edit the file manually.
 
-## [Unversioned Changes] - 2026-06-17 
+## [v1.5.0] - 2026-06-17 
+
+### New Features ✨
+- add lower capacity limit parameter. [[🔀 PR #52](https://github.com/ZEN-universe/ZEN-creator/pull/52) @jojoethz]
 
 ### Maintenance Tasks 🧹
+- update test solutions to account for new parameter. [[🔀 PR #52](https://github.com/ZEN-universe/ZEN-creator/pull/52) @jojoethz]
 - upgrade `black` to patch security vulnerability. [[🔀 PR #55](https://github.com/ZEN-universe/ZEN-creator/pull/55) @csfunke]
 
 ## [v1.4.0] - 2026-06-15 
