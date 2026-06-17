@@ -11,6 +11,10 @@
     "default_value": 0.0,
     "unit": "GW"
   },
+  "capacity_lower_limit": {
+    "default_value": 0.0,
+    "unit": "GW"
+  },
   "capacity_limit": {
     "default_value": "inf",
     "unit": "GW"

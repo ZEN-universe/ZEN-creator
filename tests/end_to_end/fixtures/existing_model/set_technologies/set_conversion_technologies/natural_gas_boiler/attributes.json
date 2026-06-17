@@ -15,6 +15,10 @@
     "default_value": "inf",
     "unit": "GW"
   },
+  "capacity_lower_limit": {
+    "default_value": 0.0,
+    "unit": "GW"
+  },
   "min_load": {
     "default_value": 0.0,
     "unit": "1"
