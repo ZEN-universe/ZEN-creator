@@ -3,6 +3,11 @@
 This file gets automatically updated in ZEN-creator's continuous integration 
 procedures. Do not edit the file manually.
 
+## [Unversioned Changes] - 2026-06-17 
+
+### Maintenance Tasks 🧹
+- upgrade `black` to patch security vulnerability. [[🔀 PR #55](https://github.com/ZEN-universe/ZEN-creator/pull/55) @csfunke]
+
 ## [v1.4.0] - 2026-06-15 
 
 ### New Features ✨
