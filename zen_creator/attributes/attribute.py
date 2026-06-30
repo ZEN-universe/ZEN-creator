@@ -12,59 +12,26 @@ import logging
 import os
 import re
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Union
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import pandas as pd
 
-from zen_creator.datasets.datasets.metadata import SourceInformation
+from zen_creator.attributes.constants import (
+    ALLOWED_DF_INDEX_NAMES,
+    ALLOWED_YEARLY_VARIATIONS_INDEX_NAMES,
+    ATTRIBUTES_SUPPORTING_BASE_TECHNOLOGY,
+    ATTRIBUTES_SUPPORTING_LISTS,
+    UNIT_REPLACEMENTS,
+)
+from zen_creator.attributes.types import DataFrame, DefaultValue
+from zen_creator.attributes.validator import AttributeValidator
+from zen_creator.utils.metadata import SourceInformation
 
 if TYPE_CHECKING:
     from zen_creator.elements.element import Element
 
 logger = logging.getLogger(__name__)
-
-# Type aliases for better readability
-DataFrame = Union[pd.DataFrame, pd.Series]
-DefaultValue = Union[float, list, None]
-
-# Constants for validation
-_ATTRIBUTES_SUPPORTING_LISTS = {
-    "conversion_factor",
-    "reference_carrier",
-    "input_carrier",
-    "output_carrier",
-    "retrofit_reference_carrier",
-}
-
-_ATTRIBUTES_SUPPORTING_BASE_TECHNOLOGY = {"retrofit_flow_coupling_factor"}
-
-_ALLOWED_DF_INDEX_NAMES = {
-    "time",
-    "year",
-    "node",
-    "location",
-    "edge",
-    "carrier",
-    "technology",
-    "year_construction",
-}
-
-_ALLOWED_YEARLY_VARIATIONS_INDEX_NAMES = {
-    "year",
-    "node",
-    "location",
-    "edge",
-    "carrier",
-    "technology",
-}
-
-_UNIT_REPLACEMENTS = {
-    "GW*h": "GWh",
-    "MW*h": "MWh",
-    "kW*h": "kWh",
-    "/h*h": "",
-}
 
 
 class Attribute:
@@ -78,6 +45,16 @@ class Attribute:
         element: The element this attribute belongs to.
     """
 
+    _default_value: DefaultValue = None
+    _unit: str | None = None
+    _base_technology: str | None = None
+    _df: DataFrame | None = None
+    _year_specific_dfs: dict[int, DataFrame] = {}
+    _yearly_variations_df: DataFrame | None = None
+    _sources: list[SourceInformation] = []
+
+    _validator = AttributeValidator()
+
     def __init__(
         self,
         name: str,
@@ -89,6 +66,8 @@ class Attribute:
         year_specific_dfs: dict[int, DataFrame] | None = None,
         yearly_variations_df: DataFrame | None = None,
         sources: list[SourceInformation] | None = None,
+        minimum_value: float | None = None,
+        maximum_value: float | None = None,
     ):
         """Initialize an Attribute.
 
@@ -103,25 +82,24 @@ class Attribute:
             year_specific_dfs: Year-specific data frames (optional).
             yearly_variations_df: Yearly variation factors (optional).
             sources: Ordered source information entries for this attribute (optional).
+            minimum_value: Minimum allowed value for validation (optional).
+            maximum_value: Maximum allowed value for validation (optional).
         """
         self.name: str = name
         self.element: Element = element
-        self._default_value: DefaultValue = None
-        self._unit: str | None = None
-        self._df: DataFrame | None = None
-        self._yearly_variations_df: DataFrame | None = None
-        self._year_specific_dfs: dict[int, DataFrame] = {}
-        self._sources: list[SourceInformation] = []
 
         # Use setters to ensure validation is applied during initialization
-        self.base_technology = base_technology
         self.default_value = default_value
         self.unit = unit
+        self.base_technology = base_technology
         self.df = df
         self.year_specific_dfs = year_specific_dfs or {}
         self.yearly_variations_df = yearly_variations_df
         self.sources = sources or []
-        self.base_technology = base_technology
+
+        # Set the minimum and maximum values for validation
+        self._validator.minimum_value = minimum_value
+        self._validator.maximum_value = maximum_value
 
     # ---------- Properties ----------
 
@@ -141,7 +119,7 @@ class Attribute:
             ValueError: If the value type is not valid for this attribute.
         """
         if isinstance(value, list):
-            self._validate_list_default_value(value)
+            self._validator.validate_list_default_value(self.name, value)
         elif value is not None and not isinstance(
             value, (float, int, np.integer, np.floating)
         ):
@@ -149,6 +127,8 @@ class Attribute:
                 f"Attribute '{self.name}' default value must be a float, int, or list. "
                 f"Got {type(value).__name__}."
             )
+        if value is not None:
+            self._validator.validate_min_max(self.name, value)
 
         self._default_value = value
 
@@ -167,7 +147,7 @@ class Attribute:
         if value is None:
             self._base_technology = value
             return
-        if self.name not in _ATTRIBUTES_SUPPORTING_BASE_TECHNOLOGY:
+        if self.name not in ATTRIBUTES_SUPPORTING_BASE_TECHNOLOGY:
             raise ValueError(
                 f"Attribute '{self.name}' cannot have a 'base_technology'."
             )
@@ -213,7 +193,11 @@ class Attribute:
                 logger.warning(
                     f"Overwriting existing data for attribute '{self.name}'."
                 )
-            self._validate_dataframe_indices(value, _ALLOWED_DF_INDEX_NAMES)
+            self._validator.validate_dataframe_indices(
+                self.name, value, ALLOWED_DF_INDEX_NAMES
+            )
+
+            self._validator.validate_min_max(self.name, value)
 
         self._df = value
 
@@ -243,9 +227,11 @@ class Attribute:
                     f"Overwriting existing yearly variations data for "
                     f"attribute '{self.name}'."
                 )
-            self._validate_dataframe_indices(
-                value, _ALLOWED_YEARLY_VARIATIONS_INDEX_NAMES
+            self._validator.validate_dataframe_indices(
+                self.name, value, ALLOWED_YEARLY_VARIATIONS_INDEX_NAMES
             )
+
+            self._validator.validate_min_max(self.name, value)
 
         self._yearly_variations_df = value
 
@@ -282,7 +268,11 @@ class Attribute:
                 raise ValueError(
                     f"Year key '{year}' in year_specific_dfs must be an integer."
                 )
-            self._validate_dataframe_indices(df, _ALLOWED_YEARLY_VARIATIONS_INDEX_NAMES)
+            self._validator.validate_dataframe_indices(
+                self.name, df, ALLOWED_YEARLY_VARIATIONS_INDEX_NAMES
+            )
+
+            self._validator.validate_min_max(self.name, df)
 
         self._year_specific_dfs = value
 
@@ -538,7 +528,7 @@ class Attribute:
         """
         if self.name == "conversion_factor":
             return self.default_value
-        elif self.name in _ATTRIBUTES_SUPPORTING_LISTS:
+        elif self.name in ATTRIBUTES_SUPPORTING_LISTS:
             return {"default_value": self.default_value}
         else:
             raise ValueError(
@@ -557,7 +547,7 @@ class Attribute:
             return ""
 
         unit = self.unit
-        for old, new in _UNIT_REPLACEMENTS.items():
+        for old, new in UNIT_REPLACEMENTS.items():
             unit = unit.replace(old, new)
 
         unit = self._remove_safe_parentheses(unit)
@@ -567,14 +557,13 @@ class Attribute:
     def _remove_safe_parentheses(unit):
         """
         Remove parentheses around substrings that don't contain '(', ')', '*' or '/'.
-
-        Pattern explanation:
-        \(          : Match literal opening parenthesis
-        (           : Start capturing group #1 (the content inside)
-        [^()*/]* : Match 0+ chars that are NOT '(', ')', '*', or '/'
-        )           : End capturing group
-        \)          : Match literal closing parenthesis
         """
+        # Pattern explanation:
+        # \(       : Match literal opening parenthesis
+        # (        : Start capturing group #1 (the content inside)
+        # [^()*/]* : Match 0+ chars that are NOT '(', ')', '*', or '/'
+        # )        : End capturing group
+        # \)       : Match literal closing parenthesis
         pattern = r"\(([^()*/]*)\)"
 
         while True:
@@ -602,52 +591,3 @@ class Attribute:
             blocks.append(f"Step {index}\n{source.to_str()}")
 
         return "\n\n----\n\n".join(blocks)
-
-    # ---------- Validation Helpers ----------
-
-    def _validate_list_default_value(self, value: list) -> None:
-        """Validate that a list default value is allowed for this attribute.
-
-        Args:
-            value: The list value to validate.
-
-        Raises:
-            ValueError: If the attribute doesn't support lists or has invalid structure.
-        """
-        if self.name not in _ATTRIBUTES_SUPPORTING_LISTS:
-            raise ValueError(
-                f"Attribute '{self.name}' does not support a list as default value. "
-                f"Only {', '.join(sorted(_ATTRIBUTES_SUPPORTING_LISTS))} support "
-                "lists."
-            )
-
-        if self.name == "conversion_factor":
-            for i, entry in enumerate(value):
-                if not isinstance(entry, dict):
-                    raise ValueError(
-                        f"Entry {i} in conversion_factor list must be a dict, "
-                        f"got {type(entry).__name__}."
-                    )
-                for name, factor in entry.items():
-                    if "default_value" not in factor or "unit" not in factor:
-                        raise ValueError(
-                            f"Entry {name} in conversion_factor list must contain "
-                            "'default_value' and 'unit' keys."
-                        )
-
-    def _validate_dataframe_indices(self, df: DataFrame, allowed_names: set) -> None:
-        """Validate DataFrame index names against allowed values.
-
-        Args:
-            df: The DataFrame to validate.
-            allowed_names: Set of allowed index names.
-
-        Raises:
-            ValueError: If any index name is not in the allowed set.
-        """
-        invalid_indices = set(df.index.names) - allowed_names
-        if invalid_indices:
-            raise ValueError(
-                f"Invalid index names {invalid_indices} in attribute '{self.name}'. "
-                f"Allowed names are: {', '.join(sorted(allowed_names))}."
-            )

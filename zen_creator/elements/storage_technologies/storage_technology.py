@@ -9,8 +9,8 @@ from abc import ABC
 
 import numpy as np
 
+from zen_creator.attributes import Attribute
 from zen_creator.elements.technology import Technology
-from zen_creator.utils.attribute import Attribute
 
 
 class StorageTechnology(Technology, ABC):
@@ -291,7 +291,6 @@ class StorageTechnology(Technology, ABC):
 
 
 class GenericStorageTechnology(StorageTechnology):
-
     name: str = "generic_storage_technology"  # for element registry
 
     def __init__(self, name: str, model: Model, power_unit: str = "MW"):

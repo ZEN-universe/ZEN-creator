@@ -9,8 +9,8 @@ from abc import ABC
 
 import numpy as np
 
+from zen_creator.attributes import Attribute
 from zen_creator.elements import Technology
-from zen_creator.utils.attribute import Attribute
 
 
 class TransportTechnology(Technology, ABC):
@@ -83,7 +83,6 @@ class TransportTechnology(Technology, ABC):
 
 
 class GenericTransportTechnology(TransportTechnology):
-
     name: str = "generic_transport_technology"  # for element registry
 
     def __init__(self, name: str, model: Model, power_unit: str = "MW"):

@@ -10,9 +10,9 @@ import numpy as np
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator.datasets.datasets.metadata import MetaData, SourceInformation
+from zen_creator.attributes import Attribute
 from zen_creator.elements.element import Element
-from zen_creator.utils.attribute import Attribute
+from zen_creator.utils.metadata import MetaData, SourceInformation
 
 
 class EnergySystem(Element, ABC):
@@ -368,7 +368,6 @@ class EnergySystem(Element, ABC):
 
 
 class GenericEnergySystem(EnergySystem):
-
     name: str = "generic_energy_system"  # for element registry
 
     def __init__(self, model: Model):

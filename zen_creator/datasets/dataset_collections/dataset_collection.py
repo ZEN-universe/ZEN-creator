@@ -7,10 +7,9 @@ if TYPE_CHECKING:
 from abc import ABC, abstractmethod
 from pathlib import Path
 
+from zen_creator.datasets.datasets.dataset import Dataset
+from zen_creator.utils.metadata import MetaData
 from zen_creator.utils.singleton_registry_meta import SingletonRegistryMeta
-
-from ..datasets.dataset import Dataset
-from ..datasets.metadata import MetaData
 
 
 class DatasetCollection(ABC, metaclass=SingletonRegistryMeta):
@@ -46,7 +45,7 @@ class DatasetCollection(ABC, metaclass=SingletonRegistryMeta):
         super().__init_subclass__(**kwargs)
         if not hasattr(cls, "name"):
             raise Exception(
-                f"Subclass {cls.__name__} should define a class variable " "" "'name'."
+                f"Subclass {cls.__name__} should define a class variable 'name'."
             )
 
     # ------------ properties --------------------------
@@ -72,8 +71,7 @@ class DatasetCollection(ABC, metaclass=SingletonRegistryMeta):
         """
         if not isinstance(value, dict):
             raise TypeError(
-                f"Expected an instance of 'dict', got "
-                f"'{type(value).__name__}' instead."
+                f"Expected an instance of 'dict', got '{type(value).__name__}' instead."
             )
         for k, v in value.items():
             if not isinstance(k, str):

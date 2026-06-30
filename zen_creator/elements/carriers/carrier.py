@@ -8,8 +8,8 @@ if TYPE_CHECKING:
 
 import numpy as np
 
+from zen_creator.attributes import Attribute
 from zen_creator.elements.element import Element
-from zen_creator.utils.attribute import Attribute
 
 
 class Carrier(Element, ABC):
@@ -194,7 +194,6 @@ class Carrier(Element, ABC):
 
 
 class GenericCarrier(Carrier):
-
     name: str = "generic_carrier"  # for element registry
 
     def __init__(self, name: str, model: Model, power_unit: str = "MW"):

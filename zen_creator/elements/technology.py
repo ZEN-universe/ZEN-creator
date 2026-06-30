@@ -8,8 +8,8 @@ import numpy as np
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
+from zen_creator.attributes import Attribute
 from zen_creator.elements.element import Element
-from zen_creator.utils.attribute import Attribute
 
 
 class Technology(Element, ABC):
@@ -312,5 +312,5 @@ class Technology(Element, ABC):
     @abstractmethod
     def _set_reference_carrier(self) -> Attribute:
         raise NotImplementedError(
-            "All subclasses of Technology must implement " "`_set_reference_carrier()`"
+            "All subclasses of Technology must implement `_set_reference_carrier()`"
         )

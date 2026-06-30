@@ -7,7 +7,8 @@ from pathlib import Path
 from zen_creator.datasets.dataset_collections.aa_Template import (
     TemplateDatasetCollection,
 )
-from zen_creator.datasets.datasets import MetaData, TemplateDataset
+from zen_creator.datasets.datasets.aa_template import TemplateDataset
+from zen_creator.utils.metadata import MetaData
 
 
 def test_template_dataset_collection_construction(tmp_path: Path) -> None:
@@ -28,8 +29,7 @@ def test_template_dataset_collection_metadata_construction(tmp_path: Path) -> No
         "template_dataset": MetaData(
             name="template_dataset",
             title=(
-                "Technology lifetimes and availability data for energy "
-                "system modeling"
+                "Technology lifetimes and availability data for energy system modeling"
             ),
             author=["Reliability and Risk Engineering Lab"],
             publication="Journal of Reliability and Risk Engineering",

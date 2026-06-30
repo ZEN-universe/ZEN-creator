@@ -17,7 +17,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from zen_creator.datasets.datasets.metadata import MetaData, SourceInformation
+from zen_creator.attributes import Attribute
 from zen_creator.elements import Carrier, ConversionTechnology, EnergySystem
 from zen_creator.elements.storage_technologies.storage_technology import (
     StorageTechnology,
@@ -26,7 +26,7 @@ from zen_creator.elements.transport_technologies.transport_technology import (
     TransportTechnology,
 )
 from zen_creator.model import Model
-from zen_creator.utils.attribute import Attribute
+from zen_creator.utils.metadata import MetaData, SourceInformation
 
 FIXTURE_ROOT = Path(__file__).parent
 EXISTING_MODEL_PATH = FIXTURE_ROOT / "existing_model"
