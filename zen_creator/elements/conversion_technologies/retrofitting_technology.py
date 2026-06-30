@@ -7,8 +7,8 @@ if TYPE_CHECKING:
 
 from abc import ABC, abstractmethod
 
+from zen_creator.attributes import Attribute
 from zen_creator.elements import ConversionTechnology
-from zen_creator.utils.attribute import Attribute
 
 
 class RetrofittingTechnology(ConversionTechnology, ABC):
@@ -79,7 +79,6 @@ class RetrofittingTechnology(ConversionTechnology, ABC):
 
 
 class GenericRetrofittingTechnology(RetrofittingTechnology):
-
     name: str = "generic_retrofitting_technology"  # for element registry
 
     def __init__(self, name: str, model: Model, power_unit: str = "MW"):

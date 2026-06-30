@@ -7,12 +7,11 @@ if TYPE_CHECKING:
 
 from abc import ABC, abstractmethod
 
+from zen_creator.attributes import Attribute
 from zen_creator.elements.technology import Technology
-from zen_creator.utils.attribute import Attribute
 
 
 class ConversionTechnology(Technology, ABC):
-
     subpath = "set_conversion_technologies"
     name = "conversion_technology"
 
@@ -148,7 +147,6 @@ class ConversionTechnology(Technology, ABC):
 
 
 class GenericConversionTechnology(ConversionTechnology):
-
     name: str = "generic_conversion_technology"  # for element registry
 
     def __init__(self, name: str, model: Model, power_unit: str = "MW"):

@@ -7,9 +7,8 @@ from typing import Any, Dict, Generic, TypeVar, Union
 
 import pandas as pd
 
+from zen_creator.utils.metadata import MetaData
 from zen_creator.utils.singleton_registry_meta import SingletonRegistryMeta
-
-from .metadata import MetaData
 
 # setup logger
 logger = logging.getLogger(__name__)
@@ -61,7 +60,7 @@ class Dataset(ABC, Generic[T], metaclass=SingletonRegistryMeta):
         super().__init_subclass__(**kwargs)
         if not hasattr(cls, "name"):
             raise Exception(
-                f"Subclass {cls.__name__} should define a class variable " "" "'name'."
+                f"Subclass {cls.__name__} should define a class variable 'name'."
             )
 
     @property
@@ -85,7 +84,7 @@ class Dataset(ABC, Generic[T], metaclass=SingletonRegistryMeta):
             return
         if not isinstance(value, Path):
             raise TypeError(
-                "path must be of type `Path`" f"got '{type(value).__name__}' instead."
+                f"path must be of type `Path` got '{type(value).__name__}' instead."
             )
         if not value.exists():
             raise ValueError(f"Provided path '{value}' does not exist.")

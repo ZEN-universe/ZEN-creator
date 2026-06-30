@@ -3,11 +3,10 @@ from pathlib import Path
 
 import pandas as pd
 
+from zen_creator.attributes import Attribute
+from zen_creator.datasets.datasets.dataset import Dataset
 from zen_creator.elements.element import Element
-from zen_creator.utils.attribute import Attribute
-
-from .dataset import Dataset
-from .metadata import MetaData, SourceInformation
+from zen_creator.utils.metadata import MetaData, SourceInformation
 
 
 class TemplateDataset(Dataset[pd.DataFrame]):
@@ -59,8 +58,7 @@ class TemplateDataset(Dataset[pd.DataFrame]):
         return MetaData(
             name=self.name,
             title=(
-                "Technology lifetimes and availability data for energy "
-                "system modeling"
+                "Technology lifetimes and availability data for energy system modeling"
             ),
             author=["Reliability and Risk Engineering Lab"],
             publication="Journal of Reliability and Risk Engineering",

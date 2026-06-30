@@ -11,12 +11,12 @@ from pathlib import Path
 
 import pytest
 
-from zen_creator.datasets.datasets.metadata import MetaData
 from zen_creator.elements.storage_technologies.aa_template import (
     TemplateStorageTechnology,
 )
 from zen_creator.model import Model
 from zen_creator.utils.compare_trees import compare_files
+from zen_creator.utils.metadata import MetaData
 
 
 def test_template_storage_technology_construction(

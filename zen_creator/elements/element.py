@@ -6,12 +6,11 @@ from typing import TYPE_CHECKING, ClassVar, Type
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
-    from zen_creator.utils.attribute import Attribute
     from zen_creator.utils.config import Config
 import json
 from pathlib import Path
 
-from zen_creator.utils.attribute import Attribute
+from zen_creator.attributes import Attribute
 from zen_creator.utils.registry import Registry
 
 logger = logging.getLogger(__name__)
