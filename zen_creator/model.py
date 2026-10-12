@@ -76,9 +76,7 @@ class Model:
         self._build_stack: list[tuple[Element, str]] = []
 
     @classmethod
-    def from_config(
-        cls, config: Config | str | Path, settings: Settings | None = None
-    ):
+    def from_config(cls, config: Config | str | Path, settings: Settings | None = None):
         """Initialize a new Model instance.
 
         Args:

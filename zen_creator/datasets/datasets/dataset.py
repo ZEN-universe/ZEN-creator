@@ -113,7 +113,7 @@ class Dataset(ABC, Generic[T], metaclass=SingletonRegistryMeta):
                 raise TypeError("All keys in the data dictionary must be strings.")
             if not (all_v_df or all_v_series):
                 raise TypeError(
-                    "All values in the data dictionary " \
+                    "All values in the data dictionary "
                     "must be either pandas DataFrames or Series."
                 )
             self._data = value

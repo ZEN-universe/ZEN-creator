@@ -1,6 +1,5 @@
 import numbers
 from pathlib import Path
-from typing import Union
 
 import pandas as pd
 
@@ -84,15 +83,15 @@ class TemplateDataset(Dataset[pd.DataFrame]):
         """
         return Path(".")
 
-    def _set_data(self) -> Union[pd.DataFrame, pd.Series, dict[str, pd.DataFrame]]:
+    def _set_data(self) -> pd.DataFrame:
         """
         Load the dataset from self.path.
 
         This should be implemented to load the dataset from self.path and return
-        it as a pandas DataFrame, a pandas Series, or a dictionary of pandas DataFrames. The exact
-        implementation will depend on the format of the dataset (e.g., CSV, Excel,
-        etc.) and the structure of the data. Any preprocessing steps (e.g.,
-        handling missing values, renaming columns, etc.) should also be
+        it as the type the class is parameterized with (here a pandas DataFrame).
+        The exact implementation will depend on the format of the dataset (e.g.,
+        CSV, Excel, etc.) and the structure of the data. Any preprocessing steps
+        (e.g., handling missing values, renaming columns, etc.) should also be
         included in this method.
 
         The method is used to set the self.data property when the dataset is

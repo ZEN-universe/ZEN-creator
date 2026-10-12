@@ -82,11 +82,7 @@ _ALLOWED_YEARLY_VARIATIONS_INDEX_NAMES = {
     "technology",
 }
 
-_INT_INDEX_NAMES = {
-    "year",
-    "year_construction",
-    "time"
-}
+_INT_INDEX_NAMES = {"year", "year_construction", "time"}
 
 _UNIT_REPLACEMENTS = {
     "GW*h": "GWh",
@@ -259,10 +255,10 @@ class Attribute:
                     f"must be a whole number. Got {type(value).__name__} ({value})."
                 )
         elif self.name in _ATTRIBUTES_SUPPORTING_LISTS:
-                raise ValueError(
-                    f"Attribute '{self.name}' default value must be a list. "
-                    f"Got {type(value).__name__}."
-                )
+            raise ValueError(
+                f"Attribute '{self.name}' default value must be a list. "
+                f"Got {type(value).__name__}."
+            )
         elif value is not None and not isinstance(
             value, (float, int, np.integer, np.floating)
         ):
@@ -432,7 +428,7 @@ class Attribute:
                     f"Year key '{year}' in year_specific_dfs must be an integer."
                 )
             self._validate_dataframe_indices(df, _ALLOWED_YEARLY_VARIATIONS_INDEX_NAMES)
-            
+
             value[year] = self._validate_integer_indices(df)
 
         self._year_specific_dfs = value
@@ -596,7 +592,8 @@ class Attribute:
                 scenario.yearly_variations_df, _ALLOWED_YEARLY_VARIATIONS_INDEX_NAMES
             )
             scenario.yearly_variations_df = self._validate_integer_indices(
-                scenario.yearly_variations_df)
+                scenario.yearly_variations_df
+            )
 
     # ---------- Model Data Methods ----------
 
@@ -936,7 +933,7 @@ class Attribute:
                         )
 
     def _validate_dataframe_name(self, value: DataFrame) -> None:
-        """Validate that a capacity_existing(_energy) df is labeled with the attribute name.
+        """Validate that a capacity_existing(_energy) df is labeled with its name.
 
         Args:
             value: The DataFrame or Series to validate.
@@ -947,7 +944,7 @@ class Attribute:
         """
         # TODO implement for all attributes, not just capacity_existing(_energy)
         # figure out how to handle the case where a DataFrame has multiple columns,
-        # which are a subset of the nodes/edges/time steps. 
+        # which are a subset of the nodes/edges/time steps.
         # In that case, we can't check the name.
         if self.name not in _ATTRIBUTES_REQUIRING_NAMED_DF:
             return
@@ -982,18 +979,24 @@ class Attribute:
                 f"Allowed names are: {', '.join(sorted(allowed_names))}."
             )
 
-    def _validate_integer_indices(self, df: DataFrame) -> None:
+    def _validate_integer_indices(self, df: DataFrame) -> DataFrame:
         """Validate that integer indices are of integer type or can be converted.
+
         Args:
             df: The DataFrame to validate.
 
         Raises:
-            ValueError: If any integer index is not of integer type or cannot be converted.
+            ValueError: If any integer index is not of integer type or cannot be
+                converted.
 
-        Returns: 
+        Returns:
             df: The validated or converted DataFrame.
         """
-        int_indices = [name for name in df.index.names if name in _INT_INDEX_NAMES]
+        int_indices = [
+            name
+            for name in df.index.names
+            if isinstance(name, str) and name in _INT_INDEX_NAMES
+        ]
         for name in int_indices:
             level_values = df.index.get_level_values(name)
             if pd.api.types.is_integer_dtype(level_values):
@@ -1007,18 +1010,20 @@ class Attribute:
                 raise ValueError(
                     f"Index '{name}' in attribute '{self.name}' of "
                     f"element '{self.element.name}' must be of integer "
-                    f"type. Got {level_values.dtype} and cannot be converted to integer."
+                    f"type. Got {level_values.dtype} and cannot be converted to "
+                    "integer."
                 )
             logger.warning(
                 f"Index '{name}' in attribute '{self.name}' of "
                 f"element '{self.element.name}' is of type "
-                f"{level_values.dtype} instead of integer, but parses cleanly as integer.\n"
+                f"{level_values.dtype} instead of integer, but parses cleanly as "
+                "integer.\n"
                 "Convert the index to integer type to avoid this warning."
             )
             if isinstance(df.index, pd.MultiIndex):
                 level_pos = df.index.names.index(name)
                 df.index = df.index.set_levels(
-                    df.index.levels[level_pos].astype(int), level=name
+                    df.index.levels[level_pos].astype(int).tolist(), level=name
                 )
             else:
                 df.index = df.index.astype(int)

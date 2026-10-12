@@ -9,8 +9,9 @@ if TYPE_CHECKING:
     from zen_creator.utils.attribute import Attribute
     from zen_creator.utils.config import Config
     from zen_creator.utils.settings import Settings
-import yaml
 from pathlib import Path
+
+import yaml
 
 from zen_creator.utils.attribute import Attribute
 from zen_creator.utils.registry import Registry
@@ -55,7 +56,7 @@ class Element(ABC, Registry["Element"], is_base_registry=True):
         self.config: Config = model.config
         self.settings: Settings = model.settings
         self.power_unit: str = power_unit
-        self.energy_unit:str = get_energy_unit_from_power_unit(power_unit)
+        self.energy_unit: str = get_energy_unit_from_power_unit(power_unit)
 
     # ----------- properties ------------------------------------------
 
@@ -275,9 +276,7 @@ class Element(ABC, Registry["Element"], is_base_registry=True):
 
         out_path = self.output_path
         for suffix, attributes in overrides.items():
-            logger.info(
-                f"Saving 'attributes_{suffix}.yaml' for element '{self.name}.'"
-            )
+            logger.info(f"Saving 'attributes_{suffix}.yaml' for element '{self.name}.'")
             with (out_path / f"attributes_{suffix}.yaml").open("w") as f:
                 yaml.safe_dump({**base_attributes, **attributes}, f, sort_keys=False)
 

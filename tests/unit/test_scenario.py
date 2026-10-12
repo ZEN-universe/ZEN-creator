@@ -146,7 +146,9 @@ def test_scenario_default_value_reuses_attribute_validation(model: Model):
     carrier.build()
 
     with pytest.raises(ValueError, match="must be a float, int, or list"):
-        carrier.demand.add_scenarios(Scenario("broken", default_value="high"))
+        carrier.demand.add_scenarios(
+            Scenario("broken", default_value="high")  # type: ignore[arg-type]
+        )
 
 
 def test_scenario_df_reuses_attribute_index_validation(model: Model):

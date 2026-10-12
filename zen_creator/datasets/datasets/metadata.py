@@ -74,10 +74,9 @@ class MetaData(Subscriptable):
 # dictionary mapping source names to further metadata (a DatasetCollection),
 # which may itself contain nested DatasetCollections, hence the recursion.
 # TypeAliasType (rather than a plain Union alias) is required so pydantic can
-# recognize the self-reference and avoid infinite schema expansion.
-MetadataTree = TypeAliasType(
-    "MetadataTree", Union[MetaData, Dict[str, "MetadataTree"]]
-)
+# recognize the self-reference and avoid infinite schema expansion. The value is
+# a single string so mypy can resolve the self-reference too.
+MetadataTree = TypeAliasType("MetadataTree", "Union[MetaData, Dict[str, MetadataTree]]")
 
 
 class SourceInformation(Subscriptable):
@@ -141,7 +140,9 @@ class SourceInformation(Subscriptable):
         return "\n".join(lines)
 
     @staticmethod
-    def _format_metadata_tree(tree: dict[str, MetadataTree], depth: int = 0) -> list[str]:
+    def _format_metadata_tree(
+        tree: dict[str, MetadataTree], depth: int = 0
+    ) -> list[str]:
         """Recursively render a (possibly nested) metadata dictionary as
         indented bullet lines."""
         indent = "  " * depth
@@ -154,15 +155,16 @@ class SourceInformation(Subscriptable):
                 lines.append(f"{indent}- **{name}**: {value.to_str()}")
         return lines
 
+
 class AssumptionInformation(Subscriptable):
     """Information about the assumptions used in a dataset attribute.
 
     Combines a descriptive explanation of an attribute's assumptions.
-    An assumption is not a source of data, but rather a choice made 
-    in the modeling process that affects the attribute's value. 
-    Assumptions do not have associated citation metadata, 
+    An assumption is not a source of data, but rather a choice made
+    in the modeling process that affects the attribute's value.
+    Assumptions do not have associated citation metadata,
     but they may have a description of the rationale behind the assumption.
-    
+
     Attributes:
         description: Narrative explanation of the attribute's assumptions, collection
             method, or data processing applied.

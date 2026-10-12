@@ -71,7 +71,10 @@ def test_model_structure(model: Model) -> None:
 def test_carrier_flows() -> None:
     """Each input carrier of a conversion technology flows to each output carrier."""
     technologies = {
-        "turbine": {"input_carrier": ["natural_gas"], "output_carrier": ["electricity"]},
+        "turbine": {
+            "input_carrier": ["natural_gas"],
+            "output_carrier": ["electricity"],
+        },
         "electrolysis": {
             "input_carrier": ["electricity"],
             "output_carrier": ["hydrogen", "heat"],

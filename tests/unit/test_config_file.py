@@ -9,7 +9,7 @@ import yaml
 
 from zen_creator.elements import GenericEnergySystem
 from zen_creator.model import Model
-from zen_creator.utils.config import Config
+from zen_creator.utils.config import Config, SystemConfig
 
 
 @pytest.fixture
@@ -86,6 +86,6 @@ def test_refuses_to_overwrite_the_loaded_config(tmp_path: Path) -> None:
 
 def test_no_guard_without_a_loaded_file(tmp_path: Path) -> None:
     """A config built in code has no source file to protect."""
-    config = Config(system={"set_nodes": ["CH"]})
+    config = Config(system=SystemConfig(set_nodes=["CH"]))
 
     assert config.loaded_from is None

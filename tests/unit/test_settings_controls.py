@@ -112,9 +112,7 @@ def test_two_categories_controlling_the_same_path_raise() -> None:
         Settings.controlled_paths()
 
 
-def test_config_yaml_rejects_a_controlled_path(
-    tmp_path: Path, time_category
-) -> None:
+def test_config_yaml_rejects_a_controlled_path(tmp_path: Path, time_category) -> None:
     """A config file may not restate a value a settings category controls."""
     config_path = tmp_path / "config.yaml"
     config_path.write_text(
@@ -149,8 +147,7 @@ def test_model_from_config_applies_settings(tmp_path: Path, time_category) -> No
 
     config_path = tmp_path / "config.yaml"
     config_path.write_text(
-        "system:\n  set_nodes: [CH]\n"
-        "settings:\n  time:\n    reference_year: 2030\n",
+        "system:\n  set_nodes: [CH]\n" "settings:\n  time:\n    reference_year: 2030\n",
         encoding="utf-8",
     )
 

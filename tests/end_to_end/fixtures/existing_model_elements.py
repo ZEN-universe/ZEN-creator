@@ -26,7 +26,7 @@ from zen_creator.elements.transport_technologies.transport_technology import (
     TransportTechnology,
 )
 from zen_creator.model import Model
-from zen_creator.utils.attribute import Attribute
+from zen_creator.utils.attribute import Attribute, SourceLike
 
 FIXTURE_ROOT = Path(__file__).parent
 EXISTING_MODEL_PATH = FIXTURE_ROOT / "existing_model"
@@ -54,7 +54,7 @@ def _fixture_metadeta(from_csv: bool = False) -> MetaData:
     )
 
 
-def _fixture_default_source(attr_name: str) -> list[SourceInformation]:
+def _fixture_default_source(attr_name: str) -> list[SourceLike]:
     return [
         SourceInformation(
             description=(

@@ -42,6 +42,12 @@ class Settings(Subscriptable):
 
     model_config = ConfigDict(extra="allow", validate_assignment=True)
 
+    if TYPE_CHECKING:
+        # Categories are registered downstream and stored as pydantic extra
+        # fields, which pydantic only exposes through a runtime __getattr__.
+        # Declaring it for type checkers makes `settings.<category>` typed Any.
+        def __getattr__(self, name: str) -> Any: ...
+
     @model_validator(mode="before")
     @classmethod
     def populate_and_validate_categories(cls, data: Any) -> Any:
