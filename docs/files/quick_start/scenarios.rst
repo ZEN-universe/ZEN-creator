@@ -92,15 +92,15 @@ or in code:
 
 .. code-block:: python
 
-   from zen_creator import Sweep
+   from zen_creator import ValueList
 
    model.scenarios.add("coarse", system={"aggregated_time_steps_per_year": 24})
    model.scenarios.add(
        "resolution",
-       system={"aggregated_time_steps_per_year": Sweep([24, 96, 192], fmt="tsa_{}")},
+       system={"aggregated_time_steps_per_year": ValueList([24, 96, 192], fmt="tsa_{}")},
    )
 
-A :class:`~zen_creator.Sweep` (or a mapping with ``values`` and ``fmt``) is
+A :class:`~zen_creator.ValueList` (or a mapping with ``values`` and ``fmt``) is
 expanded by ZEN-garden into one sub-scenario per value. A system override
 must keep the type of the configured value; a mismatch raises an error.
 

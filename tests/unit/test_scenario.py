@@ -9,7 +9,7 @@ import yaml
 from zen_creator.datasets.datasets.metadata import AssumptionInformation
 from zen_creator.elements.carriers.aa_template import TemplateCarrier
 from zen_creator.model import Model
-from zen_creator.utils.scenario import Scenario, Sweep
+from zen_creator.utils.scenario import Scenario, ValueList
 
 
 def _source() -> AssumptionInformation:
@@ -25,7 +25,7 @@ def _demand_df() -> pd.DataFrame:
 # ---------- Scenario ----------
 
 
-def test_scenario_requires_a_payload():
+def test_scenario_requires_an_entry_type():
     """A scenario without any change is rejected."""
     with pytest.raises(ValueError, match="does not change anything"):
         Scenario("empty")
@@ -40,51 +40,51 @@ def test_scenario_rejects_unit_without_default_value():
 def test_scenario_rejects_format_without_placeholder():
     """A format without a placeholder cannot name sub-scenarios."""
     with pytest.raises(ValueError, match="placeholder"):
-        Scenario("sweep", default_op=[1.0, 2.0], fmt="sweep")
+        Scenario("value_list", default_op=[1.0, 2.0], fmt="value_list")
 
 
-def test_scenario_fragment_of_default_value():
+def test_scenario_entry_of_default_value():
     """A default value points to the attributes file of the scenario."""
     scenario = Scenario("cheap", default_value=1.5)
 
-    assert scenario.fragments("price_import") == {
+    assert scenario.entries("price_import") == {
         "price_import": {"default": "attributes_cheap"}
     }
 
 
-def test_scenario_fragment_of_data():
+def test_scenario_entry_of_data():
     """Data points to a csv file and yearly variations to their own parameter."""
     scenario = Scenario("nodal", df=_demand_df(), yearly_variations_df=_demand_df())
 
-    assert scenario.fragments("demand") == {
+    assert scenario.entries("demand") == {
         "demand": {"file": "demand_nodal"},
         "demand_yearly_variation": {"file": "demand_yearly_variation_nodal"},
     }
 
 
-def test_scenario_fragment_of_operators():
+def test_scenario_entry_of_operators():
     """Scalar operators are written as they are."""
     scenario = Scenario("scaled", default_op=1.5, file_op=0.5)
 
-    assert scenario.fragments("demand") == {
+    assert scenario.entries("demand") == {
         "demand": {"default_op": 1.5, "file_op": 0.5}
     }
 
 
-def test_scenario_fragment_of_list_operator():
+def test_scenario_entry_of_list_operator():
     """A list operator gets a format so that sub-scenarios are named."""
-    scenario = Scenario("sweep", default_op=[0.5, 1.5])
+    scenario = Scenario("value_list", default_op=[0.5, 1.5])
 
-    assert scenario.fragments("demand") == {
+    assert scenario.entries("demand") == {
         "demand": {"default_op": [0.5, 1.5], "default_op_fmt": "demand_{}"}
     }
 
 
-def test_scenario_fragment_of_two_list_operators():
+def test_scenario_entry_of_two_list_operators():
     """Two expanded operators get formats that are distinguishable."""
-    scenario = Scenario("sweep", default_op=[0.5], file_op=[1.5])
+    scenario = Scenario("value_list", default_op=[0.5], file_op=[1.5])
 
-    assert scenario.fragments("demand") == {
+    assert scenario.entries("demand") == {
         "demand": {
             "default_op": [0.5],
             "default_op_fmt": "demand_default_op_{}",
@@ -99,14 +99,14 @@ def test_scenario_rejects_non_numeric_operator():
     scenario = Scenario("broken", default_op="high")
 
     with pytest.raises(ValueError, match="must be numeric"):
-        scenario.fragments("demand")
+        scenario.entries("demand")
 
 
 def test_scenario_uses_explicit_suffix():
     """An explicit suffix replaces the scenario name in the file names."""
     scenario = Scenario("cheap", default_value=1.5, suffix="low")
 
-    assert scenario.fragments("demand") == {"demand": {"default": "attributes_low"}}
+    assert scenario.entries("demand") == {"demand": {"default": "attributes_low"}}
 
 
 # ---------- Registration ----------
@@ -261,12 +261,12 @@ def test_add_rejects_wrong_setting_type(model: Model):
         model.scenarios.add("coarse", system={"aggregated_time_steps_per_year": "96"})
 
 
-def test_add_expands_a_sweep(model: Model):
-    """A sweep is written as the expansion entry of ZEN-garden."""
+def test_add_expands_a_value_list(model: Model):
+    """A value_list is written as the expansion entry of ZEN-garden."""
     model.config.system.aggregated_time_steps_per_year = 96
 
     model.scenarios.add(
-        "resolution", system={"aggregated_time_steps_per_year": Sweep([24, 96])}
+        "resolution", system={"aggregated_time_steps_per_year": ValueList([24, 96])}
     )
 
     assert model.scenarios.to_dict() == {

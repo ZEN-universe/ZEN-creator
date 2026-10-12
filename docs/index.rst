@@ -21,9 +21,9 @@ Documentation
    :caption: Quick Start
 
    files/quick_start/installation
-   files/quick_start/design
    files/quick_start/getting_started
    files/quick_start/logic_and_structure
+   files/quick_start/design
    files/quick_start/settings_and_models
    files/quick_start/scenarios
 

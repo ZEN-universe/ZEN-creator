@@ -7,7 +7,7 @@ Overview
 --------
 
 ``Scenario`` describes the variation of one attribute in one scenario.
-``Sweep`` marks a list of values of a system, analysis or solver setting to be
+``ValueList`` marks a list of values of a system, analysis or solver setting to be
 run one after another. ``ScenarioRegistry`` (``model.scenarios``) collects all
 entries of a model and writes ``scenarios.yaml``.
 
@@ -26,7 +26,7 @@ See :ref:`scenarios.scenarios` for a guide.
    :nosignatures:
 
    zen_creator.Scenario
-   zen_creator.Sweep
+   zen_creator.ValueList
    zen_creator.utils.scenario.ScenarioRegistry
 
 .. rubric:: Member Reference
@@ -35,7 +35,7 @@ See :ref:`scenarios.scenarios` for a guide.
    :show-inheritance:
    :no-index:
 
-.. autoclass:: zen_creator.Sweep
+.. autoclass:: zen_creator.ValueList
    :show-inheritance:
    :no-index:
 

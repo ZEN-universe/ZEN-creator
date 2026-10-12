@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Dict
 if TYPE_CHECKING:
     pass
 from abc import ABC, abstractmethod
+from collections.abc import Mapping
 from pathlib import Path
 
 from zen_creator.utils.singleton_registry_meta import SingletonRegistryMeta
@@ -29,10 +30,10 @@ class DatasetCollection(ABC, metaclass=SingletonRegistryMeta):
         )
 
         # Internal storage for validated properties
-        self._data: Dict[str, Dataset] = {}
+        self._data: Dict[str, Dataset | DatasetCollection] = {}
 
         # Initialize required fields using abstract hooks
-        self.data = self._get_data()
+        self.data = dict(self._get_data())
 
     def __init_subclass__(cls, **kwargs):
         """Initialize subclass and ensure name attribute is defined.
@@ -51,7 +52,7 @@ class DatasetCollection(ABC, metaclass=SingletonRegistryMeta):
 
     # ------------ properties --------------------------
     @property
-    def data(self) -> Dict[str, Dataset]:
+    def data(self) -> Dict[str, Dataset | DatasetCollection]:
         """
         Dictionary of datasets.
 
@@ -61,11 +62,12 @@ class DatasetCollection(ABC, metaclass=SingletonRegistryMeta):
 
     # ------------ setters -----------------------------
     @data.setter
-    def data(self, value: Dict[str, Dataset]):
+    def data(self, value: Dict[str, Dataset | DatasetCollection]):
         """Set the data dictionary and validate its contents.
 
         Args:
-            value (Dict[str, Dataset]): Dictionary of dataset names to Dataset objects.
+            value: Dictionary of dataset names to Dataset or DatasetCollection
+                objects.
 
         Raises:
             TypeError: If value is not a dict or contains invalid types.
@@ -109,5 +111,5 @@ class DatasetCollection(ABC, metaclass=SingletonRegistryMeta):
     # ---------------- Abstract hooks ------------------
 
     @abstractmethod
-    def _get_data(self) -> Dict[str, Dataset]:
+    def _get_data(self) -> Mapping[str, Dataset | DatasetCollection]:
         """Return the data for this dataset collection."""

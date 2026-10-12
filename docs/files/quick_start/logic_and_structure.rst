@@ -224,8 +224,9 @@ An attribute may read the value of another attribute, also of another element,
 for example a retrofitting technology reading the lifetime of the technology
 it retrofits. Reading ``default_value``, ``df``, ``unit`` or another data
 field of an attribute that has not been built yet builds it first. The
-methods can therefore be written in any order. A cyclic dependency between
-attributes raises an error that shows the chain of attributes involved.
+methods and the attribute names can therefore be written in any order. 
+A cyclic dependency between attributes raises an error that shows the chain of 
+attributes involved.
 
 Requesting the attribute object itself (``element.lifetime``) or calling
 ``set_data()`` on it does not trigger a build.

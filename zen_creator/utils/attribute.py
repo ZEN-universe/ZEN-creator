@@ -514,7 +514,7 @@ class Attribute:
             ...     unit="Euro/MWh",
             ...     scenarios=[
             ...         Scenario("cheap", default_value=1.5),
-            ...         Scenario("sweep", default_op=[0.5, 1.5]),
+            ...         Scenario("value_list", default_op=[0.5, 1.5]),
             ...     ],
             ... )
         """

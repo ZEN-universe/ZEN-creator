@@ -110,15 +110,15 @@ class DataConfig(Subscriptable):
             if cls_type != base_config_cls and issubclass(cls_type, base_config_cls)
         }
 
-        merged_payload = {**discovered_defaults, **user_input_dict}
+        merged_entries = {**discovered_defaults, **user_input_dict}
 
         # validate each entry with the appropriate class
-        validated_payload: Dict[str, Any] = {}
-        for name, value in merged_payload.items():
+        validated_entries: Dict[str, Any] = {}
+        for name, value in merged_entries.items():
             if isinstance(value, dict):
                 target_cls = base_config_cls.get_by_name(name)
                 if target_cls is not None:
-                    validated_payload[name] = target_cls.model_validate(value)
+                    validated_entries[name] = target_cls.model_validate(value)
                     continue
                 else:
                     raise ValueError(
@@ -126,9 +126,9 @@ class DataConfig(Subscriptable):
                         f"{base_config_cls.__name__}. No matching class found in the "
                         f"registry."
                     )
-            validated_payload[name] = value
+            validated_entries[name] = value
 
-        return validated_payload
+        return validated_entries
 
     @model_validator(mode="before")
     @classmethod

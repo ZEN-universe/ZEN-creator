@@ -15,7 +15,10 @@ from .metadata import MetaData
 logger = logging.getLogger(__name__)
 
 # return type of data property
-T = TypeVar("T", bound=Union[pd.DataFrame, Dict[str, pd.DataFrame]])
+T = TypeVar(
+    "T",
+    bound=Union[pd.DataFrame, pd.Series, Dict[str, pd.DataFrame], Dict[str, pd.Series]],
+)
 
 
 class Dataset(ABC, Generic[T], metaclass=SingletonRegistryMeta):
@@ -96,7 +99,7 @@ class Dataset(ABC, Generic[T], metaclass=SingletonRegistryMeta):
         """The dataset data.
 
         Returns:
-            T: The dataset as a DataFrame or dict of DataFrames.
+            T: The dataset as a DataFrame, Series, or dict of either.
         """
         return self._data
 
@@ -119,7 +122,8 @@ class Dataset(ABC, Generic[T], metaclass=SingletonRegistryMeta):
             self._data = value
         else:
             raise TypeError(
-                f"data must be pd.DataFrame or dict[str, DataFrame], got {type(value)}"
+                "data must be pd.DataFrame, pd.Series, or a dict of either, got "
+                f"{type(value)}"
             )
 
     @property
@@ -152,4 +156,4 @@ class Dataset(ABC, Generic[T], metaclass=SingletonRegistryMeta):
 
     @abstractmethod
     def _set_data(self) -> T:
-        """Return the dataset as a DataFrame or dict of DataFrames."""
+        """Return the dataset as a DataFrame, Series, or dict of either."""

@@ -2,7 +2,7 @@
 
 This module provides the building blocks of the scenario analysis: the
 per-attribute variation (:class:`Scenario`), the marker for list-valued
-settings (:class:`Sweep`), and the model-wide :class:`ScenarioRegistry` that
+settings (:class:`ValueList`), and the model-wide :class:`ScenarioRegistry` that
 collects all entries and serializes them to ``scenarios.yaml``.
 """
 
@@ -44,7 +44,7 @@ ENERGY_SYSTEM_KEY = "EnergySystem"
 
 
 @dataclass
-class Sweep:
+class ValueList:
     """List of values for a system, analysis, or solver setting.
 
     Marks a list as a set of values to run one after another, as opposed to a
@@ -63,11 +63,11 @@ class Sweep:
 class Scenario:
     """Variation of a single attribute in one scenario.
 
-    The payload determines the entry in scenarios.yaml: a default value is
+    The entry type determines the entry in scenarios.yaml: a default value is
     written to an ``attributes_<suffix>.yaml``, a data frame to a
-    ``<param>_<suffix>.csv``, and the operators are written as factors that
-    ZEN-garden applies to the unmodified values. A list-valued operator is
-    expanded by ZEN-garden into one sub-scenario per entry.
+    ``<param>_<suffix>.csv``, and the operators (``default_op`` and ``file_op``) 
+    are written as factors that ZEN-garden applies to the unmodified values. 
+    A list-valued operator is expanded by ZEN-garden into one sub-scenario per entry.
 
     Attributes:
         name: The name of the scenario this variation belongs to.
@@ -94,18 +94,18 @@ class Scenario:
     fmt: str | None = field(default=None, kw_only=True)
 
     def __post_init__(self) -> None:
-        """Validate the payload and fall back to the scenario name as suffix."""
+        """Validate the value types and fall back to the scenario name as suffix."""
         if not isinstance(self.name, str) or not self.name:
             raise ValueError("A scenario needs a non-empty name.")
 
-        payload = (
+        entry_types = (
             self.default_value,
             self.df,
             self.yearly_variations_df,
             self.default_op,
             self.file_op,
         )
-        if all(entry is None for entry in payload):
+        if all(entry is None for entry in entry_types):
             raise ValueError(
                 f"Scenario '{self.name}' does not change anything. Set one of "
                 "'default_value', 'df', 'yearly_variations_df', 'default_op', or "
@@ -126,7 +126,7 @@ class Scenario:
         if self.suffix is None:
             self.suffix = self.name
 
-    def fragments(self, param: str) -> dict[str, dict]:
+    def entries(self, param: str) -> dict[str, dict]:
         """Build the scenarios.yaml entries of this variation.
 
         Yearly variations are a parameter of their own in ZEN-garden, so they
@@ -138,9 +138,9 @@ class Scenario:
         Returns:
             dict: Mapping of parameter name to its scenarios.yaml entry.
         """
-        entries = {}
+        result = {}
 
-        fragment = build_fragment(
+        entry = build_entry(
             param,
             default=(
                 f"attributes_{self.suffix}" if self.default_value is not None else None
@@ -150,14 +150,14 @@ class Scenario:
             file_op=self.file_op,
             fmt=self.fmt,
         )
-        if fragment:
-            entries[param] = fragment
+        if entry:
+            result[param] = entry
 
         if self.yearly_variations_df is not None:
             variations_param = f"{param}_yearly_variation"
-            entries[variations_param] = {"file": f"{variations_param}_{self.suffix}"}
+            result[variations_param] = {"file": f"{variations_param}_{self.suffix}"}
 
-        return entries
+        return result
 
     def data_files(self, param: str) -> dict[str, DataFrame]:
         """Return the data files of this variation.
@@ -177,7 +177,7 @@ class Scenario:
         return files
 
 
-def build_fragment(
+def build_entry(
     param: str,
     default: str | None = None,
     file: str | None = None,
@@ -216,26 +216,26 @@ def build_fragment(
             f"'{fmt}' is ambiguous. Use separate scenarios."
         )
 
-    fragment: dict[str, Any] = {}
+    entry: dict[str, Any] = {}
     if default is not None:
-        fragment["default"] = default
+        entry["default"] = default
     if file is not None:
-        fragment["file"] = file
+        entry["file"] = file
 
     for key, value in operators.items():
         if value is None:
             continue
         _validate_operator(param, key, value)
-        fragment[key] = value
+        entry[key] = value
         if isinstance(value, list):
             if fmt is not None:
-                fragment[f"{key}_fmt"] = fmt
+                entry[f"{key}_fmt"] = fmt
             elif len(expanded) > 1:
-                fragment[f"{key}_fmt"] = f"{param}_{key}_{{}}"
+                entry[f"{key}_fmt"] = f"{param}_{key}_{{}}"
             else:
-                fragment[f"{key}_fmt"] = f"{param}_{{}}"
+                entry[f"{key}_fmt"] = f"{param}_{{}}"
 
-    return fragment
+    return entry
 
 
 def _validate_operator(param: str, key: str, value: float | list) -> None:
@@ -337,8 +337,8 @@ class ScenarioRegistry:
                 f"'{element_key}.{param}.set_data(scenarios=...)'."
             )
 
-        for scenario_param, fragment in scenario.fragments(param).items():
-            self._register(scenario.name, element_key, scenario_param, fragment)
+        for scenario_param, entry in scenario.entries(param).items():
+            self._register(scenario.name, element_key, scenario_param, entry)
 
     def add(
         self,
@@ -349,7 +349,7 @@ class ScenarioRegistry:
     ) -> None:
         """Add configuration overrides to a scenario.
 
-        The values are written to scenarios.yaml as they are. A :class:`Sweep`
+        The values are written to scenarios.yaml as they are. A :class:`ValueList`
         value, or a dict with a 'values' key, is expanded by ZEN-garden into one
         sub-scenario per entry.
 
@@ -362,7 +362,7 @@ class ScenarioRegistry:
         Examples:
             >>> model.scenarios.add("coarse", system={"optimized_years": 3})
             >>> model.scenarios.add(
-            ...     "sweep", system={"optimized_years": Sweep([2, 4, 6])}
+            ...     "value_list", system={"optimized_years": ValueList([2, 4, 6])}
             ... )
         """
         blocks = {"system": system, "analysis": analysis, "solver": solver}
@@ -420,7 +420,7 @@ class ScenarioRegistry:
                 f"{', '.join(sorted(SET_LABELS))}."
             )
 
-        fragment = build_fragment(
+        entry = build_entry(
             param,
             default=default,
             file=file,
@@ -428,18 +428,18 @@ class ScenarioRegistry:
             file_op=file_op,
             fmt=fmt,
         )
-        if not fragment:
+        if not entry:
             raise ValueError(
                 f"The entry for '{param}' of '{set_label}' in scenario '{name}' "
                 "does not change anything."
             )
         if exclude:
-            fragment["exclude"] = list(exclude)
+            entry["exclude"] = list(exclude)
 
-        self._register(name, set_label, param, fragment)
+        self._register(name, set_label, param, entry)
 
     def _register(
-        self, name: str, element_key: str, param: str, fragment: dict
+        self, name: str, element_key: str, param: str, entry: dict
     ) -> None:
         """Store a single entry, rejecting duplicates.
 
@@ -447,7 +447,7 @@ class ScenarioRegistry:
             name: Name of the scenario.
             element_key: Key of the element, set, or setting block.
             param: Name of the parameter or setting.
-            fragment: The entry to store.
+            entry: The entry to store.
 
         Raises:
             ValueError: If the parameter is already set in this scenario.
@@ -460,7 +460,7 @@ class ScenarioRegistry:
                 f"scenario '{name}'."
             )
 
-        element_entry[param] = fragment
+        element_entry[param] = entry
 
     def _validate_system_setting(self, name: str, key: str, value: Any) -> None:
         """Check a system override against the system configuration.
@@ -471,7 +471,7 @@ class ScenarioRegistry:
         Args:
             name: Name of the scenario.
             key: Name of the setting.
-            value: The new value, or a Sweep of new values.
+            value: The new value, or a ValueList of new values.
 
         Raises:
             ValueError: If the new value has another type than the current one.
@@ -489,8 +489,8 @@ class ScenarioRegistry:
         if current is None:
             return
 
-        sweep = _as_sweep(value)
-        values = sweep.values if sweep is not None else [value]
+        value_list = _as_value_list(value)
+        values = value_list.values if value_list is not None else [value]
         for entry in values:
             if type(entry) is not type(current):
                 raise ValueError(
@@ -534,44 +534,44 @@ def _setting_entry(key: str, value: Any) -> Any:
 
     Args:
         key: Name of the setting.
-        value: The new value, a Sweep, or a dict with 'values' and 'fmt' keys.
+        value: The new value, a ValueList, or a dict with 'values' and 'fmt' keys.
 
     Returns:
-        The value itself, or the expansion entry of a sweep.
+        The value itself, or the expansion entry of a value_list.
     """
-    sweep = _as_sweep(value)
-    if sweep is None:
+    value_list = _as_value_list(value)
+    if value_list is None:
         return value
 
-    if not sweep.values:
-        raise ValueError(f"The sweep of setting '{key}' is empty.")
-    if sweep.fmt is not None and "{}" not in sweep.fmt:
+    if not value_list.values:
+        raise ValueError(f"The value_list of setting '{key}' is empty.")
+    if value_list.fmt is not None and "{}" not in value_list.fmt:
         raise ValueError(
-            f"The format '{sweep.fmt}' of setting '{key}' must contain the "
+            f"The format '{value_list.fmt}' of setting '{key}' must contain the "
             "placeholder '{}'."
         )
 
     return {
-        "value": list(sweep.values),
-        "value_fmt": sweep.fmt or f"{key}_{{}}",
+        "value": list(value_list.values),
+        "value_fmt": value_list.fmt or f"{key}_{{}}",
     }
 
 
-def _as_sweep(value: Any) -> Sweep | None:
-    """Return the sweep a value describes, if any.
+def _as_value_list(value: Any) -> ValueList | None:
+    """Return the value_list a value describes, if any.
 
     Args:
-        value: A Sweep, a dict with 'values' and optionally 'fmt', or any other
+        value: A ValueList, a dict with 'values' and optionally 'fmt', or any other
             value.
 
     Returns:
-        Sweep | None: The sweep, or None if the value is not one.
+        ValueList | None: The value_list, or None if the value is not one.
     """
-    if isinstance(value, Sweep):
+    if isinstance(value, ValueList):
         return value
     if not isinstance(value, dict):
         return None
     if "values" in value and set(value) <= {"values", "fmt"}:
-        return Sweep(values=value["values"], fmt=value.get("fmt"))
+        return ValueList(values=value["values"], fmt=value.get("fmt"))
 
     return None

@@ -32,7 +32,7 @@ from .utils.config import (
     TechnologyConfig,
     TransportTechnologyConfig,
 )
-from .utils.scenario import Scenario, Sweep
+from .utils.scenario import Scenario, ValueList
 from .utils.structure import model_structure
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())
@@ -59,7 +59,7 @@ __all__ = [
     "TechnoEconomicDataset",
     "Attribute",
     "Scenario",
-    "Sweep",
+    "ValueList",
     "SourceInformation",
     "AssumptionInformation",
     "TechnologyConfig",
