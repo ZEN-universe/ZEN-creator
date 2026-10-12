@@ -164,7 +164,7 @@ Example::
 
 1. Validates model consistency.
 2. Removes existing output directory contents (if the target exists).
-3. Writes ``system.json``.
+3. Writes ``system.yaml``.
 4. Writes the ``energy_system`` folder.
 5. Writes all carrier and technology folders.
 

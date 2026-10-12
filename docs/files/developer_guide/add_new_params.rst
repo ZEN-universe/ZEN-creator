@@ -106,7 +106,7 @@ Recommended quick check:
 1. Build/load a model.
 2. Set the new attribute on one element.
 3. Write the model.
-4. Confirm the corresponding ``attributes.json`` contains the new key/value.
+4. Confirm the corresponding ``attributes.yaml`` contains the new key/value.
 
 
 Worked Example: ``min_full_load_hours_fraction``
@@ -176,7 +176,7 @@ Class-Specific Notes
 
 - Follow the same recipe: register name, initialize ``Attribute``, add
   getter/setter.
-- Carrier attributes are written under ``set_carriers/<carrier>/attributes.json``.
+- Carrier attributes are written under ``set_carriers/<carrier>/attributes.yaml``.
 
 
 Common Pitfalls
@@ -198,4 +198,4 @@ Before opening a PR, verify:
 2. Default ``Attribute`` object is created in class initialization.
 3. Getter/setter exist and setter validates type.
 4. Any needed ``_set_<attribute>()`` logic is implemented.
-5. Model write output contains the new key in the expected ``attributes.json``.
+5. Model write output contains the new key in the expected ``attributes.yaml``.

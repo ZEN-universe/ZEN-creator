@@ -1,6 +1,7 @@
 import logging
 
 from .datasets import (
+    AssumptionInformation,
     Dataset,
     DatasetCollection,
     MetaData,
@@ -31,11 +32,14 @@ from .utils.config import (
     TechnologyConfig,
     TransportTechnologyConfig,
 )
+from .utils.scenario import Scenario, ValueList
+from .utils.structure import model_structure
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 __all__ = [
     "Model",
+    "model_structure",
     "Config",
     "compare_trees",
     "Sector",
@@ -54,7 +58,10 @@ __all__ = [
     "DatasetCollectionConfig",
     "TechnoEconomicDataset",
     "Attribute",
+    "Scenario",
+    "ValueList",
     "SourceInformation",
+    "AssumptionInformation",
     "TechnologyConfig",
     "CarrierConfig",
     "TransportTechnologyConfig",

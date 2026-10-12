@@ -12,8 +12,16 @@ from zen_creator.utils.attribute import Attribute
 
 
 class RetrofittingTechnology(ConversionTechnology, ABC):
+    """Conversion technology that retrofits an existing base technology.
+
+    Attributes:
+        base_technology_name: Name of the technology that is retrofitted. It is
+            the base technology of the retrofit flow coupling factor.
+    """
+
     subpath = "set_retrofitting_technologies"
     name = "retrofitting_technology"
+    base_technology_name: str | None = None
 
     def __init__(self, model: Model, power_unit: str = "MW"):
         super().__init__(model, power_unit=power_unit)
@@ -35,7 +43,10 @@ class RetrofittingTechnology(ConversionTechnology, ABC):
     def set_default_values_retrofitting_technology(self):
         """Initialize internal attributes to default values."""
         self._retrofit_flow_coupling_factor = Attribute(
-            name="retrofit_flow_coupling_factor", default_value=1.0, element=self
+            name="retrofit_flow_coupling_factor",
+            default_value=1.0,
+            base_technology=self.base_technology_name,
+            element=self,
         )
         self._retrofit_reference_carrier = Attribute(
             name="retrofit_reference_carrier", default_value=[], element=self

@@ -7,7 +7,6 @@ source tracking with built-in validation for data types and formats.
 
 from __future__ import annotations
 
-import json
 import logging
 import os
 import re
@@ -17,7 +16,12 @@ from typing import TYPE_CHECKING, Any, Union
 import numpy as np
 import pandas as pd
 
-from zen_creator.datasets.datasets.metadata import SourceInformation
+from zen_creator.datasets.datasets.metadata import (
+    AssumptionInformation,
+    SourceInformation,
+)
+from zen_creator.utils.file_io import find_data_file, read_data_file
+from zen_creator.utils.scenario import Scenario
 
 if TYPE_CHECKING:
     from zen_creator.elements.element import Element
@@ -27,6 +31,7 @@ logger = logging.getLogger(__name__)
 # Type aliases for better readability
 DataFrame = Union[pd.DataFrame, pd.Series]
 DefaultValue = Union[float, list, None]
+SourceLike = Union[SourceInformation, AssumptionInformation]
 
 # Constants for validation
 _ATTRIBUTES_SUPPORTING_LISTS = {
@@ -38,6 +43,24 @@ _ATTRIBUTES_SUPPORTING_LISTS = {
 }
 
 _ATTRIBUTES_SUPPORTING_BASE_TECHNOLOGY = {"retrofit_flow_coupling_factor"}
+
+_ATTRIBUTES_REQUIRING_INT = {
+    "lifetime",
+    "construction_time",
+}
+
+_ATTRIBUTES_REQUIRING_UNIT_ONE = {
+    "lifetime",
+    "construction_time",
+    "min_load",
+    "max_load",
+    "max_diffusion_rate",
+}
+# Attributes whose df must be a Series named after the attribute (or a DataFrame
+# with a column named after it). Unlike most attributes, whose df columns may be
+# a subset of nodes, edges, or time steps, these are always long-format capacity
+# series, so the name can be checked.
+_ATTRIBUTES_REQUIRING_NAMED_DF = {"capacity_existing", "capacity_existing_energy"}
 
 _ALLOWED_DF_INDEX_NAMES = {
     "time",
@@ -59,12 +82,31 @@ _ALLOWED_YEARLY_VARIATIONS_INDEX_NAMES = {
     "technology",
 }
 
+_INT_INDEX_NAMES = {"year", "year_construction", "time"}
+
 _UNIT_REPLACEMENTS = {
     "GW*h": "GWh",
     "MW*h": "MWh",
     "kW*h": "kWh",
     "/h*h": "",
 }
+
+# Fields that carry an attribute's actual computed value. Reading one of
+# these (e.g. `element.lifetime.default_value`) is what triggers auto-build
+# of an unbuilt attribute, see Attribute.__getattribute__. Fetching the
+# Attribute object itself (`element.lifetime`) or calling a method on it
+# (`.set_data(...)`) does not, since neither consumes the value.
+_DATA_FIELDS = frozenset(
+    {
+        "default_value",
+        "unit",
+        "base_technology",
+        "df",
+        "year_specific_dfs",
+        "yearly_variations_df",
+        "sources",
+    }
+)
 
 
 class Attribute:
@@ -88,7 +130,7 @@ class Attribute:
         df: DataFrame | None = None,
         year_specific_dfs: dict[int, DataFrame] | None = None,
         yearly_variations_df: DataFrame | None = None,
-        sources: list[SourceInformation] | None = None,
+        sources: list[SourceLike] | None = None,
     ):
         """Initialize an Attribute.
 
@@ -111,7 +153,8 @@ class Attribute:
         self._df: DataFrame | None = None
         self._yearly_variations_df: DataFrame | None = None
         self._year_specific_dfs: dict[int, DataFrame] = {}
-        self._sources: list[SourceInformation] = []
+        self._sources: list[SourceLike] = []
+        self.scenarios: dict[str, Scenario] = {}
 
         # Use setters to ensure validation is applied during initialization
         self.base_technology = base_technology
@@ -122,6 +165,51 @@ class Attribute:
         self.yearly_variations_df = yearly_variations_df
         self.sources = sources or []
         self.base_technology = base_technology
+
+    def __getattribute__(self, name: str):
+        """Return the requested field, auto-building an unbuilt attribute first.
+
+        Only fields in ``_DATA_FIELDS`` (the actual data - default_value, df,
+        etc.) trigger anything; fetching the Attribute object itself or
+        calling a method on it never does, since neither of those consumes a value.
+
+        For a data field belonging to an unbuilt attribute with a
+        ``_set_<name>`` setter, that setter is run now (via
+        ``Element._build_attribute``).
+
+        Because a setter may replace rather than mutate the Attribute object
+        (``setattr(element, name, new_attribute)``), ``self`` can end up
+        stale - e.g. a reference captured before the (re)build. So the field
+        is always read off whatever is currently registered on the element,
+        redirecting there if it differs from ``self``.
+        """
+        if name in _DATA_FIELDS:
+            element = object.__getattribute__(self, "element")
+            attr_name = object.__getattribute__(self, "name")
+            stack = element.model._build_stack
+            is_self_reference = bool(stack) and stack[-1] == (element, attr_name)
+
+            if (
+                not is_self_reference
+                and attr_name not in element._built_attribute_names
+            ):
+                if getattr(type(element), f"_set_{attr_name}", None) is not None:
+                    # the stack is empty when the field is read outside a build
+                    trigger = (
+                        f" (triggered by '{stack[-1][0].name}._set_{stack[-1][1]}')"
+                        if stack
+                        else ""
+                    )
+                    logger.info(
+                        f"Auto-building '{attr_name}' of '{element.name}'{trigger}"
+                    )
+                    element._build_attribute(attr_name)
+
+            current = getattr(element, attr_name)
+            if current is not self:
+                return object.__getattribute__(current, name)
+
+        return object.__getattribute__(self, name)
 
     # ---------- Properties ----------
 
@@ -140,8 +228,37 @@ class Attribute:
         Raises:
             ValueError: If the value type is not valid for this attribute.
         """
+        self._validate_default_value(value)
+        self._default_value = value
+
+    def _validate_default_value(self, value: DefaultValue) -> None:
+        """Validate a default value for this attribute.
+
+        Used both for the attribute's own default value and for the default
+        values of its scenario variations, so the two follow the same rules.
+
+        Args:
+            value: The default value to validate.
+
+        Raises:
+            ValueError: If the value type is not valid for this attribute.
+        """
         if isinstance(value, list):
             self._validate_list_default_value(value)
+        elif self.name in _ATTRIBUTES_REQUIRING_INT:
+            is_whole_number = isinstance(value, (int, np.integer)) or (
+                isinstance(value, (float, np.floating)) and float(value).is_integer()
+            )
+            if not is_whole_number and value is not np.nan:
+                raise ValueError(
+                    f"Attribute '{self.name}' of {self.element.name} default value "
+                    f"must be a whole number. Got {type(value).__name__} ({value})."
+                )
+        elif self.name in _ATTRIBUTES_SUPPORTING_LISTS:
+            raise ValueError(
+                f"Attribute '{self.name}' default value must be a list. "
+                f"Got {type(value).__name__}."
+            )
         elif value is not None and not isinstance(
             value, (float, int, np.integer, np.floating)
         ):
@@ -150,8 +267,6 @@ class Attribute:
                 f"Got {type(value).__name__}."
             )
 
-        self._default_value = value
-
     @property
     def base_technology(self) -> str | None:
         """Set the base technology for retrofit_flow_coupling_factor."""
@@ -159,10 +274,10 @@ class Attribute:
 
     @base_technology.setter
     def base_technology(self, value: str | None) -> None:
-        """Set the unit of measurement.
+        """Set the base technology for retrofit_flow_coupling_factor with validation.
 
         Args:
-            value: The unit string (e.g., 'MW', 'EUR/MW').
+            value: The base technology name as a string.
         """
         if value is None:
             self._base_technology = value
@@ -189,8 +304,33 @@ class Attribute:
         """Set the unit of measurement.
 
         Args:
-            value: The unit string (e.g., 'MW', 'EUR/MW').
+            value: The unit string (e.g., 'MW', 'Euro/MW').
+
+        Raises:
+            ValueError: If the unit does not match what this attribute requires.
         """
+        if value is not None and "year" in value:
+            raise ValueError(
+                f"Attribute '{self.name}' unit should not contain 'year'. "
+                f"Got '{value}'."
+            )
+        if (
+            value is not None
+            and self.name in _ATTRIBUTES_REQUIRING_UNIT_ONE
+            and value != "1"
+        ):
+            raise ValueError(
+                f"Attribute '{self.name}' unit must be '1'. Got '{value}'."
+            )
+
+        # if self.name == "opex_specific_fixed" and value is not None:
+        #     power_unit = self.element.power_unit
+        #     allowed_units = {f"Euro/{power_unit}", f"Euro/({power_unit})"}
+        #     if value not in allowed_units:
+        #         raise ValueError(
+        #             f"Attribute '{self.name}' unit must be 'Euro/{power_unit}'. "
+        #             f"Got '{value}'."
+        #         )
         self._unit = value
 
     @property
@@ -211,9 +351,12 @@ class Attribute:
         if value is not None:
             if self._df is not None:
                 logger.warning(
-                    f"Overwriting existing data for attribute '{self.name}'."
+                    f"Overwriting existing data for attribute '{self.name}' "
+                    f"of element '{self.element.name}'."
                 )
             self._validate_dataframe_indices(value, _ALLOWED_DF_INDEX_NAMES)
+            value = self._validate_integer_indices(value)
+            self._validate_dataframe_name(value)
 
         self._df = value
 
@@ -233,19 +376,21 @@ class Attribute:
             ValueError: If any index name is not allowed.
         """
         if value is not None:
-            if self.year_specific_dfs:
+            if self._year_specific_dfs:
                 raise ValueError(
                     f"Cannot set yearly variations data for attribute '{self.name}' "
+                    f"of element '{self.element.name}' "
                     f"when year-specific time series data is present."
                 )
             if self._yearly_variations_df is not None:
                 logger.warning(
                     f"Overwriting existing yearly variations data for "
-                    f"attribute '{self.name}'."
+                    f"attribute '{self.name}' of element '{self.element.name}'."
                 )
             self._validate_dataframe_indices(
                 value, _ALLOWED_YEARLY_VARIATIONS_INDEX_NAMES
             )
+            value = self._validate_integer_indices(value)
 
         self._yearly_variations_df = value
 
@@ -267,7 +412,7 @@ class Attribute:
         Raises:
             ValueError: If any index name is not allowed.
         """
-        if (self.yearly_variations_df is not None) and value:
+        if (self._yearly_variations_df is not None) and value:
             raise ValueError(
                 f"Cannot set year-specific data for attribute"
                 f"'{self.name}' when yearly variations data is present."
@@ -284,19 +429,21 @@ class Attribute:
                 )
             self._validate_dataframe_indices(df, _ALLOWED_YEARLY_VARIATIONS_INDEX_NAMES)
 
+            value[year] = self._validate_integer_indices(df)
+
         self._year_specific_dfs = value
 
     @property
-    def sources(self) -> list[SourceInformation]:
+    def sources(self) -> list[SourceLike]:
         """Get the ordered source information entries."""
         return self._sources
 
     @sources.setter
-    def sources(self, value: list[SourceInformation]) -> None:
+    def sources(self, value: list[SourceLike]) -> None:
         """Set ordered source information entries.
 
         Args:
-            value: Ordered list of SourceInformation objects.
+            value: Ordered list of SourceInformation/AssumptionInformation objects.
         """
         if not isinstance(value, list):
             raise ValueError(
@@ -305,24 +452,25 @@ class Attribute:
             )
 
         for i, source_info in enumerate(value):
-            if not isinstance(source_info, SourceInformation):
+            if not isinstance(source_info, (SourceInformation, AssumptionInformation)):
                 raise ValueError(
                     f"Entry {i} in sources for attribute '{self.name}' must be a "
-                    f"SourceInformation object. Got {type(source_info).__name__}."
+                    f"SourceInformation or AssumptionInformation object. "
+                    f"Got {type(source_info).__name__}."
                 )
 
         self._sources = list(value)
 
-    def add_source(self, source: SourceInformation) -> None:
+    def add_source(self, source: SourceLike) -> None:
         """Append a source entry while preserving insertion order.
 
         Args:
-            source: Source information to append.
+            source: Source or assumption information to append.
         """
-        if not isinstance(source, SourceInformation):
+        if not isinstance(source, (SourceInformation, AssumptionInformation)):
             raise ValueError(
                 f"Source for attribute '{self.name}' must be a SourceInformation "
-                f"object. Got {type(source).__name__}."
+                f"or AssumptionInformation object. Got {type(source).__name__}."
             )
         self._sources.append(source)
 
@@ -330,28 +478,45 @@ class Attribute:
 
     def set_data(
         self,
-        source: SourceInformation,
+        source: SourceLike,
         default_value: DefaultValue = None,
         unit: str | None = None,
         df: DataFrame | None = None,
         yearly_variations_df: DataFrame | None = None,
+        base_technology: str | None = None,
+        scenarios: Scenario | list[Scenario] | None = None,
     ) -> Attribute:
         """Set multiple attribute properties at once.
 
         This is a convenience method for setting multiple properties in a chain.
         The source parameter is mandatory. It should contain a SourceInformation
         object that includes a description of changes and the corresponding
-        Dataset/DatasetCollection MetaData to ensure proper source tracking.
+        Dataset/DatasetCollection MetaData to ensure proper source tracking, or an
+        AssumptionInformation object when the value stems from a modeling choice
+        rather than an external data source.
 
         Args:
             default_value: Default value for the attribute.
             unit: Unit of measurement.
             df: Time-series data.
             yearly_variations_df: Yearly variation factors.
+            base_technology: Name of the base technology.
             source: Source information to append to the ordered source list.
+            scenarios: Variations of this attribute in a scenario analysis.
 
         Returns:
             Self for method chaining.
+
+        Examples:
+            >>> attribute.set_data(
+            ...     source=source,
+            ...     default_value=3.0,
+            ...     unit="Euro/MWh",
+            ...     scenarios=[
+            ...         Scenario("cheap", default_value=1.5),
+            ...         Scenario("value_list", default_op=[0.5, 1.5]),
+            ...     ],
+            ... )
         """
         if default_value is not None:
             self.default_value = default_value
@@ -361,37 +526,102 @@ class Attribute:
             self.df = df
         if yearly_variations_df is not None:
             self.yearly_variations_df = yearly_variations_df
+        if base_technology is not None:
+            self.base_technology = base_technology
+        if scenarios is not None:
+            self.add_scenarios(scenarios)
         self.add_source(source)
         return self
+
+    def add_scenarios(self, scenarios: Scenario | list[Scenario]) -> None:
+        """Attach scenario variations to this attribute.
+
+        The variations are registered with the model right away, so that the
+        scenario file is complete before the model is written.
+
+        Args:
+            scenarios: A single variation or a list of variations.
+
+        Raises:
+            ValueError: If a scenario is already attached to this attribute, or
+                if a variation's data does not follow the same rules as the
+                attribute's own data.
+        """
+        if isinstance(scenarios, Scenario):
+            scenarios = [scenarios]
+
+        for scenario in scenarios:
+            if not isinstance(scenario, Scenario):
+                raise ValueError(
+                    f"Scenario of attribute '{self.name}' must be a Scenario "
+                    f"object. Got {type(scenario).__name__}."
+                )
+            self._validate_scenario(scenario)
+            if scenario.name in self.scenarios:
+                raise ValueError(
+                    f"Scenario '{scenario.name}' is already defined for attribute "
+                    f"'{self.name}' of element '{self.element.name}'."
+                )
+
+            self.scenarios[scenario.name] = scenario
+            self.element.model.scenarios.register_scenario(
+                self.element.scenario_key, self.name, scenario
+            )
+
+    def _validate_scenario(self, scenario: Scenario) -> None:
+        """Validate a scenario variation against the rules of this attribute.
+
+        Reuses the same validation as the attribute's own default value and
+        data, so a variation cannot hold data the attribute would otherwise
+        reject.
+
+        Args:
+            scenario: The scenario variation to validate.
+
+        Raises:
+            ValueError: If the variation's default value or data is invalid
+                for this attribute.
+        """
+        if scenario.default_value is not None:
+            self._validate_default_value(scenario.default_value)
+        if scenario.df is not None:
+            self._validate_dataframe_indices(scenario.df, _ALLOWED_DF_INDEX_NAMES)
+            scenario.df = self._validate_integer_indices(scenario.df)
+        if scenario.yearly_variations_df is not None:
+            self._validate_dataframe_indices(
+                scenario.yearly_variations_df, _ALLOWED_YEARLY_VARIATIONS_INDEX_NAMES
+            )
+            scenario.yearly_variations_df = self._validate_integer_indices(
+                scenario.yearly_variations_df
+            )
 
     # ---------- Model Data Methods ----------
 
     def overwrite_from_existing_model(self, existing_element_path: Path) -> None:
         """Load attribute values from an existing model directory.
 
-        This method loads default values from attributes.json and time-series data
-        from CSV files in the existing model directory.
+        This method loads default values from the attributes file and
+        time-series data from CSV files in the existing model directory.
 
         Args:
             existing_element_path: Path to the existing element directory.
         """
-        attributes_file = existing_element_path / "attributes.json"
-        self._load_attributes_from_json(attributes_file)
+        self._load_attributes_from_file(existing_element_path)
         self._load_time_series_data(existing_element_path)
         self._load_yearly_variations_data(existing_element_path)
         self._load_year_specific_time_series_data(existing_element_path)
 
-    def _load_attributes_from_json(self, file_path: Path) -> None:
-        """Load attribute defaults from a JSON file.
+    def _load_attributes_from_file(self, element_path: Path) -> None:
+        """Load attribute defaults from the attributes file.
 
         Args:
-            file_path: Path to the attributes.json file.
+            element_path: Path to the existing element directory.
         """
-        if not file_path.exists():
+        file_path = find_data_file(element_path, "attributes")
+        if file_path is None:
             return
 
-        with open(file_path, "r") as f:
-            attributes_data = json.load(f)
+        attributes_data = read_data_file(file_path)
 
         if self.name not in attributes_data:
             return
@@ -455,7 +685,37 @@ class Attribute:
         Raises:
             ValueError: If the default value type is not serializable.
         """
-        default_value = self._convert_default_value_to_serializable()
+        return self._default_to_dict(self.default_value, self.unit)
+
+    def scenario_default_to_dict(self, scenario: Scenario) -> dict | list[dict]:
+        """Convert the default value of a scenario variation.
+
+        Args:
+            scenario: The variation whose default value is serialized.
+
+        Returns:
+            Dictionary with 'default_value' and 'unit' keys.
+        """
+        unit = scenario.unit if scenario.unit is not None else self.unit
+
+        return self._default_to_dict(scenario.default_value, unit)
+
+    def _default_to_dict(
+        self, default_value: DefaultValue, unit: str | None
+    ) -> dict | list[dict]:
+        """Convert a default value and unit to a dictionary representation.
+
+        Args:
+            default_value: The default value to serialize.
+            unit: The unit of the default value.
+
+        Returns:
+            Dictionary with 'default_value' and 'unit' keys.
+
+        Raises:
+            ValueError: If the default value type is not serializable.
+        """
+        default_value = self._convert_default_value_to_serializable(default_value)
 
         if isinstance(default_value, dict) or (
             isinstance(default_value, list) and self.name == "conversion_factor"
@@ -465,7 +725,7 @@ class Attribute:
         # serialize to dictionary
         default_dict = {
             "default_value": default_value,
-            "unit": self._format_unit(),
+            "unit": self._format_unit(unit),
         }
 
         # add base_technology if necessary
@@ -504,8 +764,22 @@ class Attribute:
             file_path = os.path.join(folder_path, f"{self.name}_{year}.csv")
             df.to_csv(file_path)
 
-    def _convert_default_value_to_serializable(self) -> Any:
+        for scenario in self.scenarios.values():
+            for file_name, df in scenario.data_files(self.name).items():
+                logger.info(
+                    f"Saving data of scenario '{scenario.name}' for attribute "
+                    f"'{self.name}' of element '{element_name}' ..."
+                )
+                file_path = os.path.join(folder_path, f"{file_name}.csv")
+                df.to_csv(file_path)
+
+    def _convert_default_value_to_serializable(
+        self, default_value: DefaultValue
+    ) -> Any:
         """Convert default value to a serializable format.
+
+        Args:
+            default_value: The default value to convert.
 
         Returns:
             The default value in a format suitable for JSON serialization.
@@ -513,22 +787,25 @@ class Attribute:
         Raises:
             ValueError: If the default value has an unsupported type.
         """
-        if self.default_value == np.inf:
+        if default_value == np.inf:
             return "inf"
         elif isinstance(
-            self.default_value, (int, float, np.integer, np.floating)
-        ) and not isinstance(self.default_value, bool):
-            return float(self.default_value)
-        elif isinstance(self.default_value, list):
-            return self._handle_list_default_value()
+            default_value, (int, float, np.integer, np.floating)
+        ) and not isinstance(default_value, bool):
+            return float(default_value)
+        elif isinstance(default_value, list):
+            return self._handle_list_default_value(default_value)
         else:
             raise ValueError(
                 f"Attribute '{self.name}' has unsupported default value type: "
-                f"{type(self.default_value).__name__}."
+                f"{type(default_value).__name__}."
             )
 
-    def _handle_list_default_value(self) -> Any:
+    def _handle_list_default_value(self, default_value: list) -> Any:
         """Handle serialization of list-type default values.
+
+        Args:
+            default_value: The list default value to serialize.
 
         Returns:
             Serialized form of the list default value.
@@ -537,9 +814,15 @@ class Attribute:
             ValueError: If the list default value is not supported.
         """
         if self.name == "conversion_factor":
-            return self.default_value
+            return [
+                {
+                    carrier: {**factor, "default_value": float(factor["default_value"])}
+                    for carrier, factor in entry.items()
+                }
+                for entry in default_value
+            ]
         elif self.name in _ATTRIBUTES_SUPPORTING_LISTS:
-            return {"default_value": self.default_value}
+            return {"default_value": default_value}
         else:
             raise ValueError(
                 f"Attribute '{self.name}' has a list as default value, which is not "
@@ -547,16 +830,18 @@ class Attribute:
                 "output_carrier, and retrofit_reference_carrier support list values."
             )
 
-    def _format_unit(self) -> str:
+    def _format_unit(self, unit: str | None) -> str:
         """Format the unit string by applying standard replacements.
+
+        Args:
+            unit: The unit string to format.
 
         Returns:
             Formatted unit string.
         """
-        if self.unit is None:
+        if unit is None:
             return ""
 
-        unit = self.unit
         for old, new in _UNIT_REPLACEMENTS.items():
             unit = unit.replace(old, new)
 
@@ -565,7 +850,7 @@ class Attribute:
 
     @staticmethod
     def _remove_safe_parentheses(unit):
-        """
+        r"""
         Remove parentheses around substrings that don't contain '(', ')', '*' or '/'.
 
         Pattern explanation:
@@ -634,6 +919,48 @@ class Attribute:
                             f"Entry {name} in conversion_factor list must contain "
                             "'default_value' and 'unit' keys."
                         )
+                    if not isinstance(factor["default_value"], (int, float)):
+                        raise ValueError(
+                            f"Entry {name} in conversion_factor list must have a "
+                            "'default_value' of type int or float, got "
+                            f"{type(factor['default_value']).__name__}."
+                        )
+                    if not isinstance(factor["unit"], str):
+                        raise ValueError(
+                            f"Entry {name} in conversion_factor list must have a "
+                            "'unit' of type str, got "
+                            f"{type(factor['unit']).__name__}."
+                        )
+
+    def _validate_dataframe_name(self, value: DataFrame) -> None:
+        """Validate that a capacity_existing(_energy) df is labeled with its name.
+
+        Args:
+            value: The DataFrame or Series to validate.
+
+        Raises:
+            ValueError: If a Series isn't named after the attribute, or a
+                DataFrame has no column named after the attribute.
+        """
+        # TODO implement for all attributes, not just capacity_existing(_energy)
+        # figure out how to handle the case where a DataFrame has multiple columns,
+        # which are a subset of the nodes/edges/time steps.
+        # In that case, we can't check the name.
+        if self.name not in _ATTRIBUTES_REQUIRING_NAMED_DF:
+            return
+
+        if isinstance(value, pd.Series):
+            if value.name != self.name:
+                raise ValueError(
+                    f"df for attribute '{self.name}' of element '{self.element.name}' "
+                    f"must be a Series named '{self.name}'. Got '{value.name}'."
+                )
+        elif self.name not in value.columns:
+            raise ValueError(
+                f"df for attribute '{self.name}' of element '{self.element.name}' "
+                f"must have a column named '{self.name}'. Got columns "
+                f"{list(value.columns)}."
+            )
 
     def _validate_dataframe_indices(self, df: DataFrame, allowed_names: set) -> None:
         """Validate DataFrame index names against allowed values.
@@ -651,3 +978,54 @@ class Attribute:
                 f"Invalid index names {invalid_indices} in attribute '{self.name}'. "
                 f"Allowed names are: {', '.join(sorted(allowed_names))}."
             )
+
+    def _validate_integer_indices(self, df: DataFrame) -> DataFrame:
+        """Validate that integer indices are of integer type or can be converted.
+
+        Args:
+            df: The DataFrame to validate.
+
+        Raises:
+            ValueError: If any integer index is not of integer type or cannot be
+                converted.
+
+        Returns:
+            df: The validated or converted DataFrame.
+        """
+        int_indices = [
+            name
+            for name in df.index.names
+            if isinstance(name, str) and name in _INT_INDEX_NAMES
+        ]
+        for name in int_indices:
+            level_values = df.index.get_level_values(name)
+            if pd.api.types.is_integer_dtype(level_values):
+                continue
+            _is_numeric = pd.api.types.is_numeric_dtype(level_values)
+            try:
+                parsed = level_values.astype(int)
+            except (ValueError, TypeError):
+                parsed = None
+            if parsed is None or (_is_numeric and not parsed.equals(level_values)):
+                raise ValueError(
+                    f"Index '{name}' in attribute '{self.name}' of "
+                    f"element '{self.element.name}' must be of integer "
+                    f"type. Got {level_values.dtype} and cannot be converted to "
+                    "integer."
+                )
+            logger.warning(
+                f"Index '{name}' in attribute '{self.name}' of "
+                f"element '{self.element.name}' is of type "
+                f"{level_values.dtype} instead of integer, but parses cleanly as "
+                "integer.\n"
+                "Convert the index to integer type to avoid this warning."
+            )
+            if isinstance(df.index, pd.MultiIndex):
+                level_pos = df.index.names.index(name)
+                df.index = df.index.set_levels(
+                    df.index.levels[level_pos].astype(int).tolist(), level=name
+                )
+            else:
+                df.index = df.index.astype(int)
+
+        return df

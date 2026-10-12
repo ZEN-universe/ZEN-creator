@@ -68,31 +68,31 @@ class StorageTechnology(Technology, ABC):
         self._capex_specific_storage_energy = Attribute(
             "capex_specific_storage_energy",
             default_value=0.0,
-            unit=f"Euro/({self.power_unit}*h)",
+            unit=f"Euro/({self.energy_unit})",
             element=self,
         )
         self._capacity_addition_min_energy = Attribute(
             "capacity_addition_min_energy",
             default_value=0.0,
-            unit=f"{self.power_unit}*h",
+            unit=self.energy_unit,
             element=self,
         )
         self._capacity_addition_max_energy = Attribute(
             "capacity_addition_max_energy",
             default_value=np.inf,
-            unit=f"{self.power_unit}*h",
+            unit=self.energy_unit,
             element=self,
         )
         self._capacity_existing_energy = Attribute(
             "capacity_existing_energy",
             default_value=0.0,
-            unit=f"{self.power_unit}*h",
+            unit=self.energy_unit,
             element=self,
         )
         self._capacity_limit_energy = Attribute(
             "capacity_limit_energy",
             default_value=np.inf,
-            unit=f"{self.power_unit}*h",
+            unit=self.energy_unit,
             element=self,
         )
 
@@ -112,13 +112,13 @@ class StorageTechnology(Technology, ABC):
         self._capacity_investment_existing_energy = Attribute(
             "capacity_investment_existing_energy",
             default_value=0.0,
-            unit=f"{self.power_unit}*h",
+            unit=self.energy_unit,
             element=self,
         )
         self._opex_specific_fixed_energy = Attribute(
             "opex_specific_fixed_energy",
             default_value=0.0,
-            unit=f"Euro/({self.power_unit}*h)",
+            unit=f"Euro/({self.energy_unit})",
             element=self,
         )
         self._energy_to_power_ratio_min = Attribute(
@@ -130,7 +130,7 @@ class StorageTechnology(Technology, ABC):
         self._flow_storage_inflow = Attribute(
             "flow_storage_inflow",
             default_value=0.0,
-            unit=f"{self.power_unit}",
+            unit=self.power_unit,
             element=self,
         )
 

@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-import json
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 import numpy as np
+import yaml
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 from zen_creator.datasets.datasets.metadata import MetaData, SourceInformation
 from zen_creator.elements.element import Element
 from zen_creator.utils.attribute import Attribute
+from zen_creator.utils.scenario import ENERGY_SYSTEM_KEY
 
 
 class EnergySystem(Element, ABC):
@@ -155,12 +156,12 @@ class EnergySystem(Element, ABC):
             ],
             element=self,
         )
-        self.set_nodes = Attribute(
+        self._set_nodes = Attribute(
             "set_nodes",
             default_value=None,
             element=self,
         )
-        self.set_edges = Attribute(
+        self._set_edges = Attribute(
             "set_edges",
             default_value=None,
             element=self,
@@ -289,6 +290,15 @@ class EnergySystem(Element, ABC):
 
     # ---------- Property Overloads --------
     @property
+    def scenario_key(self) -> str:
+        """Get the key of the energy system in scenarios.yaml.
+
+        Returns:
+            str: The name under which scenarios address the energy system.
+        """
+        return ENERGY_SYSTEM_KEY
+
+    @property
     def relative_output_path(self) -> Path:
         """Get the relative output path for the energy system.
 
@@ -319,18 +329,18 @@ class EnergySystem(Element, ABC):
     def _write_units(self):
         """Write the unit definitions to the mode file for the model.
 
-        This method generates the 'base_units.json' and 'unit_definitions.txt'
+        This method generates the 'base_units.yaml' and 'unit_definitions.txt'
         files required in the model.
         """
-        # Data structure to write to JSON
+        # Data structure to write to YAML
         units_config = self.model.config.energy_system.units
 
-        # Writing to a 'base_units.json' file
-        base_unit_path = self.output_path / "base_units.json"
-        with open(base_unit_path, "w") as json_file:
-            json.dump(units_config.get_base_units(), json_file, indent=4)
+        # Writing to a 'base_units.yaml' file
+        base_unit_path = self.output_path / "base_units.yaml"
+        with open(base_unit_path, "w") as yaml_file:
+            yaml.safe_dump(units_config.get_base_units(), yaml_file, sort_keys=False)
 
-        # Writing to a 'base_units.json' file
+        # Writing to a 'unit_definitions.txt' file
         base_unit_path = self.output_path / "unit_definitions.txt"
         with open(base_unit_path, "w", encoding="utf-8") as file:
             file.write(units_config.get_unit_definitions())
@@ -338,19 +348,21 @@ class EnergySystem(Element, ABC):
     def _write_parameters_interpolation_off(self):
         """Write the parameters_interpolation_off if it exists.
 
-        This method generates the 'parameters_interpolation_off.json'
+        This method generates the 'parameters_interpolation_off.yaml'
         file in the 'energy_system' folder.
         """
-        # Data structure to write to JSON
+        # Data structure to write to YAML
         param_interp_config = (
             self.model.config.energy_system.parameters_interpolation_off
         )
 
-        # Writing to a 'parameters_interpolation_off.json' file if config not empty
+        # Writing to a 'parameters_interpolation_off.yaml' file if config not empty
         if param_interp_config.parameter_name:
-            file_path_interp = self.output_path / "parameters_interpolation_off.json"
-            with open(file_path_interp, "w") as json_file:
-                json.dump(param_interp_config.model_dump(), json_file, indent=4)
+            file_path_interp = self.output_path / "parameters_interpolation_off.yaml"
+            with open(file_path_interp, "w") as yaml_file:
+                yaml.safe_dump(
+                    param_interp_config.model_dump(), yaml_file, sort_keys=False
+                )
 
     # ---------- Mandatory attributes to be filled for each energy system --------
 

@@ -52,6 +52,17 @@ m.build()
 ```
 
 
+### Settings, variants and scenarios
+
+- Projects define typed settings as `SettingsCategory` subclasses, set in the
+  `settings:` block of the configuration file and available as
+  `model.settings.<category>.<field>`.
+- A models file declares named variants of a dataset as sparse patches of the
+  settings, read with `ModelSet`.
+- Scenarios for ZEN-garden's scenario analysis are attached to attributes via
+  `Attribute.set_data(scenarios=...)` or added with `model.scenarios.add()` and
+  `model.scenarios.add_set()`, and written to `scenarios.yaml`.
+
 ### Useful properties
 
 - `model.carriers`, `model.technologies`: dictionaries of elements

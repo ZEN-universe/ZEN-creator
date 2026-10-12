@@ -66,6 +66,7 @@ class TemplateDataset(Dataset[pd.DataFrame]):
             publication="Journal of Reliability and Risk Engineering",
             publication_year=2026,
             url="https://example.com/dataset.csv",
+            note="You can add any additional notes about the dataset here.",
         )
 
     def _set_path(self) -> Path | None:
@@ -87,14 +88,14 @@ class TemplateDataset(Dataset[pd.DataFrame]):
         Load the dataset from self.path.
 
         This should be implemented to load the dataset from self.path and return
-        it as a pandas DataFrame or a dictonary of pandas DataFrames. The exact
-        implementation will depend on the format of the dataset (e.g., CSV, Excel,
-        etc.) and the structure of the data. Any preprocessing steps (e.g.,
-        handling missing values, renaming columns, etc.) should also be
+        it as the type the class is parameterized with (here a pandas DataFrame).
+        The exact implementation will depend on the format of the dataset (e.g.,
+        CSV, Excel, etc.) and the structure of the data. Any preprocessing steps
+        (e.g., handling missing values, renaming columns, etc.) should also be
         included in this method.
 
         The method is used to set the self.data property when the dataset is
-        constructed. It therefore cannot take any inpyut arguments, but can
+        constructed. It therefore cannot take any input arguments, but can
         access self.path and any other properties of the dataset.
 
         'TODO': This method must be implemented.
@@ -102,7 +103,10 @@ class TemplateDataset(Dataset[pd.DataFrame]):
         # can access self.path to load the dataset,
         # but here we will just return a dummy dataset for demonstration purposes
         data = pd.DataFrame(
-            {"max_load": [100, 150, 200, 250], "availability_import": [1, 2, 3, 4]},
+            {
+                "max_load": [0.9, 0.85, 0.8, 0.75],
+                "availability_import": [1, 2, 3, 4],
+            },
             index=[
                 "template_conversion_technology",
                 "template_storage_technology",
@@ -153,7 +157,9 @@ class TemplateDataset(Dataset[pd.DataFrame]):
         """
         Helper function for creating the 'max_load' attribute.
 
+        max_load is a fraction of the installed capacity, so it is dimensionless.
+
         All helper functions should begin with an underscore to clearly mark them as
         internal.
         """
-        return "MW"
+        return "1"

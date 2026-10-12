@@ -76,7 +76,18 @@ The code is organized into clear layers, each with a specific job:
   class can be inherited and extended by projects to allow additional
   dataset or element options to be included. The ``Config`` class can be
   used in the ``Model.from_config()`` constructor to allow users to
-  create a model without writing any code directly. 
+  create a model without writing any code directly.
+- :ref:`api.settings` holds the project-defined, type-checked settings
+  of a model. Projects define ``SettingsCategory`` subclasses (for example
+  ``time`` or ``region``), which elements and datasets read during the
+  build. A category can control values of the ``Config``, so that each value
+  has a single place where it is set. ``ModelSet`` reads a models file that
+  declares variants of a dataset as patches of the settings (see
+  :ref:`settings_and_models.settings_and_models`).
+- :ref:`api.scenario` classes describe the scenario analysis of
+  ZEN-garden. A ``Scenario`` varies one attribute and is attached where the
+  attribute is set. The ``ScenarioRegistry`` of the model collects all
+  entries and writes ``scenarios.yaml`` (see :ref:`scenarios.scenarios`).
 
 .. mermaid::
    :zoom:
@@ -84,6 +95,10 @@ The code is organized into clear layers, each with a specific job:
    classDiagram
        class Model
        class Config
+       class Settings
+       class SettingsCategory
+       class ScenarioRegistry
+       class Scenario
        class Sector
        class Element
        class EnergySystem
@@ -92,11 +107,17 @@ The code is organized into clear layers, each with a specific job:
        class DatasetCollection
 
        Model --> Config
+       Model --> Settings
+       Model --> ScenarioRegistry
        Model --> Element
        Model --> EnergySystem
+       Settings o-- SettingsCategory
+       SettingsCategory ..> Config : controls
        EnergySystem --|> Element
        Sector o-- Element
        Element --> Attribute
+       Attribute --> Scenario
+       ScenarioRegistry o-- Scenario
        DatasetCollection o-- Dataset
        Dataset ..> Attribute
 
@@ -155,3 +176,118 @@ subclasses can stay focused on model behavior.
        <<abstract>> DatasetCollection
 
        DatasetCollection o-- Dataset
+       DatasetCollection o-- DatasetCollection
+
+A ``DatasetCollection`` may contain other collections. Its metadata is then a
+nested dictionary of the metadata of all datasets it contains.
+
+Datasets and dataset collections are singletons: the first call constructs and
+loads them, every later call with the same class returns the same object. A
+dataset used by many elements is therefore loaded once per process.
+
+
+.. _logic_structure.model_creation:
+
+Model Creation Sequence
+-----------------------
+
+``Model.from_config()`` followed by ``build()`` and ``write()`` runs the
+following steps:
+
+1. **Load.** The configuration file is read into a ``Config``, and its
+   ``settings:`` block into ``Settings``. Optionally, a patch from a models
+   file is merged into the settings first.
+2. **Apply settings.** Every settings category writes the configuration values
+   it controls.
+3. **Create the structure.** The energy system is instantiated from its
+   registered name, the sectors are added, then the individually listed
+   elements. Excluded sectors and elements are removed last. The scenarios of
+   the ``scenarios:`` block of the configuration file are registered.
+4. **Build.** ``Model.build()`` builds the energy system and then every
+   element (see :ref:`logic_structure.building`).
+5. **Global scenarios.** ``Model.apply_global_scenarios()`` runs the
+   project's function that adds setting and set scenarios.
+6. **Validate and write.** ``Model.write()`` validates the model and writes
+   the input folder (see :ref:`logic_structure.output`).
+
+
+.. _logic_structure.building:
+
+Building Attributes
+-------------------
+
+Each element sets its attributes in ``_set_<attribute>()`` methods.
+``Element.build()`` calls these methods and stores the returned ``Attribute``.
+Attributes without such a method keep their default value.
+
+An attribute may read the value of another attribute, also of another element,
+for example a retrofitting technology reading the lifetime of the technology
+it retrofits. Reading ``default_value``, ``df``, ``unit`` or another data
+field of an attribute that has not been built yet builds it first. The
+methods and the attribute names can therefore be written in any order. 
+A cyclic dependency between attributes raises an error that shows the chain of 
+attributes involved.
+
+Requesting the attribute object itself (``element.lifetime``) or calling
+``set_data()`` on it does not trigger a build.
+
+
+.. _logic_structure.sectors:
+
+Sectors
+-------
+
+A ``Sector`` lists the elements that belong to it and the sectors it requires
+(``required_sectors``). When the sectors of a model are initialized, every
+sector must find its required sectors among the configured sectors.
+
+An element can be declared by several sectors. It is only added to the model
+when all of these sectors are included. This models technologies that couple
+two sectors, such as a power plant with carbon capture that belongs to both an
+electricity and a carbon sector. Removing a sector removes exactly the
+elements it declares.
+
+
+.. _logic_structure.sources:
+
+Source Tracking
+---------------
+
+``Attribute.set_data()`` requires a source. It is either a
+``SourceInformation`` (a description together with the ``MetaData`` of the
+dataset or collection the value comes from) or an ``AssumptionInformation`` (a
+description of a modeling choice). Every call appends an entry, so an
+attribute that is processed in several steps keeps all of them in order.
+
+When the model is written, the entries of all attributes of an element are
+written to ``sources.md`` in the element's folder, with full citations.
+
+
+.. _logic_structure.output:
+
+Written Files
+-------------
+
+``Model.write()`` writes the following files:
+
+.. code-block:: text
+
+   <output_folder>/
+     config.yaml                ZEN-garden configuration (analysis, solver,
+                                plugins), with analysis.dataset = model name
+     <model name>/
+       system.yaml              configured system settings and element lists
+       scenarios.yaml           if scenarios are defined
+       energy_system/
+       set_carriers/<carrier>/
+       set_technologies/set_conversion_technologies/<technology>/
+       set_technologies/set_conversion_technologies/set_retrofitting_technologies/<technology>/
+       set_technologies/set_storage_technologies/<technology>/
+       set_technologies/set_transport_technologies/<technology>/
+
+Each element folder contains ``attributes.yaml``, the data files of its
+attributes, ``sources.md``, and the files of its scenarios.
+
+``system.yaml`` and ``config.yaml`` only contain the values that were
+configured, so that ZEN-garden applies its own defaults for everything else.
+The technology lists are derived from the elements of the model.

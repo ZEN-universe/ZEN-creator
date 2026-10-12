@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from typing import Optional
+from typing import Dict, Optional, Union
 
 from pydantic import ConfigDict, field_validator
+from typing_extensions import TypeAliasType
 
 from zen_creator.utils.config import Subscriptable
 
@@ -32,6 +33,7 @@ class MetaData(Subscriptable):
     publication_year: int
     url: Optional[str] = None
     doi: Optional[str] = None
+    note: Optional[str] = None
 
     def to_dict(self) -> dict[str, object]:
         """Serialize metadata to a dictionary.
@@ -63,7 +65,18 @@ class MetaData(Subscriptable):
             citation += f" https://doi.org/{self.doi}"
         elif self.url:
             citation += f" {self.url}"
+        if self.note:
+            citation += f". Note: {self.note}"
         return citation
+
+
+# A dataset's metadata is either a single citation (an atomic Dataset) or a
+# dictionary mapping source names to further metadata (a DatasetCollection),
+# which may itself contain nested DatasetCollections, hence the recursion.
+# TypeAliasType (rather than a plain Union alias) is required so pydantic can
+# recognize the self-reference and avoid infinite schema expansion. The value is
+# a single string so mypy can resolve the self-reference too.
+MetadataTree = TypeAliasType("MetadataTree", "Union[MetaData, Dict[str, MetadataTree]]")
 
 
 class SourceInformation(Subscriptable):
@@ -71,30 +84,34 @@ class SourceInformation(Subscriptable):
 
     Combines a descriptive explanation of an attribute's origin with associated
     citation metadata. Supports both single-source (single MetaData) and multi-source
-    (dict of MetaData) configurations for flexibility in citation requirements.
+    (dict of MetaData, arbitrarily nested for DatasetCollections composed of other
+    DatasetCollections) configurations for flexibility in citation requirements.
 
     Attributes:
         description: Narrative explanation of the attribute's source, collection
             method, or data processing applied.
         metadata: Citation metadata, either as a single MetaData object or as a
-            dictionary mapping source names to MetaData objects for multi-source
-            attributes.
+            (possibly nested) dictionary mapping source names to MetaData objects
+            for multi-source attributes.
     """
 
     model_config = ConfigDict(strict=True)
 
     description: str
-    metadata: MetaData | dict[str, MetaData]
+    metadata: MetadataTree
 
     @field_validator("metadata")
     @classmethod
-    def _validate_metadata(cls, value: MetaData | dict[str, MetaData]):
-        """Reject empty metadata dictionaries."""
-        if isinstance(value, dict) and not value:
-            raise ValueError(
-                "SourceInformation.metadata cannot be an empty dictionary. "
-                "Provide MetaData entries."
-            )
+    def _validate_metadata(cls, value: MetadataTree):
+        """Reject empty metadata dictionaries, at any nesting level."""
+        if isinstance(value, dict):
+            if not value:
+                raise ValueError(
+                    "SourceInformation.metadata cannot be an empty dictionary. "
+                    "Provide MetaData entries."
+                )
+            for sub_value in value.values():
+                cls._validate_metadata(sub_value)
         return value
 
     def to_str(self) -> str:
@@ -102,23 +119,70 @@ class SourceInformation(Subscriptable):
 
         Produces a human-readable text block combining the source description with
         properly formatted citations. Handles both single-source and multi-source
-        scenarios automatically.
+        (including nested) scenarios automatically.
 
         Returns:
             str: Multi-line string with description, followed by citations. For
                 multi-source, each citation is prefixed with its source name in
-                brackets.
+                brackets, indented by its nesting depth.
         """
         lines = [self.description, ""]
 
         if isinstance(self.metadata, dict):
             lines.append("**Citations**")
             lines.append("")
-            for name, metadata in self.metadata.items():
-                lines.append(f"- **{name}**: {metadata.to_str()}")
+            lines.extend(self._format_metadata_tree(self.metadata))
         else:
             lines.append("**Citation**")
             lines.append("")
             lines.append(self.metadata.to_str())
+
+        return "\n".join(lines)
+
+    @staticmethod
+    def _format_metadata_tree(
+        tree: dict[str, MetadataTree], depth: int = 0
+    ) -> list[str]:
+        """Recursively render a (possibly nested) metadata dictionary as
+        indented bullet lines."""
+        indent = "  " * depth
+        lines: list[str] = []
+        for name, value in tree.items():
+            if isinstance(value, dict):
+                lines.append(f"{indent}- **{name}**:")
+                lines.extend(SourceInformation._format_metadata_tree(value, depth + 1))
+            else:
+                lines.append(f"{indent}- **{name}**: {value.to_str()}")
+        return lines
+
+
+class AssumptionInformation(Subscriptable):
+    """Information about the assumptions used in a dataset attribute.
+
+    Combines a descriptive explanation of an attribute's assumptions.
+    An assumption is not a source of data, but rather a choice made
+    in the modeling process that affects the attribute's value.
+    Assumptions do not have associated citation metadata,
+    but they may have a description of the rationale behind the assumption.
+
+    Attributes:
+        description: Narrative explanation of the attribute's assumptions, collection
+            method, or data processing applied.
+    """
+
+    model_config = ConfigDict(strict=True)
+
+    description: str
+    metadata: Optional[MetadataTree] = None
+
+    def to_str(self) -> str:
+        """Generate a formatted string with description.
+
+        Produces a human-readable text block combining the source description.
+
+        Returns:
+            str: Multi-line string with description
+        """
+        lines = [self.description]
 
         return "\n".join(lines)

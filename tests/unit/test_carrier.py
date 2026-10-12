@@ -38,17 +38,17 @@ def test_template_carrier_build(
 def test_template_carrier_write(
     model: Model,
 ):
-    """Write persists ``attributes.json`` and matches the reference output file."""
+    """Write persists ``attributes.yaml`` and matches the reference output file."""
     carrier = TemplateCarrier(model=model)
     carrier.build()
     carrier.write()
 
-    attributes_path = carrier.output_path / "attributes.json"
+    attributes_path = carrier.output_path / "attributes.yaml"
     reference_path = (
         Path(__file__).parent
         / "fixtures"
         / "template_carrier"
-        / "attributes_carrier.json"
+        / "attributes_carrier.yaml"
     )
 
     differences = compare_files(reference_path, attributes_path)

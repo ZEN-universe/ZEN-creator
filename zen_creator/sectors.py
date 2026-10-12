@@ -12,6 +12,7 @@ from zen_creator.elements import Element
 
 class Sector(ABC):
     name: str
+    required_sectors: list[str] = []
     _sector_registry: dict[str, Type[Sector]] = {}
 
     def __init__(self) -> None:

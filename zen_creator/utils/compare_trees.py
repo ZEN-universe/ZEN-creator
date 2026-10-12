@@ -8,6 +8,7 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
+import yaml
 
 # ----------------------------
 # JSON DEEP DIFF
@@ -141,11 +142,14 @@ def csv_diff(file1: str | Path, file2: str | Path, tol: float = TOLERANCE) -> li
 def compare_files(file1: Path, file2: Path) -> list[str]:
     ext = file1.suffix.lower()
 
-    if ext == ".json":
+    # json and yaml hold the same kind of data, so both are compared by
+    # content rather than by formatting
+    if ext in (".json", ".yaml", ".yml"):
+        load = json.load if ext == ".json" else yaml.safe_load
         with open(file1, "r", encoding="utf-8") as f1:
-            obj1 = json.load(f1)
+            obj1 = load(f1)
         with open(file2, "r", encoding="utf-8") as f2:
-            obj2 = json.load(f2)
+            obj2 = load(f2)
 
         return json_diff(obj1, obj2)
 

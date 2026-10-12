@@ -45,6 +45,7 @@ See method docstrings (for example ``Model.from_config`` and
    Model.from_config
    Model.from_existing
    Model.build
+   Model.apply_global_scenarios
    Model.validate
    Model.write
 
@@ -62,11 +63,17 @@ See method docstrings (for example ``Model.from_config`` and
 
 .. automethod:: Model.build
 
+.. automethod:: Model.apply_global_scenarios
+
 .. automethod:: Model.validate
 
 .. automethod:: Model.write
 
 .. automethod:: Model.write_system_file
+
+.. automethod:: Model.write_config_file
+
+.. automethod:: Model.write_scenario_file
 
 
 .. rubric:: Element and Sector Management
@@ -100,8 +107,14 @@ Instance attributes
      - Model name used when writing output paths.
    * - ``config``
      - Configuration object used to initialize model behavior.
+   * - ``settings``
+     - Project-defined settings categories, see :ref:`api.settings`.
    * - ``elements``
      - Dictionary of model elements keyed by element name.
+   * - ``sectors``
+     - Names of the sectors included in the model.
+   * - ``scenarios``
+     - Registry of all scenario entries, see :ref:`api.scenario`.
 
 Properties
 ~~~~~~~~~~

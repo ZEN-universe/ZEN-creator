@@ -72,7 +72,23 @@ to users with different goals. The three constructors are:
       from zen_creator.model import Model
 
       model = Model.from_config(Path("./config.yaml"))
+      model.name = "my_model"
+      model.output_folder = Path("./data")
+      model.build()
       model.write()
+
+   The ``settings:`` block of the configuration file is loaded into
+   ``model.settings`` (see :ref:`settings_and_models.settings_and_models`).
+   To generate a variant declared in a models file, pass the patched
+   settings:
+
+   .. code-block:: python
+
+      from zen_creator.utils.settings import ModelSet, Settings
+
+      patch = ModelSet.load_from_yaml("./models.yaml").settings_patch("late_start")
+      settings = Settings.load_from_yaml("./config.yaml", patch=patch)
+      model = Model.from_config(Path("./config.yaml"), settings=settings)
 
 For more detailed information about the structure and syntax of the
 ``Model`` class, see :ref:`api.model`.
@@ -83,7 +99,14 @@ Typical workflow
 A simple workflow usually looks like this:
 
 1. Load a model with ``from_existing`` or ``from_config``.
-2. Update the model as needed.
-3. Call ``model.write()`` to save the modified model.
+2. Call ``model.build()`` to set the attributes of all elements.
+3. Optionally, add global scenarios with ``model.apply_global_scenarios()``
+   (see :ref:`scenarios.scenarios`).
+4. Update the model as needed.
+5. Call ``model.write()`` to save the model.
+
+``model.write()`` writes the dataset to ``<output_folder>/<name>`` and the
+ZEN-garden configuration to ``<output_folder>/config.yaml``. Every element
+folder contains a ``sources.md`` with the sources of its attributes.
 
 

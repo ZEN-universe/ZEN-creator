@@ -1,5 +1,7 @@
 from abc import ABCMeta
-from typing import Any
+from typing import Any, TypeVar, cast
+
+_T = TypeVar("_T")
 
 
 class SingletonRegistryMeta(ABCMeta):
@@ -7,20 +9,22 @@ class SingletonRegistryMeta(ABCMeta):
 
     _registries: dict[type, dict[str, object]] = {}
 
-    def __call__(cls, *args: Any, **kwargs: Any) -> object:
+    def __call__(cls: type[_T], *args: Any, **kwargs: Any) -> _T:
         """
         Ensure singleton behavior per class.
         Creates a registry for this class type if it doesn't exist.
+
         """
-        registry = cls._registries.setdefault(cls, {})
+        meta = cast(SingletonRegistryMeta, cls)
+        registry = meta._registries.setdefault(cls, {})
 
         # Check for existing instance in registry by name (if the name is set)
         class_name = getattr(cls, "name", None)
         if isinstance(class_name, str) and class_name in registry:
-            return registry[class_name]
+            return cast(_T, registry[class_name])
 
         # Create a new instance using the parent class's `__call__`
-        instance = super().__call__(*args, **kwargs)
+        instance = super().__call__(*args, **kwargs)  # type: ignore[misc]
 
         # Register the instance if it has a 'name' attribute
         instance_name = getattr(instance, "name", None)
@@ -28,9 +32,9 @@ class SingletonRegistryMeta(ABCMeta):
             registry[instance_name] = instance
 
         # Check if the class has a parent (for subclassing support)
-        cls._register_in_parents(instance)
+        meta._register_in_parents(instance)
 
-        return instance
+        return cast(_T, instance)
 
     def _register_in_parents(cls, instance: object) -> None:
         """Register the instance in parent class registries, up to the first class
@@ -53,14 +57,16 @@ class SingletonRegistryMeta(ABCMeta):
             # necessary
             parent_class._register_in_parents(instance)
 
-    def get_by_name(cls, name: str) -> object:
+    def get_by_name(cls: type[_T], name: str) -> _T:
         """Return the singleton instance of this class type by name."""
-        registry = cls._registries.get(cls, {})
+        meta = cast(SingletonRegistryMeta, cls)
+        registry = meta._registries.get(cls, {})
         if name not in registry:
             raise ValueError(f"Unknown {cls.__name__} '{name}'")
-        return registry[name]
+        return cast(_T, registry[name])
 
     @property
-    def registry(cls) -> dict[str, object]:
+    def registry(cls: type[_T]) -> dict[str, _T]:
         """Return all registered instances of this class type."""
-        return dict(cls._registries.get(cls, {}))
+        meta = cast(SingletonRegistryMeta, cls)
+        return cast("dict[str, _T]", dict(meta._registries.get(cls, {})))

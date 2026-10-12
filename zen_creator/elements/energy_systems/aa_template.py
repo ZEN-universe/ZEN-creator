@@ -29,7 +29,7 @@ class TemplateEnergySystem(EnergySystem):
         """Return the set_nodes attribute.
 
         The attribute `set_nodes` must have a default value of `None`
-        so that it does not get written to the `attributes.json` file
+        so that it does not get written to the `attributes.yaml` file
         for the energy system. The attribute data should contain
         a dataframe of nodes and their latitute and longitude coordinates.
 
@@ -49,7 +49,7 @@ class TemplateEnergySystem(EnergySystem):
         Return the set_nodes attribute.
 
         The attribute `set_edges` must have a default value of `None`
-        so that it does not get written to the `attributes.json` file
+        so that it does not get written to the `attributes.yaml` file
         for the energy system. The attribute data should contain
         a dataframe of edges names and their `to` and `from` nodes.
 

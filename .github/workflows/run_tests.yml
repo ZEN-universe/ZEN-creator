@@ -3,10 +3,10 @@ name: Tests
 # Define when to run
 on:
   schedule:
-    - cron:  '30 4 1 * *'
+    - cron: '30 4 1 * *'
 
   pull_request:
-    branches: 
+    branches:
       - main
     types: [opened, edited, synchronize]
 
@@ -21,8 +21,8 @@ env:
 # Jobs
 jobs:
 
-  # check whether #skiptests is in pull request message or commmit message: 
-  # The option #skiptests skips the tests   
+  # check whether #skiptests is in pull request message or commit message:
+  # The option #skiptests skips the tests
   check_skiptests:
     runs-on: ubuntu-latest
     outputs:
@@ -49,7 +49,6 @@ jobs:
           echo "PR Title: $TITLE"
           echo "PR Body: $BODY"
           echo "skiptests=$skip"
-          
 
   matrix_prep:
     if: ${{ github.repository == 'ZEN-universe/ZEN-creator' }}
@@ -85,18 +84,22 @@ jobs:
     # the testing
     needs: [matrix_prep, check_skiptests]
     strategy:
-      fail-fast: false # if true all jobs are cancelled if one fails
-      matrix: ${{fromJson(needs.matrix_prep.outputs.matrix)}}
+      fail-fast: false  # if true all jobs are cancelled if one fails
+      matrix: ${{ fromJson(needs.matrix_prep.outputs.matrix) }}
     name: ${{ matrix.label }}
     runs-on: ${{ matrix.os }}
     env:
       SKIPTESTS: ${{ needs.check_skiptests.outputs.skiptests }}
+    # login shell on every platform, so the conda env is on the PATH
+    defaults:
+      run:
+        shell: bash -l {0}
     steps:
-      
+
       - name: Check the value of SKIPTESTS
         run: |
           echo "skiptests output: ${{ env.SKIPTESTS }}"
-      
+
       # checkout PR commit
       - uses: actions/checkout@v4
         if: ${{ env.SKIPTESTS == 'false' }}
@@ -106,10 +109,9 @@ jobs:
         if: ${{ env.SKIPTESTS == 'false' }}
         uses: conda-incubator/setup-miniconda@v3
         with:
-            miniforge-variant: Miniforge3
-            miniforge-version: latest
-            activate-environment: zen-creator-env
-            use-mamba: true
+          miniforge-version: latest
+          activate-environment: zen-creator-env
+          use-mamba: true
 
       # date for the cache
       - name: Set cache date
@@ -117,7 +119,7 @@ jobs:
         run: echo "DATE=$(date +'%Y%m%d')" >> $GITHUB_ENV
 
       # reset cache if env file changed
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         if: ${{ env.SKIPTESTS == 'false' }}
         with:
           path: ${{ matrix.prefix }}
@@ -126,37 +128,13 @@ jobs:
 
       # This step is cached in case the env file was not changed
       - name: Update environment
-        if: ${{ env.SKIPTESTS == 'false' && steps.cache.outputs.cache-hit != 'true'}}
+        if: ${{ env.SKIPTESTS == 'false' && steps.cache.outputs.cache-hit != 'true' }}
         run: mamba env update -f zen_creator_env.yml
 
       - name: Install package
         if: ${{ env.SKIPTESTS == 'false' }}
-        shell: bash -l {0}
         run: pip install -e .
 
       - name: Run Tests
         if: ${{ env.SKIPTESTS == 'false' }}
-        shell: bash -l {0}
-        run: |
-          pytest --cov="zen_creator" -n auto tests/ -v
-#          coverage report -m
-
-    #   - name: Extract Coverage
-    #     if: ${{ always() && matrix.label == 'linux-64' && env.SKIPTESTS == 'false' && github.event_name == 'push'}} # include always to overwrite cancel on failure of previous step
-    #     shell: bash -l {0}
-    #     run: |
-    #       echo "COVERAGE_INT=$(coverage report -m | grep TOTAL | grep -oE '[0-9]+%' | grep -oE '[0-9]+')" >> $GITHUB_ENV
-    #       echo "COVERAGE_FLT=$(coverage report -m --precision=2 | grep TOTAL | grep -oE '[0-9]+\.[0-9]+')" >> $GITHUB_ENV
-
-    #   - name: Create Coverage Badge
-    #     if: ${{ always() && matrix.label == 'linux-64' && env.SKIPTESTS == 'false' && github.event_name == 'push'}}
-    #     uses: schneegans/dynamic-badges-action@v1.7.0
-    #     with:
-    #       auth: ${{ secrets.GIST_TOKEN }}
-    #       gistID: 30d479a5b4c591a63b7b0f41abbce6a0
-    #       filename: zen_garden_coverage.json
-    #       label: coverage
-    #       message: ${{ env.COVERAGE_FLT }}%
-    #       valColorRange: ${{ env.COVERAGE_INT }}
-    #       maxColorRange: 100
-    #       minColorRange: 0
+        run: pytest --cov="zen_creator" -n auto tests/ -v

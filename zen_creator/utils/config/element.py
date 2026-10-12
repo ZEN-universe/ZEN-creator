@@ -1,9 +1,11 @@
-import json
 from pathlib import Path
 
 from pydantic import Field
 
+from zen_creator.utils.file_io import find_data_file, read_data_file
+
 from ._base import Subscriptable
+from .system import find_system_file, read_system_file
 
 
 class ElementTypeList(Subscriptable):
@@ -25,11 +27,7 @@ class ElementTypeList(Subscriptable):
         if not model_path.exists():
             raise FileNotFoundError(f"{model_path} does not exist")
 
-        system_path = model_path / "system.json"
-        if not system_path.is_file():
-            raise FileNotFoundError(f"could not find {system_path}")
-
-        system_dict = json.loads(system_path.read_text())
+        system_dict = read_system_file(find_system_file(model_path))
 
         et = cls()
         for field in (
@@ -59,18 +57,13 @@ class ElementTypeList(Subscriptable):
 
         for attr, (subfolder, has_io) in tech_map.items():
             for tech in getattr(et, attr):
-                attr_file = (
-                    model_path
-                    / "set_technologies"
-                    / subfolder
-                    / tech
-                    / "attributes.json"
-                )
-                if not attr_file.is_file():
+                attr_dir = model_path / "set_technologies" / subfolder / tech
+                attr_file = find_data_file(attr_dir, "attributes")
+                if attr_file is None:
                     raise FileNotFoundError(
-                        f"attributes for {tech!r} not found at {attr_file}"
+                        f"attributes for {tech!r} not found in {attr_dir}"
                     )
-                data = json.loads(attr_file.read_text())
+                data = read_data_file(attr_file)
 
                 carriers |= set(
                     data.get("reference_carrier", {}).get("default_value", [])
@@ -87,7 +80,12 @@ class ElementTypeList(Subscriptable):
 
 
 class ElementConfig(Subscriptable):
-    """Config for element settings."""
+    """Config for element settings.
+
+    ``exclude_sectors`` and ``exclude_elements`` are flat, unlike ``insert``:
+    removing an element does not need to know its type, only its name.
+    """
 
     insert: ElementTypeList = Field(default_factory=ElementTypeList)
-    exclude: ElementTypeList = Field(default_factory=ElementTypeList)
+    exclude_sectors: list[str] = Field(default_factory=list)
+    exclude_elements: list[str] = Field(default_factory=list)

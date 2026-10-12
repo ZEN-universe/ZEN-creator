@@ -43,60 +43,60 @@ class Carrier(Element, ABC):
     def set_default_values(self):
         """Initialize internal attributes to default values."""
         self._demand = Attribute(
-            "demand", default_value=0.0, unit=f"{self.power_unit}", element=self
+            "demand", default_value=0.0, unit=self.power_unit, element=self
         )
         self._availability_import = Attribute(
             "availability_import",
             default_value=0.0,
-            unit=f"{self.power_unit}",
+            unit=self.power_unit,
             element=self,
         )
         self._availability_export = Attribute(
             "availability_export",
             default_value=0.0,
-            unit=f"{self.power_unit}",
+            unit=self.power_unit,
             element=self,
         )
         self._availability_import_yearly = Attribute(
             "availability_import_yearly",
-            default_value=0.0,
-            unit=f"{self.power_unit}*h",
+            default_value=np.inf,
+            unit=self.energy_unit,
             element=self,
         )
         self._availability_export_yearly = Attribute(
             "availability_export_yearly",
             default_value=0.0,
-            unit=f"{self.power_unit}*h",
+            unit=self.energy_unit,
             element=self,
         )
         self._price_import = Attribute(
             "price_import",
             default_value=0.0,
-            unit=f"Euro/({self.power_unit}*h)",
+            unit=f"Euro/({self.energy_unit})",
             element=self,
         )
         self._price_export = Attribute(
             "price_export",
             default_value=0.0,
-            unit=f"Euro/({self.power_unit}*h)",
+            unit=f"Euro/({self.energy_unit})",
             element=self,
         )
         self._carbon_intensity_carrier_import = Attribute(
             "carbon_intensity_carrier_import",
             default_value=0.0,
-            unit=f"kilotons/({self.power_unit}*h)",
+            unit=f"kilotons/({self.energy_unit})",
             element=self,
         )
         self._carbon_intensity_carrier_export = Attribute(
             "carbon_intensity_carrier_export",
             default_value=0.0,
-            unit=f"kilotons/({self.power_unit}*h)",
+            unit=f"kilotons/({self.energy_unit})",
             element=self,
         )
         self._price_shed_demand = Attribute(
             "price_shed_demand",
             default_value=np.inf,
-            unit=f"Euro/({self.power_unit}*h)",
+            unit=f"Euro/({self.energy_unit})",
             element=self,
         )
 

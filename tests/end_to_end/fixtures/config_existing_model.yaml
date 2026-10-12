@@ -1,9 +1,7 @@
 # global settings
-name: "test_8a_replica"
 source_path: "."
-output_folder: "./tests/end_to_end/outputs/"
 
-# all settings in the system.json file with the exception of technology lists
+# all settings in the system file with the exception of technology lists
 system:
   set_nodes:
     - CH
@@ -36,13 +34,8 @@ elements:
       - heat
       - natural_gas
 
-  exclude:
-    set_sectors: []
-    set_conversion_technologies: []
-    set_transport_technologies: []
-    set_storage_technologies: []
-    set_retrofitting_technologies: []
-    set_carriers: []
+  exclude_sectors: []
+  exclude_elements: []
 
 # settings for individual data sources
 data:

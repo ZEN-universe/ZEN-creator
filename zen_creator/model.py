@@ -1,8 +1,9 @@
-import json
 import logging
 import shutil
 from pathlib import Path
-from typing import Iterable, Optional, Type
+from typing import Any, Callable, Iterable, Optional, Type
+
+import yaml
 
 from zen_creator.elements import (
     Carrier,
@@ -21,7 +22,9 @@ from zen_creator.elements import (
 )
 from zen_creator.elements.element import Element
 from zen_creator.sectors import Sector
-from zen_creator.utils.config import Config, ElementTypeList
+from zen_creator.utils.config import ELEMENT_DERIVED_FIELDS, Config, ElementTypeList
+from zen_creator.utils.scenario import SETTING_BLOCKS, ScenarioRegistry
+from zen_creator.utils.settings import Settings
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +38,11 @@ class Model:
 
     Attributes:
         config (Config): The configuration object for the model.
+        settings (Settings): Extensible, type-checked settings tree.
+            ZEN-creator itself defines no concrete settings categories;
+            downstream projects register ``SettingsCategory`` subclasses
+            (e.g. a ``TimeSettings`` with ``name = "time_settings"``), which
+            then become queryable as ``model.settings.time_settings.<field>``.
         name (str): The name of the model.
         output_folder (Path): The folder where the model output will be saved.
         source_path (Path): The path to the source data.
@@ -42,6 +50,8 @@ class Model:
             "energy_system" folder of the ZEN-garden input data.
         elements (dict[str, Element]): Dictionary of elements (carriers and
             technologies) present in the model.
+        scenarios (ScenarioRegistry): Registry of all scenarios of the model,
+            written to "scenarios.yaml".
     """
 
     def __init__(self) -> None:
@@ -49,21 +59,32 @@ class Model:
 
         # internal variables for properties
         self.config: Config = Config()
-        self.name: str = self.config.name
-        self._output_folder: Optional[Path] = None
+        self.settings: Settings = Settings()
+        self.name: str = ""
+        self._out_path: Optional[Path] = None
         self._source_path: Optional[Path] = None
         self._energy_system: Optional[EnergySystem] = None
 
         # initialize other attributes
         self.elements: dict[str, Element] = {}
+        self.sectors: set[str] = set()
+        self.scenarios: ScenarioRegistry = ScenarioRegistry(self)
+
+        # shared stack of (element, attribute_name) frames currently being
+        # auto-built, used to detect cyclic cross-attribute/cross-element
+        # dependencies; see Element._build_attribute
+        self._build_stack: list[tuple[Element, str]] = []
 
     @classmethod
-    def from_config(cls, config: Config | str | Path):
+    def from_config(cls, config: Config | str | Path, settings: Settings | None = None):
         """Initialize a new Model instance.
 
         Args:
             config (Config | str | Path): The configuration for the model.
                 Can be a Config object, or a path to a config file.
+            settings (Settings | None): The settings for the model. Read from
+                the config file when not given. A variant declared in a
+                models file passes the settings its patch produced.
 
         Returns:
             Model: A new Model instance initialized from the configuration.
@@ -84,12 +105,22 @@ class Model:
         model.config = (
             config if isinstance(config, Config) else Config.load_from_yaml(config)
         )
-        model.name = model.config.name
-        model.output_folder = model.config.output_folder
+        if settings is not None:
+            model.settings = settings
+        elif isinstance(config, Config):
+            model.settings = Settings()
+        else:
+            model.settings = Settings.load_from_yaml(config)
+        # write every registered category's controlled fields into config,
+        # so a settings field is the single place each controlled value is set
+        model.settings.apply(model.config)
+
         model.source_path = model.config.source_path
 
         insert = model.config.elements.insert
-        exclude = model.config.elements.exclude
+
+        # initialize scenarios defined in the configuration file
+        model._initialize_scenarios(model.config.scenarios)
 
         # initialize energy system
         model._initialize_energy_system(insert.energy_system)
@@ -97,7 +128,11 @@ class Model:
         # Add sectors (using a loop directly)
         model._initialize_sectors(insert.set_sectors)
 
-        model._initialize_technologies_and_carriers(insert, exclude)
+        model._initialize_technologies_and_carriers(
+            insert,
+            model.config.elements.exclude_sectors,
+            model.config.elements.exclude_elements,
+        )
 
         return model
 
@@ -112,9 +147,9 @@ class Model:
         proper data format for ZEN-garden.
 
         If not config is specified, a configuration file is created from
-        the default configurations. The system configurations, unit
-        configurations, model name, and output folder are then taken
-        directly from the existing model.
+        the default configurations. The system configurations and unit
+        configurations are then taken directly from the existing model, and
+        the model is named after its folder.
 
         This function performs the following steps:
             1. Create a Model object using the configuration file. This
@@ -157,6 +192,7 @@ class Model:
         # construct model object
         # no data is loaded yet, only default values form zen-creator are used.
         model = cls.from_config(config)
+        model.name = existing_model_path.name
 
         # overwrite default values with values from existing model
         logger.info(
@@ -169,6 +205,30 @@ class Model:
             element.overwrite_from_existing_model(existing_model_path)
 
         return model
+
+    def _initialize_scenarios(self, scenarios: dict[str, dict]) -> None:
+        """Add the scenarios declared in the configuration file.
+
+        Only the 'system', 'analysis', and 'solver' settings can be varied
+        this way. Variations of element data are attached to the attributes
+        themselves.
+
+        Args:
+            scenarios: Mapping of scenario name to its configuration overrides.
+
+        Raises:
+            ValueError: If a scenario contains a block other than 'system',
+                'analysis', or 'solver'.
+        """
+        for name, blocks in scenarios.items():
+            unknown = set(blocks) - set(SETTING_BLOCKS)
+            if unknown:
+                raise ValueError(
+                    f"Scenario '{name}' in the configuration file contains "
+                    f"{sorted(unknown)}. Only {', '.join(SETTING_BLOCKS)} can be "
+                    "set in the configuration file."
+                )
+            self.scenarios.add(name, **blocks)
 
     def _initialize_energy_system(self, energy_system_name: str) -> None:
         """Initialize the model's energy system instance.
@@ -211,28 +271,51 @@ class Model:
     def _initialize_sectors(self, sector_names: list[str]) -> None:
         """Initialize model sectors by their registered names.
 
-        Each sector contributes its declared elements to ``self.elements`` via
+        Validates that every sector's ``required_sectors`` are also present in
+        ``sector_names`` before adding anything, then adds each sector via
         :meth:`add_sector_by_name`.
 
         Args:
             sector_names: List of sector names to add to the model.
+
+        Raises:
+            ValueError: If a sector name is not registered, or if a sector's
+                ``required_sectors`` are not all included in ``sector_names``.
         """
+        target = set(sector_names)
+        for sector in sector_names:
+            sector_cls = Sector._sector_registry.get(sector)
+            if sector_cls is None:
+                raise ValueError(f"Sector '{sector}' is not registered.")
+            missing = set(sector_cls.required_sectors) - target
+            if missing:
+                raise ValueError(
+                    f"Sector '{sector}' requires sector(s) {sorted(missing)}, "
+                    "which are not included in set_sectors."
+                )
+
         for sector in sector_names:
             self.add_sector_by_name(sector)
 
     def _initialize_technologies_and_carriers(
-        self, insert_config: ElementTypeList, exclude_config: ElementTypeList
+        self,
+        insert_config: ElementTypeList,
+        exclude_sectors: list[str],
+        exclude_elements: list[str],
     ) -> None:
         """Initialize technologies and carriers from insert/exclude config.
 
-        The method first adds elements listed in ``insert_config`` and then
-        removes elements listed in ``exclude_config``. This two-step process
-        keeps behavior consistent with existing config semantics.
+        The method first adds elements listed in ``insert_config``, then
+        removes every sector in ``exclude_sectors`` (removing the elements it
+        declares), then removes every element named in ``exclude_elements``
+        directly. Removal does not need to know an element's type, so
+        ``exclude_elements`` is a flat list of technology or carrier names.
 
         Args:
             insert_config: Element lists to be added to the model.
-            exclude_config: Element lists to be removed from the model after
-                insertion.
+            exclude_sectors: Sectors to remove after insertion.
+            exclude_elements: Technologies or carriers to remove after
+                insertion, in addition to what ``exclude_sectors`` removes.
         """
 
         # Add technologies by iterating over the technology types
@@ -249,13 +332,12 @@ class Model:
                 self.add_element_by_name(element, element_type)
 
         # Remove sectors that should be excluded
-        # TODO:
+        for sector in exclude_sectors:
+            self.remove_sector_by_name(sector)
 
-        # Remove technologies that should be excluded
-        for element_set in element_map.keys():
-            element_list = getattr(exclude_config, element_set)
-            for element in element_list:
-                self.remove_element_by_name(element)
+        # Remove technologies and carriers that should be excluded
+        for element in exclude_elements:
+            self.remove_element_by_name(element)
 
     # -------- Properties ----------------------------------------------------------
     @property
@@ -469,6 +551,10 @@ class Model:
     ) -> None:
         """Add an element to the model by its name.
 
+        If no class is registered under ``element_name`` and ``generic`` is
+        given, the corresponding generic class is used instead and a warning is
+        logged, since the resulting element only carries default values.
+
         Args:
             element (str): The name of the element to add.
 
@@ -644,6 +730,9 @@ class Model:
     def add_sector(self, sector_cls: Type[Sector]) -> None:
         """Add a sector to the model.
 
+        An element declared by more than one sector is only added once every
+        sector that declares it is active (see :meth:`_reconcile_sector_elements`).
+
         Args:
             sector_cls (Type[Sector]): The sector class to add.
 
@@ -658,13 +747,16 @@ class Model:
 
         logger.info(f"Add sector: {sector_cls.name} --------")
 
-        for element in sector_cls().elements:
-            self.add_element(element)
+        self.sectors.add(sector_cls.name)
+        self._reconcile_sector_elements()
 
         return
 
     def remove_sector(self, sector_cls: Type[Sector]) -> None:
         """Remove a sector from the model.
+
+        Removes exactly the elements this sector declares, regardless of
+        whether they are also declared by another still-active sector.
 
         Args:
             sector_cls (Type[Sector]): The sector class to remove.
@@ -680,8 +772,68 @@ class Model:
 
         logger.info(f"Remove sector: {sector_cls.name} --------")
 
+        self.sectors.discard(sector_cls.name)
+
         for element in sector_cls().elements:
             self.remove_element(element)
+
+    def remove_sector_by_name(self, sector: str) -> None:
+        """Remove a sector from the model by its name.
+
+        Args:
+            sector (str): The name of the sector to remove.
+
+        Raises:
+            TypeError: If sector is not a string.
+            ValueError: If the sector is not registered.
+
+        Examples:
+            >>> model.remove_sector_by_name("electricity")
+        """
+        if not isinstance(sector, str):
+            raise TypeError(
+                f"Expected a subclass of 'str', got '{type(sector).__name__}' instead."
+            )
+
+        sector_cls = Sector._sector_registry.get(sector)
+
+        if sector_cls is None:
+            raise ValueError(f"Sector '{sector}' is not registered.")
+
+        self.remove_sector(sector_cls)
+
+        return
+
+    def _element_owning_sectors(self) -> dict[Type[Element], set[str]]:
+        """Map every element declared by a registered sector to the set of
+        sector names that declare it.
+
+        Scans the full sector registry, not just currently active sectors, so
+        that AND-membership can be evaluated regardless of which sectors are
+        active yet.
+
+        Returns:
+            dict[Type[Element], set[str]]: Mapping of element class to the
+                names of every sector that declares it.
+        """
+        owning: dict[Type[Element], set[str]] = {}
+        for sector_cls in Sector._sector_registry.values():
+            for element in sector_cls().elements:
+                owning.setdefault(element, set()).add(sector_cls.name)
+        return owning
+
+    def _reconcile_sector_elements(self) -> None:
+        """Add every sector-declared element whose declaring sectors are all
+        active.
+
+        An element declared by a single sector is added as soon as that
+        sector is active. An element declared by several sectors (AND-membership)
+        is only added once every one of those sectors is active.
+        """
+        for element_cls, owning_sectors in self._element_owning_sectors().items():
+            if owning_sectors <= self.sectors:
+                if element_cls.name not in self.elements:
+                    self.add_element(element_cls)
 
     # ------- Building model ---------------------------------------------------
 
@@ -696,7 +848,40 @@ class Model:
 
         # build carriers and technologies
         for element in self.elements.values():
+            logging.info(
+                f"-------- Build {element.__class__.__bases__[0].__name__} "
+                f"{element.name} --------"
+            )
             element.build()
+
+    def apply_global_scenarios(
+        self, define_global_scenarios: Callable[["Model"], None]
+    ) -> None:
+        """Run a project's global scenario definitions.
+
+        Called after :meth:`build`, once every element's own scenario
+        variations have been registered. ``define_global_scenarios`` may add
+        system, analysis, and solver overrides (``model.scenarios.add``) and
+        set-wide entries (``model.scenarios.add_set``), typically guided by
+        ``model.settings``. It may not add element-level scenarios: those are
+        defined where the attribute itself is set, via
+        ``Attribute.set_data(scenarios=...)``.
+
+        Args:
+            define_global_scenarios: Function that registers scenarios on this
+                model, typically defined in a project's ``global_scenarios.py``.
+
+        Raises:
+            ValueError: If ``define_global_scenarios`` tries to register an
+                element-level scenario.
+
+        Examples:
+            >>> model.build()
+            >>> model.apply_global_scenarios(define_global_scenarios)
+            >>> model.write()
+        """
+        with self.scenarios.global_scope():
+            define_global_scenarios(self)
 
     # -------- Write model -----------------------------------------------------
 
@@ -723,8 +908,11 @@ class Model:
             )
             shutil.rmtree(self.output_path)
 
-        # write system.json
+        # write system.yaml
         self.write_system_file()
+
+        # write config.yaml
+        self.write_config_file()
 
         # write energy system folder
         self.energy_system.write()
@@ -733,16 +921,31 @@ class Model:
         for element in self.elements.values():
             element.write()
 
+        # write scenarios.yaml
+        self.write_scenario_file()
+
         logger.info("Done writing model")
 
     def write_system_file(self) -> None:
-        """Write the system.json file for the model.
+        """Write the system file for the model.
 
-        This method generates the system configuration dictionary and writes it
-        to system.json in the output directory.
+        Only the settings that were configured are written, so that ZEN-garden
+        applies its own defaults for everything else and an existing model is
+        reproduced as it was. The scenario analysis is turned on whenever the
+        model defines scenarios.
         """
-        # convert the Pydantic model instance to a dictionary
-        system_json = self.config.system.model_dump(exclude_none=True)
+        # turn on the scenario analysis if scenarios are defined
+        if self.scenarios:
+            self.config.system.conduct_scenario_analysis = True
+
+        # convert the Pydantic model instance to a dictionary, keeping only the
+        # settings that were configured and dropping the fields that are
+        # derived from the elements of the model
+        system_json = {
+            key: value
+            for key, value in self.config.system.model_dump(exclude_unset=True).items()
+            if key not in ELEMENT_DERIVED_FIELDS
+        }
 
         # set technology lists
         technologies = {
@@ -764,21 +967,74 @@ class Model:
 
         system_json.update({k: v for k, v in technologies.items() if v})
 
-        # Step 4: Write the dictionary to a JSON file
-        with open(self.output_path / "system.json", "w") as f:
-            json.dump(system_json, f, indent=4)
+        with open(self.output_path / "system.yaml", "w", encoding="utf-8") as f:
+            yaml.safe_dump(system_json, f, sort_keys=False)
+
+    def write_config_file(self) -> None:
+        """Write the config.yaml file that ZEN-garden is run with.
+
+        The file is written once next to the datasets, in the output folder,
+        and points at this model's dataset. Only the settings that were
+        configured are written, so that ZEN-garden applies its own defaults
+        for everything else.
+
+        Raises:
+            ValueError: If the file would overwrite the config that this model
+                was loaded from.
+        """
+        config_path = self.output_folder / "config.yaml"
+
+        if self.config.loaded_from == config_path.resolve():
+            raise ValueError(
+                f"Writing the ZEN-garden config to {config_path} would "
+                "overwrite the configuration file the model was loaded from. "
+                "Move the configuration file out of the output folder, or "
+                "write the model to a different output folder."
+            )
+
+        analysis = self.config.analysis.model_dump(exclude_unset=True)
+        analysis["dataset"] = self.name
+        config_yaml: dict[str, Any] = {"analysis": analysis}
+
+        solver = self.config.solver.model_dump(exclude_unset=True)
+        if solver:
+            config_yaml["solver"] = solver
+
+        if self.config.plugins:
+            config_yaml["plugins"] = self.config.plugins
+
+        self.output_folder.mkdir(parents=True, exist_ok=True)
+        with open(config_path, "w", encoding="utf-8") as f:
+            yaml.safe_dump(config_yaml, f, sort_keys=False)
+
+    def write_scenario_file(self) -> None:
+        """Write the scenarios.yaml file for the model.
+
+        The file is only written if the model defines scenarios.
+        """
+        if not self.scenarios:
+            return
+
+        logger.info(f"Writing {len(self.scenarios)} scenarios to 'scenarios.yaml'")
+
+        with open(self.output_path / "scenarios.yaml", "w", encoding="utf-8") as f:
+            yaml.safe_dump(self.scenarios.to_dict(), f, sort_keys=False)
 
     # -------- Validate model ------------------------------------------------------
 
     def validate(self) -> None:
         """Validate the model for completeness and consistency.
 
-        This method checks that the energy system is defined and that all
-        carriers used in technologies are present in the model.
+        This method checks that the energy system is defined, that all
+        carriers used in technologies are present in the model, and that all
+        scenarios refer to elements of the model.
         """
         # check that all carriers of technologies are defined
         self._check_energy_system()
         self._check_carriers()
+
+        # check that all scenarios refer to elements of the model
+        self.scenarios.validate()
 
     def _check_energy_system(self) -> None:
         """
@@ -847,6 +1103,6 @@ class Model:
 
         if not carriers.issubset(set(self.carriers)):
             raise ValueError(
-                f"The following carriers, used by technologies, are not "
+                f"The following carriers, used by technologies, are "
                 f"missing from the model {carriers.difference(self.carriers)}."
             )

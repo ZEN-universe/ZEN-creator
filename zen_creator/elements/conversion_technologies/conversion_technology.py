@@ -25,9 +25,9 @@ class ConversionTechnology(Technology, ABC):
 
         # attributes which are added in this class
         self._subclass_attribute_names = [
-            "capex_specific_conversion",
             "input_carrier",
             "output_carrier",
+            "capex_specific_conversion",
             "conversion_factor",
             "min_full_load_hours_fraction",
         ]

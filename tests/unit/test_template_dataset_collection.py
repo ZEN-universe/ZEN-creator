@@ -36,5 +36,6 @@ def test_template_dataset_collection_metadata_construction(tmp_path: Path) -> No
             publication_year=2026,
             url="https://example.com/dataset.csv",
             doi=None,
+            note="You can add any additional notes about the dataset here.",
         )
     }

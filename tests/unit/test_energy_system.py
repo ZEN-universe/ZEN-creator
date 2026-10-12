@@ -39,17 +39,17 @@ def test_template_energy_system_build(
 def test_template_energy_system_write(
     model: Model,
 ):
-    """Write persists ``attributes.json`` and matches the reference output file."""
+    """Write persists ``attributes.yaml`` and matches the reference output file."""
     energy_system = TemplateEnergySystem(model=model)
     energy_system.build()
     energy_system.write()
 
-    attributes_path = energy_system.output_path / "attributes.json"
+    attributes_path = energy_system.output_path / "attributes.yaml"
     reference_path = (
         Path(__file__).parent
         / "fixtures"
         / "template_energy_system"
-        / "attributes_energy_system.json"
+        / "attributes_energy_system.yaml"
     )
 
     differences = compare_files(reference_path, attributes_path)

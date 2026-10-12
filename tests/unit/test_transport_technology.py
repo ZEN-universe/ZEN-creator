@@ -22,11 +22,12 @@ from zen_creator.utils.compare_trees import compare_files
 def test_template_transport_technology_construction(
     model: Model,
 ):
-    """Construction sets class name and mandatory carrier defaults."""
+    """Construction sets class name; reading a carrier attribute's value
+    auto-builds it on demand, ahead of an explicit build()."""
     technology = TemplateTransportTechnology(model=model)
 
     assert technology.name == "template_transport_technology"
-    assert technology.reference_carrier.default_value == []
+    assert technology.reference_carrier.default_value == ["heat"]
 
 
 def test_template_transport_technology_build(
@@ -40,8 +41,8 @@ def test_template_transport_technology_build(
     assert technology.lifetime.default_value == 25
     assert len(technology.lifetime.sources) == 1
     assert technology.lifetime.sources[0].description == "Description of assumption."
-    assert technology.max_load.default_value == 200
-    assert technology.max_load.unit == "MW"
+    assert technology.max_load.default_value == 0.8
+    assert technology.max_load.unit == "1"
     assert len(technology.max_load.sources) == 1
     assert isinstance(technology.max_load.sources[0].metadata, MetaData)
     assert technology.max_load.sources[0].metadata.name == "template_dataset"
@@ -50,17 +51,17 @@ def test_template_transport_technology_build(
 def test_template_transport_technology_write(
     model: Model,
 ):
-    """Write persists ``attributes.json`` and matches the reference output file."""
+    """Write persists ``attributes.yaml`` and matches the reference output file."""
     technology = TemplateTransportTechnology(model=model)
     technology.build()
     technology.write()
 
-    attributes_path = technology.output_path / "attributes.json"
+    attributes_path = technology.output_path / "attributes.yaml"
     reference_path = (
         Path(__file__).parent
         / "fixtures"
         / "template_transport_technology"
-        / "attributes_transport_technology.json"
+        / "attributes_transport_technology.yaml"
     )
 
     differences = compare_files(reference_path, attributes_path)

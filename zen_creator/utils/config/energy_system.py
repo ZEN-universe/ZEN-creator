@@ -1,8 +1,9 @@
-import json
 from pathlib import Path
 from typing import Dict, List
 
 from pydantic import Field
+
+from zen_creator.utils.file_io import find_data_file, read_data_file
 
 from ._base import Subscriptable
 
@@ -20,15 +21,13 @@ class ParameterInterpolationConfig(Subscriptable):
                 f"got {type(existing_model_path)}"
             )
 
-        file_path_interp = (
-            Path(existing_model_path)
-            / "energy_system"
-            / "parameters_interpolation_off.json"
+        energy_system_dir = Path(existing_model_path) / "energy_system"
+        file_path_interp = find_data_file(
+            energy_system_dir, "parameters_interpolation_off"
         )
 
-        if file_path_interp.exists():
-            with open(file_path_interp, "r") as f:
-                user_dict = json.load(f)
+        if file_path_interp is not None:
+            user_dict = read_data_file(file_path_interp)
             return cls.model_validate(user_dict)
 
         return cls()
@@ -60,15 +59,15 @@ class UnitsConfig(Subscriptable):
         return units_config
 
     def _base_units_from_existing_model(self, existing_model_path: Path) -> None:
-        base_unit_path = existing_model_path / "energy_system" / "base_units.json"
+        energy_system_dir = existing_model_path / "energy_system"
+        base_unit_path = find_data_file(energy_system_dir, "base_units")
 
-        if not base_unit_path.exists():
+        if base_unit_path is None:
             raise FileNotFoundError(
-                f"Could not find the configuration file {base_unit_path}."
+                f"Could not find a base_units file in {energy_system_dir}."
             )
 
-        with open(base_unit_path, "r") as f:
-            user_dict = json.load(f)
+        user_dict = read_data_file(base_unit_path)
 
         self.base_units = user_dict["unit"]
 

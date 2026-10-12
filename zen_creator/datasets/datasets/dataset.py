@@ -15,7 +15,10 @@ from .metadata import MetaData
 logger = logging.getLogger(__name__)
 
 # return type of data property
-T = TypeVar("T", bound=Union[pd.DataFrame, Dict[str, pd.DataFrame]])
+T = TypeVar(
+    "T",
+    bound=Union[pd.DataFrame, pd.Series, Dict[str, pd.DataFrame], Dict[str, pd.Series]],
+)
 
 
 class Dataset(ABC, Generic[T], metaclass=SingletonRegistryMeta):
@@ -96,25 +99,31 @@ class Dataset(ABC, Generic[T], metaclass=SingletonRegistryMeta):
         """The dataset data.
 
         Returns:
-            T: The dataset as a DataFrame or dict of DataFrames.
+            T: The dataset as a DataFrame, Series, or dict of either.
         """
         return self._data
 
     @data.setter
     def data(self, value: T) -> None:
         # runtime type check
-        if isinstance(value, pd.DataFrame):
+        if isinstance(value, pd.DataFrame) or isinstance(value, pd.Series):
             self._data = value
         elif isinstance(value, dict):
-            if not all(
-                isinstance(k, str) and isinstance(v, pd.DataFrame)
-                for k, v in value.items()
-            ):
-                raise TypeError("data must be dict[str, DataFrame]")
+            all_k_str = all(isinstance(k, str) for k in value.keys())
+            all_v_df = all(isinstance(v, pd.DataFrame) for v in value.values())
+            all_v_series = all(isinstance(v, pd.Series) for v in value.values())
+            if not all_k_str:
+                raise TypeError("All keys in the data dictionary must be strings.")
+            if not (all_v_df or all_v_series):
+                raise TypeError(
+                    "All values in the data dictionary "
+                    "must be either pandas DataFrames or Series."
+                )
             self._data = value
         else:
             raise TypeError(
-                f"data must be pd.DataFrame or dict[str, DataFrame], got {type(value)}"
+                "data must be pd.DataFrame, pd.Series, or a dict of either, got "
+                f"{type(value)}"
             )
 
     @property
@@ -147,4 +156,4 @@ class Dataset(ABC, Generic[T], metaclass=SingletonRegistryMeta):
 
     @abstractmethod
     def _set_data(self) -> T:
-        """Return the dataset as a DataFrame or dict of DataFrames."""
+        """Return the dataset as a DataFrame, Series, or dict of either."""

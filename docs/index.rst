@@ -23,6 +23,9 @@ Documentation
    files/quick_start/installation
    files/quick_start/getting_started
    files/quick_start/logic_and_structure
+   files/quick_start/design
+   files/quick_start/settings_and_models
+   files/quick_start/scenarios
 
 .. toctree::
    :maxdepth: 1
@@ -43,6 +46,8 @@ Documentation
    files/api/dataset_collection
    files/api/techno_economic_dataset
    files/api/config
+   files/api/settings
+   files/api/scenario
    files/api/compare_trees
 
 .. toctree::
