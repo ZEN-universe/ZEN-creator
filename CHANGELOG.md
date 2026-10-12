@@ -3,6 +3,17 @@
 This file gets automatically updated in ZEN-creator's continuous integration 
 procedures. Do not edit the file manually.
 
+## [v2.0.0] - 2026-10-12 
+
+### New Features ✨
+- settings can be defined and accessed throughout the model [[🔀 PR #65](https://github.com/ZEN-universe/ZEN-creator/pull/65) @jacob-mannhardt]
+- allow for nested metadata, a DatasetCollection can contain another DatasetCollection [[🔀 PR #65](https://github.com/ZEN-universe/ZEN-creator/pull/65) @jacob-mannhardt]
+- auto-build attributes when required: when the attribute of an element that has not been constructed yet is required in another element, the attribute is auto-built to avoid returning stale data. [[🔀 PR #65](https://github.com/ZEN-universe/ZEN-creator/pull/65) @jacob-mannhardt]
+- the structure of the model can be returned through ``model_structure`` [[🔀 PR #65](https://github.com/ZEN-universe/ZEN-creator/pull/65) @jacob-mannhardt]
+
+### BREAKING CHANGES ⚠️
+- the use of settings and config has changed [[🔀 PR #65](https://github.com/ZEN-universe/ZEN-creator/pull/65) @jacob-mannhardt]
+
 ## [v1.5.0] - 2026-06-17 
 
 ### New Features ✨
