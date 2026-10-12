@@ -66,9 +66,7 @@ def test_scenario_entry_of_operators():
     """Scalar operators are written as they are."""
     scenario = Scenario("scaled", default_op=1.5, file_op=0.5)
 
-    assert scenario.entries("demand") == {
-        "demand": {"default_op": 1.5, "file_op": 0.5}
-    }
+    assert scenario.entries("demand") == {"demand": {"default_op": 1.5, "file_op": 0.5}}
 
 
 def test_scenario_entry_of_list_operator():

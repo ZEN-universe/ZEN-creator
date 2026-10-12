@@ -65,8 +65,8 @@ class Scenario:
 
     The entry type determines the entry in scenarios.yaml: a default value is
     written to an ``attributes_<suffix>.yaml``, a data frame to a
-    ``<param>_<suffix>.csv``, and the operators (``default_op`` and ``file_op``) 
-    are written as factors that ZEN-garden applies to the unmodified values. 
+    ``<param>_<suffix>.csv``, and the operators (``default_op`` and ``file_op``)
+    are written as factors that ZEN-garden applies to the unmodified values.
     A list-valued operator is expanded by ZEN-garden into one sub-scenario per entry.
 
     Attributes:
@@ -438,9 +438,7 @@ class ScenarioRegistry:
 
         self._register(name, set_label, param, entry)
 
-    def _register(
-        self, name: str, element_key: str, param: str, entry: dict
-    ) -> None:
+    def _register(self, name: str, element_key: str, param: str, entry: dict) -> None:
         """Store a single entry, rejecting duplicates.
 
         Args:
