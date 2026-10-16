@@ -1,7 +1,6 @@
 # import difflib
 import difflib
 import json
-import logging
 from os.path import basename
 from pathlib import Path
 from typing import Any
@@ -14,7 +13,6 @@ import yaml
 # JSON DEEP DIFF
 # ----------------------------
 TOLERANCE = 10**-12
-logger = logging.getLogger(__name__)
 
 
 def json_diff(obj1: Any, obj2: Any, path: str = "") -> list[str]:
@@ -95,7 +93,7 @@ def csv_diff(
     file1: str | Path,
     file2: str | Path,
     tol: float = TOLERANCE,
-    detailed_results: bool = True,
+    detailed_results: bool = False,
 ) -> list[str]:
     """Compare two CSV files.
 
@@ -267,7 +265,7 @@ def compare_trees(
                 f"The following differences were found: \n {log_str}"
             )
         else:
-            logger.info(log_str)
+            print(log_str)
 
     return is_equal
 
