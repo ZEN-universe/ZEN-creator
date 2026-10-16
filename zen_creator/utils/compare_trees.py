@@ -91,7 +91,24 @@ def text_diff(file1: str | Path, file2: str | Path) -> list[str]:
 # ----------------------------
 
 
-def csv_diff(file1: str | Path, file2: str | Path, tol: float = TOLERANCE) -> list[str]:
+def csv_diff(
+    file1: str | Path,
+    file2: str | Path,
+    tol: float = TOLERANCE,
+    detailed_results: bool = True,
+) -> list[str]:
+    """Compare two CSV files.
+
+    Args:
+        file1: Path to the first CSV file.
+        file2: Path to the second CSV file.
+        tol: Relative tolerance used for numeric values.
+        detailed_results: Whether to report individual differences. If false,
+            return a single category-specific message when the files differ.
+
+    Returns:
+        Descriptions of the differences between the files.
+    """
 
     differences: list[str] = []
 
@@ -101,6 +118,8 @@ def csv_diff(file1: str | Path, file2: str | Path, tol: float = TOLERANCE) -> li
 
     # Check columns
     if not df1.columns.equals(df2.columns):
+        if not detailed_results:
+            return ["CSV columns do not match"]
         differences.append(
             f"Different columns:\n"
             f"File1: {df1.columns.tolist()}\n"
@@ -110,6 +129,8 @@ def csv_diff(file1: str | Path, file2: str | Path, tol: float = TOLERANCE) -> li
 
     # Check shape
     if df1.shape != df2.shape:
+        if not detailed_results:
+            return ["CSV sizes do not match"]
         differences.append(f"Different shapes: File1 {df1.shape}, File2 {df2.shape}")
         return differences
 
@@ -126,6 +147,8 @@ def csv_diff(file1: str | Path, file2: str | Path, tol: float = TOLERANCE) -> li
 
         # Record differences
         diff_indices = np.where(~comparison)[0]
+        if len(diff_indices) > 0 and not detailed_results:
+            return ["CSV values do not match"]
         for idx in diff_indices:
             differences.append(
                 f"Row {idx}, Column '{col}': {s1.iloc[idx]} != {s2.iloc[idx]}"
@@ -139,7 +162,7 @@ def csv_diff(file1: str | Path, file2: str | Path, tol: float = TOLERANCE) -> li
 # ----------------------------
 
 
-def compare_files(file1: Path, file2: Path) -> list[str]:
+def compare_files(file1: Path, file2: Path, detailed_results: bool = True) -> list[str]:
     ext = file1.suffix.lower()
 
     # json and yaml hold the same kind of data, so both are compared by
@@ -154,7 +177,7 @@ def compare_files(file1: Path, file2: Path) -> list[str]:
         return json_diff(obj1, obj2)
 
     if ext == ".csv":
-        return csv_diff(file1, file2)
+        return csv_diff(file1, file2, detailed_results=detailed_results)
 
     else:
         # fallback to text diff
@@ -181,7 +204,25 @@ def build_file_map(root: str | Path) -> dict[Path, Path]:
 # ----------------------------
 
 
-def compare_trees(dir1: str | Path, dir2: str | Path, raise_error: bool = True) -> bool:
+def compare_trees(
+    dir1: str | Path,
+    dir2: str | Path,
+    raise_error: bool = True,
+    detailed_results: bool = True,
+) -> bool:
+    """Compare the files in two directory trees.
+
+    Args:
+        dir1: Path to the first directory tree.
+        dir2: Path to the second directory tree.
+        raise_error: Whether to raise an assertion when differences are found.
+        detailed_results: Whether CSV comparisons should report individual row
+            and column differences. If false, each differing CSV produces one
+            category-specific message.
+
+    Returns:
+        Whether the directory trees are equal.
+    """
     map1 = build_file_map(dir1)
     map2 = build_file_map(dir2)
 
@@ -206,7 +247,7 @@ def compare_trees(dir1: str | Path, dir2: str | Path, raise_error: bool = True) 
             is_equal = False
         else:
             assert f1 is not None and f2 is not None
-            diffs = compare_files(f1, f2)
+            diffs = compare_files(f1, f2, detailed_results=detailed_results)
 
         if diffs:
             log.extend([f"\n=== {rel_path} ==="])
