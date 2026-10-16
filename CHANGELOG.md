@@ -3,6 +3,14 @@
 This file gets automatically updated in ZEN-creator's continuous integration 
 procedures. Do not edit the file manually.
 
+## [v2.1.0] - 2026-10-16 
+
+### New Features ✨
+- add `detailed_resutls` argument to the `compare_trees` function which determines whether value missmatches are reported for csv inputs in detailed row/column form. [[🔀 PR #69](https://github.com/ZEN-universe/ZEN-creator/pull/69) @csfunke]
+
+### Bug Fixes 🐛
+- fix print in the `compare_trees` function. The function previously used the logger, which means that outputs were not printed unless the logger setings were changed. [[🔀 PR #69](https://github.com/ZEN-universe/ZEN-creator/pull/69) @csfunke]
+
 ## [v2.0.0] - 2026-10-12 
 
 ### New Features ✨
