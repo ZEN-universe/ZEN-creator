@@ -19,6 +19,7 @@ def _metadata(name: str, author: list[str], year: int = 2026) -> MetaData:
         author=author,
         publication="publication",
         publication_year=year,
+        url="https://example.org",
     )
 
 
@@ -69,9 +70,9 @@ def test_citations_are_listed_once_and_cited_by_label() -> None:
         "assumed",
     ]
     assert references.to_str().splitlines() == [
-        "- **Jones 2020** (b): Ben Jones (2020). b. publication.",
-        "- **Smith 2026a** (a): Anna Smith (2026). a. publication.",
-        "- **Smith 2026b** (c): Carl Smith (2026). c. publication.",
+        "- **Jones 2020** (b): Ben Jones (2020). b. publication. https://example.org",
+        "- **Smith 2026a** (a): Anna Smith (2026). a. publication. https://example.org",
+        "- **Smith 2026b** (c): Carl Smith (2026). c. publication. https://example.org",
     ]
 
 
@@ -79,4 +80,6 @@ def test_without_references_citations_stay_inline() -> None:
     """Without a reference list, e.g. printing a single attribute's sources, the
     citations are written out in full."""
     source = SourceInformation(description="single", metadata=_metadata("a", ["A"]))
-    assert source.to_str() == "single\n\n**Citation**\n\nA (2026). a. publication."
+    assert source.to_str() == (
+        "single\n\n**Citation**\n\nA (2026). a. publication. https://example.org"
+    )

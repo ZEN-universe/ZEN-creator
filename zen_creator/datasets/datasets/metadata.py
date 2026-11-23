@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, Optional, Union
 
-from pydantic import ConfigDict, PrivateAttr, field_validator
+from pydantic import ConfigDict, PrivateAttr, field_validator, model_validator
 from typing_extensions import TypeAliasType
 
 from zen_creator.utils.config import Subscriptable
@@ -22,8 +22,9 @@ class MetaData(Subscriptable):
         author: List of authors or organizations responsible for publishing.
         publication: Name of the journal, conference, or publication venue.
         publication_year: Year the dataset or publication was released.
-        url: Optional web URL pointing to the dataset or publication.
-        doi: Optional Digital Object Identifier (DOI) for persistent citation.
+        url: Web URL pointing to the dataset or publication. A url or a doi
+            is required.
+        doi: Digital Object Identifier (DOI) for persistent citation.
     """
 
     model_config = ConfigDict(strict=True)
@@ -36,6 +37,13 @@ class MetaData(Subscriptable):
     url: Optional[str] = None
     doi: Optional[str] = None
     note: Optional[str] = None
+
+    @model_validator(mode="after")
+    def _require_url_or_doi(self) -> MetaData:
+        """Every source must be traceable, by a URL or a DOI."""
+        if not (self.url or self.doi):
+            raise ValueError(f"MetaData '{self.name}' needs a url or a doi.")
+        return self
 
     def to_dict(self) -> dict[str, object]:
         """Serialize metadata to a dictionary.
