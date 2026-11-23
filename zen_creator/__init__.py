@@ -8,6 +8,7 @@ from .datasets import (
     SourceInformation,
     TechnoEconomicDataset,
 )
+from .datasets.usage import instance_cache
 from .elements import (
     Carrier,
     ConversionTechnology,
@@ -57,6 +58,7 @@ __all__ = [
     "DatasetCollection",
     "DatasetCollectionConfig",
     "TechnoEconomicDataset",
+    "instance_cache",
     "Attribute",
     "Scenario",
     "ValueList",

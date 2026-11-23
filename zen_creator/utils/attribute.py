@@ -18,6 +18,7 @@ import pandas as pd
 
 from zen_creator.datasets.datasets.metadata import (
     AssumptionInformation,
+    References,
     SourceInformation,
 )
 from zen_creator.utils.file_io import find_data_file, read_data_file
@@ -872,8 +873,12 @@ class Attribute:
 
         return unit
 
-    def sources_to_str(self) -> str:
+    def sources_to_str(self, references: References | None = None) -> str:
         """Serialize the ordered sources into a readable numbered string.
+
+        Args:
+            references: The reference list of the page. If given, the citations
+                are listed there and only cited here by their author-year labels.
 
         Returns:
             A multi-line string where each source is prefixed with its insertion
@@ -884,7 +889,7 @@ class Attribute:
 
         blocks: list[str] = []
         for index, source in enumerate(self._sources, start=1):
-            blocks.append(f"Step {index}\n{source.to_str()}")
+            blocks.append(f"Step {index}\n{source.to_str(references)}")
 
         return "\n\n----\n\n".join(blocks)
 
