@@ -96,7 +96,7 @@ class TemplateTransportTechnology(TransportTechnology):
                     author=["ZEN Creator"],
                     publication="ZEN Creator Journal",
                     publication_year=2026,
-                    url="",
+                    url="https://example.org/template-study",
                 ),
             ),
         )
