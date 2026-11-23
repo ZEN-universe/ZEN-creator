@@ -3,6 +3,18 @@
 This file gets automatically updated in ZEN-creator's continuous integration 
 procedures. Do not edit the file manually.
 
+## [v3.1.0] - 2026-11-23 
+
+### New Features ✨
+- Require each `MetaData` source to have a non-empty `url` or `doi`. A pydantic model validator raises `ValueError("MetaData '<name>' needs a url or a doi.")` when both are missing or empty, so a dataset can no longer cite a source that cannot be looked up. [[🔀 PR #73](https://github.com/ZEN-universe/ZEN-creator/pull/73) @jacob-mannhardt]
+
+### Documentation Changes 📝
+- Update the `MetaData` docstring to say that a url or a doi is required. [[🔀 PR #73](https://github.com/ZEN-universe/ZEN-creator/pull/73) @jacob-mannhardt]
+
+### Maintenance Tasks 🧹
+- Replace the empty `url` in the conversion, storage and transport technology templates with a placeholder link. Without this change, the templates would fail the new check. [[🔀 PR #73](https://github.com/ZEN-universe/ZEN-creator/pull/73) @jacob-mannhardt]
+- Add unit tests for `MetaData` that check a url alone or a doi alone is accepted and a source with neither is rejected. [[🔀 PR #73](https://github.com/ZEN-universe/ZEN-creator/pull/73) @jacob-mannhardt]
+
 ## [v3.0.0] - 2026-11-23 
 
 ### New Features ✨
