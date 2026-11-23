@@ -13,6 +13,7 @@ from pathlib import Path
 
 import yaml
 
+from zen_creator.datasets.datasets.metadata import References
 from zen_creator.datasets.usage import track_usage
 from zen_creator.utils.attribute import Attribute
 from zen_creator.utils.registry import Registry
@@ -293,7 +294,7 @@ class Element(ABC, Registry["Element"], is_base_registry=True):
         logger.debug(f"Saving 'sources.md' for element '{self.name}.'")
 
         out_path = self.output_path
-        with (out_path / "sources.md").open("w") as f:
+        with (out_path / "sources.md").open("w", encoding="utf-8") as f:
             f.write(self.sources_to_str())
 
     def save_data(self):
@@ -307,21 +308,27 @@ class Element(ABC, Registry["Element"], is_base_registry=True):
     def sources_to_str(self) -> str:
         """Convert the sources of all attributes to a markdown page.
 
+        All citations of the element are listed once at the top; the attributes
+        cite them by their author-year labels.
+
         Returns:
             str: A markdown-formatted string of all sources for this element.
         """
-        output_lines = [self.name, "=" * len(self.name), ""]
-        has_sources = False
-
+        references = References()
+        # add all citations first, so that shared labels get their suffix everywhere
+        for attr_name in self._attribute_names:
+            getattr(self, attr_name).sources_to_str(references)
+        attribute_lines: list[str] = []
         for attr_name in self._attribute_names:
             attr = getattr(self, attr_name)
             if attr.sources:
-                has_sources = True
-                output_lines.extend([attr_name, "-" * len(attr_name), ""])
-                output_lines.append(attr.sources_to_str())
-                output_lines.append("")
+                attribute_lines.extend([attr_name, "-" * len(attr_name), ""])
+                attribute_lines.append(attr.sources_to_str(references))
+                attribute_lines.append("")
 
-        if not has_sources:
-            output_lines.extend(["_No sources available._", ""])
-
+        output_lines = [self.name, "=" * len(self.name), ""]
+        if references:
+            output_lines.extend(["Citations", "-" * len("Citations"), ""])
+            output_lines.extend([references.to_str(), ""])
+        output_lines.extend(attribute_lines or ["_No sources available._", ""])
         return "\n".join(output_lines).rstrip()

@@ -139,12 +139,16 @@ class SourceInformation(Subscriptable):
                 cls._validate_metadata(sub_value)
         return value
 
-    def to_str(self) -> str:
+    def to_str(self, references: Optional[References] = None) -> str:
         """Generate a formatted string with description and associated citations.
 
         Produces a human-readable text block combining the source description with
         properly formatted citations. Handles both single-source and multi-source
         (including nested) scenarios automatically.
+
+        Args:
+            references: The reference list of the page. If given, the citations
+                are listed there and only cited here by their author-year labels.
 
         Returns:
             str: Multi-line string with description, followed by citations. For
@@ -154,6 +158,11 @@ class SourceInformation(Subscriptable):
         metadata = self.cited_metadata
         if metadata is None:
             return self.description
+
+        if references is not None:
+            labels = sorted(set(references.cite(metadata)))
+            heading = "**Citations**" if len(labels) > 1 else "**Citation**"
+            return f"{self.description}\n\n{heading}: [{'; '.join(labels)}]"
 
         lines = [self.description, ""]
 
@@ -183,6 +192,111 @@ class SourceInformation(Subscriptable):
             else:
                 lines.append(f"{indent}- **{name}**: {value.to_str()}")
         return lines
+
+
+class References:
+    """The reference list of a page, e.g. the ``sources.md`` of an element: every
+    citation is listed once and cited by its author-year label, e.g.
+    "Burandt et al. 2018". Equal labels of different citations get a suffix,
+    "2021a", "2021b", in the order they are first cited, so a page is rendered
+    after all its citations are added."""
+
+    def __init__(self) -> None:
+        # citation string -> (dataset name, metadata), in order of first citation
+        self._entries: dict[str, tuple[str, MetaData]] = {}
+
+    def cite(self, metadata: MetadataTree, name: Optional[str] = None) -> list[str]:
+        """Add the citations of a (possibly nested) metadata tree and return their
+        labels. The dataset name of a citation is its key in the tree, or the name
+        in its metadata."""
+        if isinstance(metadata, dict):
+            return [n for key, value in metadata.items() for n in self.cite(value, key)]
+        citation = metadata.to_str()
+        self._entries.setdefault(citation, (name or metadata.name, metadata))
+        return [self.label(citation)]
+
+    def label(self, citation: str) -> str:
+        """The author-year label of a citation, with a suffix if it is shared."""
+        label = _author_year(self._entries[citation][1])
+        shared = [c for c, (_, m) in self._entries.items() if _author_year(m) == label]
+        if len(shared) > 1:
+            label += "abcdefghijklmnopqrstuvwxyz"[shared.index(citation)]
+        return label
+
+    def to_str(self) -> str:
+        """The reference list, sorted by label, with the dataset name each
+        citation belongs to."""
+        lines = sorted(
+            (self.label(citation), name, citation)
+            for citation, (name, _) in self._entries.items()
+        )
+        return "\n".join(
+            f"- **{label}** ({name}): {citation}" for label, name, citation in lines
+        )
+
+    def __bool__(self) -> bool:
+        return bool(self._entries)
+
+
+# words marking an author as an organization rather than a person
+_ORGANIZATION_WORDS = {
+    "Academy", "Agency", "Association", "Bank", "Centre", "Center", "Commission",
+    "Council", "Department", "Economics", "Europe", "European", "Federal", "Group",
+    "Institute", "International", "Laboratory", "Ministry", "Monitor", "National",
+    "Network", "Observatory", "Office", "Organisation", "Organization", "Research",
+    "Statistical", "Statistics", "Union", "University", "World",
+    "and", "for", "of", "the",
+}  # fmt: skip
+# lower-case parts of a surname, e.g. "De Felice", "van der Berg"
+_NAME_PARTICLES = {
+    "da",
+    "de",
+    "del",
+    "den",
+    "der",
+    "di",
+    "du",
+    "la",
+    "le",
+    "van",
+    "von",
+}
+
+
+def _short_author(author: str) -> str:
+    """The surname of a person, or the short name of an organization: its
+    abbreviation in parentheses, e.g. "JRC", or its name."""
+    author = author.removesuffix("et al.").strip()
+    if "(" in author:
+        name, abbreviation = author.split("(", 1)
+        return min(name.strip(" ,"), abbreviation.split(")")[0].strip(), key=len)
+    if "," in author:
+        # "Rehfeldt, Matthias" or "European Commission, Joint Research Centre"
+        return author.split(",", 1)[0].strip()
+    words = author.split()
+    is_organization = len(words) == 1 or any(
+        word in _ORGANIZATION_WORDS
+        or (len(word) > 1 and word.isalpha() and word.isupper())  # "LCP Delta"
+        for word in words
+    )
+    if is_organization:
+        return author
+    start = len(words) - 1
+    while start > 1 and words[start - 1].lower() in _NAME_PARTICLES:
+        start -= 1
+    return " ".join(words[start:])
+
+
+def _author_year(metadata: MetaData) -> str:
+    """The author-year label of a citation, e.g. "Burandt et al. 2018"."""
+    if not metadata.author:
+        return f"{metadata.name} {metadata.publication_year}"
+    names = [_short_author(author) for author in metadata.author]
+    if len(names) > 2 or metadata.author[-1].strip().endswith("et al."):
+        authors = f"{names[0]} et al."
+    else:
+        authors = " and ".join(names)
+    return f"{authors} {metadata.publication_year}"
 
 
 def _select_read(
@@ -221,10 +335,13 @@ class AssumptionInformation(Subscriptable):
     description: str
     metadata: Optional[MetadataTree] = None
 
-    def to_str(self) -> str:
+    def to_str(self, references: Optional[References] = None) -> str:
         """Generate a formatted string with description.
 
         Produces a human-readable text block combining the source description.
+
+        Args:
+            references: Unused, assumptions have no citations.
 
         Returns:
             str: Multi-line string with description
