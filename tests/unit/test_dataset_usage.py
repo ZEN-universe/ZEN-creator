@@ -5,6 +5,7 @@ from __future__ import annotations
 import functools
 from functools import cached_property
 from pathlib import Path
+from typing import cast
 
 import pandas as pd
 import pytest
@@ -55,11 +56,11 @@ class _Collection(DatasetCollection):
 
     @cached_property
     def total_a(self) -> float:
-        return float(self.data["a"].data.sum())
+        return float(cast(_DatasetA, self.data["a"]).data.sum())
 
     @instance_cache
     def scaled_b(self, factor: float) -> float:
-        return float(self.data["b"].data.sum()) * factor
+        return float(cast(_DatasetB, self.data["b"]).data.sum()) * factor
 
     def source(self) -> SourceInformation:
         return SourceInformation(description="description", metadata=self.metadata)
