@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING, Any, Dict
 
 if TYPE_CHECKING:
     pass
@@ -12,10 +12,32 @@ from zen_creator.utils.singleton_registry_meta import SingletonRegistryMeta
 
 from ..datasets.dataset import Dataset
 from ..datasets.metadata import MetadataTree
+from ..usage import record_usage, track_caches
+
+
+class _RecordingData(dict):
+    """The datasets of a collection. Reading a dataset by name records it for
+    the ``sources.md`` of the attribute being built; iterating does not."""
+
+    def __getitem__(self, name: str) -> Dataset | DatasetCollection:
+        value = super().__getitem__(name)
+        if isinstance(value, Dataset):
+            record_usage(value.metadata)
+        return value
+
+    def get(self, name: str, default: Any = None) -> Any:
+        return self[name] if name in self else default
 
 
 class DatasetCollection(ABC, metaclass=SingletonRegistryMeta):
-    """Combined dataset for various data."""
+    """Combined dataset for various data.
+
+    Pass ``self.metadata`` to a ``SourceInformation``: ``sources.md`` then cites
+    for each attribute only the datasets taken from ``self.data["<name>"]`` to
+    calculate it. Name datasets selected in a loop over ``self.data`` with
+    ``mark_used``, and cache with ``functools.cached_property`` or
+    ``zen_creator.instance_cache`` only. See "Source Tracking" in the docs.
+    """
 
     name: str
 
@@ -49,6 +71,7 @@ class DatasetCollection(ABC, metaclass=SingletonRegistryMeta):
             raise Exception(
                 f"Subclass {cls.__name__} should define a class variable " "" "'name'."
             )
+        track_caches(cls)
 
     # ------------ properties --------------------------
     @property
@@ -89,7 +112,7 @@ class DatasetCollection(ABC, metaclass=SingletonRegistryMeta):
                     "values of type `Dataset` or `DatasetCollection`, got "
                     f"'{type(v).__name__}' instead."
                 )
-        self._data = value
+        self._data = _RecordingData(value)
 
     # ----------- metadata -----------------------------
     @property
@@ -107,6 +130,19 @@ class DatasetCollection(ABC, metaclass=SingletonRegistryMeta):
         for name, dataset in self.data.items():
             metadata[name] = dataset.metadata
         return metadata
+
+    def mark_used(self, *names: str) -> None:
+        """Record datasets as read for the attribute being built.
+
+        For values from datasets selected by iterating over ``self.data``, which
+        does not record them. The name of a nested collection records all of its
+        datasets.
+
+        Args:
+            *names: Names of datasets in ``self.data``.
+        """
+        for name in names:
+            record_usage(self.metadata[name])
 
     # ---------------- Abstract hooks ------------------
 

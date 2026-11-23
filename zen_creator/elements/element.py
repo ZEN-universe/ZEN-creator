@@ -13,6 +13,7 @@ from pathlib import Path
 
 import yaml
 
+from zen_creator.datasets.usage import track_usage
 from zen_creator.utils.attribute import Attribute
 from zen_creator.utils.registry import Registry
 from zen_creator.utils.utils import get_energy_unit_from_power_unit
@@ -175,7 +176,9 @@ class Element(ABC, Registry["Element"], is_base_registry=True):
 
         stack.append(frame)
         try:
-            setattr(self, name, setter())
+            # record the datasets read, to cite only these in sources.md
+            with track_usage():
+                setattr(self, name, setter())
         finally:
             stack.pop()
         self._built_attribute_names.add(name)

@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-from typing import Dict, Optional, Union
+from typing import Any, Dict, Optional, Union
 
-from pydantic import ConfigDict, field_validator
+from pydantic import ConfigDict, PrivateAttr, field_validator
 from typing_extensions import TypeAliasType
 
 from zen_creator.utils.config import Subscriptable
+
+from ..usage import Usage, active_usage
 
 
 class MetaData(Subscriptable):
@@ -87,6 +89,10 @@ class SourceInformation(Subscriptable):
     (dict of MetaData, arbitrarily nested for DatasetCollections composed of other
     DatasetCollections) configurations for flexibility in citation requirements.
 
+    A dictionary, the metadata of a dataset collection, is cited only with the
+    datasets that were read while the attribute was built, see
+    ``cited_metadata``.
+
     Attributes:
         description: Narrative explanation of the attribute's source, collection
             method, or data processing applied.
@@ -99,6 +105,25 @@ class SourceInformation(Subscriptable):
 
     description: str
     metadata: MetadataTree
+
+    # the datasets read for the attribute being built when this source was created
+    _usage: Optional[Usage] = PrivateAttr(default=None)
+
+    def model_post_init(self, context: Any, /) -> None:
+        """Keep the record of the datasets read for the attribute being built."""
+        self._usage = active_usage()
+
+    @property
+    def cited_metadata(self) -> Optional[MetadataTree]:
+        """The metadata cited in ``sources.md``.
+
+        A dictionary keeps only the datasets read while the attribute was built,
+        and is None if none was read. A single MetaData, and a source created
+        outside an attribute build, where nothing was recorded, are cited in full.
+        """
+        if self._usage is None or not isinstance(self.metadata, dict):
+            return self.metadata
+        return _select_read(self.metadata, self._usage)
 
     @field_validator("metadata")
     @classmethod
@@ -126,16 +151,20 @@ class SourceInformation(Subscriptable):
                 multi-source, each citation is prefixed with its source name in
                 brackets, indented by its nesting depth.
         """
+        metadata = self.cited_metadata
+        if metadata is None:
+            return self.description
+
         lines = [self.description, ""]
 
-        if isinstance(self.metadata, dict):
+        if isinstance(metadata, dict):
             lines.append("**Citations**")
             lines.append("")
-            lines.extend(self._format_metadata_tree(self.metadata))
+            lines.extend(self._format_metadata_tree(metadata))
         else:
             lines.append("**Citation**")
             lines.append("")
-            lines.append(self.metadata.to_str())
+            lines.append(metadata.to_str())
 
         return "\n".join(lines)
 
@@ -154,6 +183,23 @@ class SourceInformation(Subscriptable):
             else:
                 lines.append(f"{indent}- **{name}**: {value.to_str()}")
         return lines
+
+
+def _select_read(
+    tree: dict[str, MetadataTree], usage: Usage
+) -> Optional[dict[str, MetadataTree]]:
+    """The part of a metadata dictionary whose datasets are in `usage`, None if
+    there is none."""
+    selected: dict[str, MetadataTree] = {}
+    for name, value in tree.items():
+        kept = (
+            _select_read(value, usage)
+            if isinstance(value, dict)
+            else (value if id(value) in usage else None)
+        )
+        if kept is not None:
+            selected[name] = kept
+    return selected or None
 
 
 class AssumptionInformation(Subscriptable):

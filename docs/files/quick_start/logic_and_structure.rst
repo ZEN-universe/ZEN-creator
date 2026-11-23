@@ -262,6 +262,45 @@ attribute that is processed in several steps keeps all of them in order.
 When the model is written, the entries of all attributes of an element are
 written to ``sources.md`` in the element's folder, with full citations.
 
+Only the datasets that were read
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A dataset collection often holds more datasets than a single attribute needs.
+You still pass the whole collection's metadata, and ``sources.md`` lists for
+each attribute only the datasets used to calculate it:
+
+.. code-block:: python
+
+   def get_demand(self, element):
+       aidres = self.data["aidres"]  # counts as used from here on
+       data = aidres.get_demand(element)
+       source = SourceInformation(
+           description="...",
+           metadata=self.metadata,  # sources.md cites only 'aidres'
+       )
+       return element.demand.set_data(source=source, df=data)
+
+A dataset counts as used once you take it from the collection by name,
+``self.data["<name>"]``, even if its values do not change the result. If an
+attribute uses none of the collection's datasets, ``sources.md`` shows only
+the description. Metadata of a single dataset, e.g. ``dataset.metadata``, is
+always cited as given.
+
+Keep the following in mind, otherwise a dataset you used is missing from
+``sources.md``:
+
+- **Only datasets of the collection are cited.** Add every dataset you use to
+  ``_get_data()``, rather than loading it elsewhere, e.g. in ``__init__`` or
+  inside another dataset.
+- **Looping over** ``self.data`` does not count as using a dataset, since a
+  loop often only searches for the datasets that have data. Name the datasets
+  the value comes from with ``self.mark_used("<name>", ...)``.
+- **Caching:** use ``functools.cached_property`` or
+  ``zen_creator.instance_cache`` to cache values in a collection; both keep
+  the datasets of the cached value in ``sources.md``. Do not cache by hand,
+  e.g. in a dictionary or by computing values in ``__init__``: the datasets
+  are then only cited for the first attribute that uses the value.
+
 
 .. _logic_structure.output:
 
